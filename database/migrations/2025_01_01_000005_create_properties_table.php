@@ -12,6 +12,7 @@ return new class extends Migration {
     {
         Schema::create('properties', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->unique();
             $table->string('name');
             $table->string('type');
             $table->text('description')->nullable();
@@ -37,7 +38,7 @@ return new class extends Migration {
             $table->string('contact_email')->nullable();
             $table->string('contact_phone')->nullable();
 
-            $table->foreignId('properties_id')
+            $table->foreignId('portfolio_id')
                 ->nullable()
                 ->constrained('portfolios')
                 ->nullOnDelete();

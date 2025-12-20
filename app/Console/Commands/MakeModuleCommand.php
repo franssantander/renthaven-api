@@ -80,7 +80,7 @@ class MakeModuleCommand extends Command
             $selectedKeys = array_keys($directoryMap);
         } else {
             $choices = array_keys($directoryMap);
-            $defaultDirs = ['Controllers', 'Requests', 'Resources', 'Models', 'Providers', 'Routes'];
+            $defaultDirs = ['Controllers', 'Requests', 'Resources', 'Models', 'Providers', 'Routes', 'Services'];
 
             // Display available + default
             $this->line('');

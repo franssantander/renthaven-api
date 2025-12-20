@@ -1,27 +1,33 @@
 <?php
 
-namespace App\Models;
+namespace App\Modules\TenantManagement\Models;
 
+use Database\Factories\LeaseFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
-class Media extends Model
+class Lease extends Model
 {
     use HasFactory, HasUuids, SoftDeletes;
+    protected $guarded = [];
+
+    protected $table = 'leases';
 
     protected $fillable = [
-        'file_name',
-        'file_path',
-        'file_type',
-        'file_size',
-        'description',
-        'uploaded_by',
-        'model_id',
-        'model_type',
+        'user_id',
+        'property_id',
+        'start_date',
+        'end_date',
+        'is_active',
+    ];
+
+    protected $casts = [
+        'start_date' => 'date',
+        'end_date' => 'date',
+        'is_active' => 'boolean',
     ];
 
     protected static function booted()
@@ -40,18 +46,8 @@ class Media extends Model
         return ['uuid'];
     }
 
-    /**
-     * RELATIONSHIP 1: The Polymorphic Link
-     * Get the parent model (Property, User, Portfolio, etc.)
-     */
-    public function model(): MorphTo
+    protected static function newFactory()
     {
-        return $this->morphTo();
-    }
-
-
-    public function uploader()
-    {
-        return $this->belongsTo(User::class, 'uploaded_by');
+        return LeaseFactory::new();
     }
 }
