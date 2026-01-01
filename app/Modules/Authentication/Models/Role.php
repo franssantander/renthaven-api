@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 
 class Role extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, SoftDeletes;
 
     protected $guarded = [];
 
