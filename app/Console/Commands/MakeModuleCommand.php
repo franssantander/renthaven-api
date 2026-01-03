@@ -28,7 +28,7 @@ class MakeModuleCommand extends Command
      *  # Everything except Mail and Services
      *  php artisan make:module Blog --except=Mail,Services
      */
-    protected $description = 'Scaffold a feature module (versioned API) with directories and stubs: Models, Actions, Data, Routes, Services, Mail, Http/Controllers/API/v{n}, Http/Requests, Providers (incl. Model, Controller, Routes, Service, Request, and ServiceProvider stubs).';
+    protected $description = 'Scaffold a feature module (versioned API) with directories and stubs: Models, Actions, DTO, Routes, Services, Mail, Http/Controllers/API/v{n}, Http/Requests, Providers (incl. Model, Controller, Routes, Service, Request, and ServiceProvider stubs).';
 
     /**
      * Execute the console command.
@@ -57,7 +57,7 @@ class MakeModuleCommand extends Command
         // Map of selectable logical directories to their relative paths
         $directoryMap = [
             'Actions' => 'Actions',
-            'Data' => 'Data',
+            'DTO' => 'DTO',
             'Models' => 'Models',
             // 'Repositories' => 'Repositories',
             'Routes' => 'Routes',

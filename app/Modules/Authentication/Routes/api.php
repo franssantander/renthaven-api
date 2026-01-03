@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Authentication\Http\Controllers\API\v1\LoginController;
 use Illuminate\Support\Facades\Route;
 
 // If you prefer central route files, you can import them here instead of defining inline:
@@ -16,8 +17,10 @@ Route::prefix('v1')
                 // Route::get('{id}', 'show')->name('show');
                 // Route::patch('{id}', 'update')->name('update');
                 // Route::delete('{id}', 'destroy')->name('destroy');
-
-                // Examples for full replace vs partial update patterns
-                // Other related route here . .
+        
+                Route::post('login', LoginController::class)->name('login');
+                Route::middleware('auth:api')->group(function () {
+                    Route::post('logout');
+                });
             });
     });

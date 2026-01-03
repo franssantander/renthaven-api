@@ -1,9 +1,7 @@
 <?php
-
-namespace App\Models;
+namespace App\Modules\Authentication\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-
 use App\Modules\Authentication\Models\Role;
 use App\Modules\Portfolio\Models\Portfolio;
 use App\Modules\PropertyManagement\Models\Property;

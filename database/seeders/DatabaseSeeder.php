@@ -2,8 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
+
 use App\Modules\Authentication\Models\Role;
+use App\Modules\Authentication\Models\User;
 use App\Modules\Portfolio\Models\Portfolio;
 use App\Modules\PropertyManagement\Models\Property;
 use App\Modules\TenantManagement\Models\Lease;
