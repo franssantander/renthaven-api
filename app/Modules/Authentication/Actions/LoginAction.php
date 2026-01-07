@@ -1,15 +1,18 @@
 <?php
 
 namespace App\Modules\Authentication\Actions;
+
+use App\Modules\Authentication\Data\LoginData;
 use App\Modules\Authentication\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpFoundation\Response;
 
 class LoginAction
 {
-    public function execute($params)
+    public function execute($params): LoginData
     {
-        $user = User::where('username', $params['username'])
+        $user = User::with('role')
+            ->where('username', $params['username'])
             ->where('is_active', true)
             ->first();
 
@@ -24,13 +27,6 @@ class LoginAction
         $tokenResult = $user->createToken('Personal Access Token');
         $token = $tokenResult->accessToken;
 
-        return [
-            'access_token' => $token,
-            'user' => [
-                'username' => $user->username,
-                'email' => $user->email,
-                'name' => $user->first_name . ' ' . $user->last_name,
-            ]
-        ];
+        return LoginData::fromModel($token, $user);
     }
 }

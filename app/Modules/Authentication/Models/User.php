@@ -5,6 +5,7 @@ namespace App\Modules\Authentication\Models;
 use App\Modules\Authentication\Models\Role;
 use App\Modules\Portfolio\Models\Portfolio;
 use App\Modules\PropertyManagement\Models\Property;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -74,6 +75,11 @@ class User extends Authenticatable implements OAuthenticatable
                 $model->uuid = (string) Str::uuid();
             }
         });
+    }
+
+    protected function name(): Attribute
+    {
+        return Attribute::make(get: fn(mixed $value, array $attributes) => $attributes['first_name'] . ' ' . $attributes['last_name']);
     }
 
     public function uniqueIds(): array
