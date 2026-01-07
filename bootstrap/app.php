@@ -5,6 +5,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Auth\AuthenticationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -18,20 +19,20 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        // 1. Handle Validation Errors (Status 422)
-        // This replaces the code you had in "failedValidation"
-        $exceptions->render(function (ValidationException $e, Request $request) {
+
+        // Handle Authenticated error
+        $exceptions->render(function (AuthenticationException $e, Request $request) {
             if ($request->is('api/*')) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Validation errors',
-                    'errors' => $e->errors(),
-                    'status' => 422
-                ], 422);
+                    'message' => 'Unauthenticated.',
+                    'errors' => null,
+                    'status' => 401
+                ], 401);
             }
         });
 
-        // 2. Handle Manual Action Errors (Status 400, 401, 403, 404, etc.)
+        //  Handle Manual Action Errors (Status 400, 403, 404, etc.)
         // This handles your "throw new HttpException" from the Action
         $exceptions->render(function (HttpException $e, Request $request) {
             if ($request->is('api/*')) {
@@ -44,7 +45,21 @@ return Application::configure(basePath: dirname(__DIR__))
             }
         });
 
-        // 3. Handle Generic/Server Errors (Status 500)
+
+        // Handle Validation Errors (Status 422)
+        // This replaces the code you had in "failedValidation"
+        $exceptions->render(function (ValidationException $e, Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation errors',
+                    'errors' => $e->errors(),
+                    'status' => 422
+                ], 422);
+            }
+        });
+
+        // Handle Generic/Server Errors (Status 500)
         // This handles unexpected crashes (syntax errors, DB disconnects, etc.)
         $exceptions->render(function (Throwable $e, Request $request) {
             if ($request->is('api/*')) {

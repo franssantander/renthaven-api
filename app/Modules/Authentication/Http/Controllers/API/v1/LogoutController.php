@@ -10,6 +10,7 @@ class LogoutController extends Controller
 {
     public function __invoke(Request $request, LogoutAction $action)
     {
-        return $action->execute($request->user());
+        $data = $action->execute($request->user());
+        return $this->success($data, 'Logout Successfully');
     }
 }

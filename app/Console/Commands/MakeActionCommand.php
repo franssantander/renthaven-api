@@ -13,7 +13,7 @@ class MakeActionCommand extends Command
      *
      * Example usage: php artisan make:action LoginAction Authentication
      */
-    protected $signature = 'make:action {name : The name of the action class} {module : The module where this action belongs}';
+    protected $signature = 'make:module-action {name : The name of the action class} {module : The module where this action belongs}';
 
     protected $description = 'Create a new Action class inside a Module';
 
@@ -63,7 +63,7 @@ namespace App\Modules\\{$module}\Actions;
 
 class {$name}
 {
-    public function __invoke()
+    public function execute()
     {
         //
     }

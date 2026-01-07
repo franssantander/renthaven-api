@@ -65,7 +65,7 @@ class MakeModuleControllerCommand extends Command
             return <<<EOT
 <?php
 
-namespace App\Modules\\{$module}\Http\Controllers\API\v1;
+namespace App\Modules\\{$module}\Http\Controllers\API\\v1;
 
 {$baseControllerImport}
 use Illuminate\Http\Request;
@@ -87,7 +87,7 @@ EOT;
         return <<<EOT
 <?php
 
-namespace App\Modules\\{$module}\Http\Controllers\API\v1;
+namespace App\Modules\\{$module}\Http\Controllers\API\\v1;
 
 {$baseControllerImport}
 use Illuminate\Http\Request;

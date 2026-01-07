@@ -14,6 +14,7 @@ class LoginController extends Controller
      */
     public function __invoke(LoginUserRequest $request, LoginAction $action)
     {
-        return $action->execute($request->validated());
+        $data = $action->execute($request->validated());
+        return $this->success($data, 'Login Successfully');
     }
 }
