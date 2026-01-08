@@ -9,7 +9,15 @@ class GetPropertiesListAction
 {
     public function execute(array $params): LengthAwarePaginator
     {
-        return Property::with('portfolio')
-            ->paginate(15);
+        $columns = [
+            'name',
+            'type',
+            'city',
+            'address_line_1',
+            'portfolio.name'
+        ];
+
+        return Property::with(['portfolio', 'createdBy', 'updatedBy'])
+            ->filter($params, $columns);
     }
 }

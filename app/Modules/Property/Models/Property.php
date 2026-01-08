@@ -4,6 +4,7 @@ namespace App\Modules\Property\Models;
 
 use App\Modules\Authentication\Models\User;
 use App\Modules\Portfolio\Models\Portfolio;
+use App\Traits\Filterable;
 use Database\Factories\PropertyFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,6 +16,7 @@ use Illuminate\Support\Str;
 class Property extends Model
 {
     use HasFactory, HasUuids, SoftDeletes;
+    use Filterable;
 
     protected $table = 'properties';
 
@@ -88,5 +90,4 @@ class Property extends Model
     {
         return $this->belongsTo(User::class, 'updated_by');
     }
-
 }
