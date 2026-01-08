@@ -4,7 +4,7 @@ namespace App\Modules\Authentication\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Modules\Authentication\Models\Role;
 use App\Modules\Portfolio\Models\Portfolio;
-use App\Modules\PropertyManagement\Models\Property;
+use App\Modules\Property\Models\Property;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

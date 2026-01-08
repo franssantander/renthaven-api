@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Modules\PropertyManagement\Models;
+namespace App\Modules\Property\Models;
 
-use App\Models\User;
+use App\Modules\Authentication\Models\User;
 use App\Modules\Portfolio\Models\Portfolio;
 use Database\Factories\PropertyFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;

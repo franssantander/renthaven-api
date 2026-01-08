@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Modules\PropertyManagement\Models\Property;
+use App\Modules\Property\Models\Property;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

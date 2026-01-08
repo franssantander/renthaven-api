@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Modules\PropertyManagement\Services;
+namespace App\Modules\Property\Services;
 
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 
-class PropertyManagementService
+class PropertyService
 {
     public function __construct(
         private DatabaseManager $databaseManager,
