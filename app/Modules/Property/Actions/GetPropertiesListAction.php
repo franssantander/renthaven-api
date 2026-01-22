@@ -7,17 +7,9 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class GetPropertiesListAction
 {
-    public function execute(array $params): LengthAwarePaginator
+    public function execute(array $params)
     {
-        $columns = [
-            'name',
-            'type',
-            'city',
-            'address_line_1',
-            'portfolio.name'
-        ];
-
         return Property::with(['portfolio', 'createdBy', 'updatedBy'])
-            ->filter($params, $columns);
+            ->filter($params);
     }
 }

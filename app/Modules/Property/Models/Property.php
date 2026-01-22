@@ -45,6 +45,14 @@ class Property extends Model
         'updated_by',
     ];
 
+    protected $searchableRelations = [
+        'portfolio.name',
+        'createdBy.first_name',
+        'createdBy.last_name',
+        'createdBy.email',
+        'createdBy.username',
+    ];
+
     protected $casts = [
         'is_available' => 'boolean',
         'is_active' => 'boolean',
