@@ -39,6 +39,7 @@ class LoginUserRequest extends FormRequest
             'success' => false,
             'message' => 'Please check the highlighted fields and try again.',
             'errors' => $validator->errors(),
+            'status' => 422
         ], 422));
     }
 }

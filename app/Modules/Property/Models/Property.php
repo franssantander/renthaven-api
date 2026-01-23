@@ -120,4 +120,11 @@ class Property extends Model
 
         return $query;
     }
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        return $this->where('uuid', $value)
+            ->forUser(auth()->user())
+            ->firstOrFail();
+    }
 }

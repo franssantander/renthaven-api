@@ -37,9 +37,9 @@ class CreatePropertyRequest extends FormRequest
             'area_sq_ft' => ['required', 'integer'],
             'monthly_rent_price' => ['required', 'integer'],
             'security_deposit' => ['required', 'integer'],
-            'is_available' => ['boolean'],
-            'has_parking' => ['boolean'],
-            'allows_pets' => ['boolean'],
+            'is_available' => ['required', 'boolean'],
+            'has_parking' => ['required', 'boolean'],
+            'allows_pets' => ['required', 'boolean'],
             'contact_email' => ['required', 'email'],
             'contact_phone' => ['required'],
         ];
@@ -55,6 +55,7 @@ class CreatePropertyRequest extends FormRequest
             'success' => false,
             'message' => 'Please check the highlighted fields and try again.',
             'errors' => $validator->errors(),
+            'status' => 422
         ], 422));
     }
 }

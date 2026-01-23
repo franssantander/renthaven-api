@@ -37,7 +37,7 @@ class MakeModuleRequestCommand extends Command
         $filePath = "{$path}/{$name}.php";
 
         // 2. Ensure the directory exists
-        if (! $this->files->isDirectory($path)) {
+        if (!$this->files->isDirectory($path)) {
             $this->files->makeDirectory($path, 0755, true);
         }
 
@@ -101,6 +101,7 @@ class {$name} extends FormRequest
             'success' => false,
             'message' => 'Please check the highlighted fields and try again.',
             'errors'  => \$validator->errors(),
+            'status' => 422
         ], 422));
     }
 }

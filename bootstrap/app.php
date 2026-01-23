@@ -6,7 +6,10 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -19,6 +22,33 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+
+        $exceptions->render(function (NotFoundHttpException $e, Request $request) {
+            if ($request->is('api/*')) {
+
+                // Check if this 404 was caused by a specific Model missing
+                if ($e->getPrevious() instanceof ModelNotFoundException) {
+                    $modelException = $e->getPrevious();
+                    $modelName = class_basename($modelException->getModel());
+                    $readableName = Str::headline($modelName);
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => "The requested {$readableName} details could not be found.",
+                        'errors' => null,
+                        'status' => 404
+                    ], 404);
+                }
+
+                // Standard 404 (Wrong URL, Route doesn't exist, etc.)
+                return response()->json([
+                    'success' => false,
+                    'message' => 'The requested endpoint could not be found.',
+                    'errors' => null,
+                    'status' => 404
+                ], 404);
+            }
+        });
 
         // Handle Authenticated error
         $exceptions->render(function (AuthenticationException $e, Request $request) {

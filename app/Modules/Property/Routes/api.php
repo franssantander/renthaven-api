@@ -16,9 +16,8 @@ Route::prefix('v1')
                 // Standard REST-ish endpoints
                 Route::get('/', 'index')->name('index');
                 Route::post('/', 'store')->name('store');
-                // Route::post('/', 'store')->name('store');
-                // Route::get('{id}', 'show')->name('show');
-                // Route::patch('{id}', 'update')->name('update');
+                Route::get('{property:uuid}', 'show')->name('show');
+                Route::patch('{property:uuid}', 'update')->name('update');
                 // Route::delete('{id}', 'destroy')->name('destroy');
         
                 // Examples for full replace vs partial update patterns
