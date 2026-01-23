@@ -6,6 +6,7 @@ use App\Modules\Authentication\Models\User;
 use App\Modules\Portfolio\Models\Portfolio;
 use App\Traits\Filterable;
 use Database\Factories\PropertyFactory;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -76,6 +77,17 @@ class Property extends Model
             if (empty($model->uuid)) {
                 $model->uuid = (string) Str::uuid();
             }
+
+            if (auth()->check()) {
+                $model->portfolio_id = auth()->user()->portfolio_id;
+                $model->created_by = auth()->id();
+            }
+        });
+
+        static::updating(function ($model) {
+            if (auth()->check()) {
+                $model->updated_by = auth()->id();
+            }
         });
     }
 
@@ -97,5 +109,15 @@ class Property extends Model
     public function updatedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    #[Scope]
+    public function forUser($query, $user)
+    {
+        if ($user->portfolio_id) {
+            return $query->where('portfolio_id', $user->portfolio_id);
+        }
+
+        return $query;
     }
 }

@@ -5,6 +5,7 @@ namespace App\Modules\Authentication\Models;
 use App\Modules\Authentication\Models\Role;
 use App\Modules\Portfolio\Models\Portfolio;
 use App\Modules\Property\Models\Property;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -41,6 +42,11 @@ class User extends Authenticatable implements OAuthenticatable
         'property_id',
         'portfolio_id',
     ];
+
+    protected static function newFactory()
+    {
+        return UserFactory::new();
+    }
 
     /**
      * The attributes that should be hidden for serialization.

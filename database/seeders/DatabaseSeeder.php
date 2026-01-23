@@ -10,6 +10,7 @@ use App\Modules\Property\Models\Property;
 use App\Modules\TenantManagement\Models\Lease;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Artisan;
 
 class DatabaseSeeder extends Seeder
 {
@@ -59,7 +60,7 @@ class DatabaseSeeder extends Seeder
             });
 
         // 6. Create Renters - AND Create Leases
-        User::factory()->count(220)->create([
+        User::factory()->count(520)->create([
             'role_id' => $roles['renter']->id,
         ])->each(function ($user) use ($properties) {
 
@@ -79,9 +80,20 @@ class DatabaseSeeder extends Seeder
             $user->update(['portfolio_id' => $property->portfolio_id]);
         });
 
+        Artisan::call('passport:keys', ['--force' => true]);
+
+        // Artisan::call('passport:client', [
+        //     '--personal' => true,
+        //     'name' => 'Renthaven Personal Access Client',
+        //     '--no-interaction' => true,
+        // ]);
+
+        Artisan::call('passport:client --personal --name="Renthaven Personal Access Client" --no-interaction');
+
         $this->command->info('Seeding Complete!');
-        $this->command->info('Total Users: ' . User::count() . ' (Target: 250)');
+        $this->command->info('Total Users: ' . User::count() . ' (Target: 550)');
         $this->command->info('Total Properties: ' . Property::count() . ' (Target: 100)');
-        $this->command->info('Total Leases: ' . Lease::count() . ' (Target: 220)');
+        $this->command->info('Total Leases: ' . Lease::count() . ' (Target: 520)');
+        $this->command->info('Passport Personal Access Client Created Successfully.');
     }
 }
