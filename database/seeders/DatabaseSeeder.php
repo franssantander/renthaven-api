@@ -6,6 +6,7 @@ namespace Database\Seeders;
 use App\Modules\Authentication\Models\Role;
 use App\Modules\Authentication\Models\User;
 use App\Modules\Portfolio\Models\Portfolio;
+use App\Modules\Property\Models\Amenity;
 use App\Modules\Property\Models\Property;
 use App\Modules\TenantManagement\Models\Lease;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -27,6 +28,8 @@ class DatabaseSeeder extends Seeder
 
         // 2. Create Portfolios
         $portfolios = Portfolio::factory()->count(5)->create();
+        $this->call(AmenitySeeder::class);
+        $allAmenities = Amenity::all();
 
         // 3. Create Super Admin
         User::factory()->create([
@@ -46,7 +49,7 @@ class DatabaseSeeder extends Seeder
 
         // 5. Create Properties - Assign to Portfolios and Creators
         $properties = Property::factory()->count(100)->make()
-            ->each(function ($property) use ($portfolios, $adminUsers) {
+            ->each(function ($property) use ($portfolios, $adminUsers, $allAmenities) {
                 $portfolio = $portfolios->random();
 
                 // Find an admin belonging to this portfolio, or fallback to random
@@ -57,6 +60,8 @@ class DatabaseSeeder extends Seeder
                 $property->created_by = $creator->id;
                 $property->updated_by = $creator->id;
                 $property->save();
+
+                $property->amenities()->attach($allAmenities->random(rand(3, 6))->pluck('id')->toArray());
             });
 
         // 6. Create Renters - AND Create Leases
