@@ -96,6 +96,11 @@ class Property extends Model
         return ['uuid'];
     }
 
+    public function getRouteKeyName()
+    {
+        return 'uuid';
+    }
+
     public function portfolio(): BelongsTo
     {
         return $this->belongsTo(Portfolio::class);
