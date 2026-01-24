@@ -1,35 +1,28 @@
 <?php
 
-namespace App\Modules\TenantManagement\Models;
+namespace App\Modules\MaintenanceManagement\Models;
 
 use App\Modules\Property\Models\Property;
-use Database\Factories\LeaseFactory;
+use App\Modules\TenantManagement\Models\Lease;
+use Database\Factories\MaintenancePropertyFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
-class Lease extends Model
+class MaintenanceProperty extends Model
 {
     use HasFactory, HasUuids, SoftDeletes;
+
+    protected $table = 'maintenance_properties';
+
     protected $guarded = [];
 
-    protected $table = 'leases';
-
-    protected $fillable = [
-        'user_id',
-        'property_id',
-        'start_date',
-        'end_date',
-        'is_active',
-    ];
-
     protected $casts = [
-        'start_date' => 'date',
-        'end_date' => 'date',
-        'is_active' => 'boolean',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     protected static function booted()
@@ -43,18 +36,23 @@ class Lease extends Model
         });
     }
 
+    protected static function newFactory()
+    {
+        return MaintenancePropertyFactory::new();
+    }
+
     public function uniqueIds(): array
     {
         return ['uuid'];
     }
 
-    protected static function newFactory()
-    {
-        return LeaseFactory::new();
-    }
-
     public function property(): BelongsTo
     {
         return $this->belongsTo(Property::class);
+    }
+
+    public function lease(): BelongsTo
+    {
+        return $this->belongsTo(Lease::class);
     }
 }

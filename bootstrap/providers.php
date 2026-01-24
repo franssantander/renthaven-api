@@ -6,4 +6,5 @@ return [
     App\Modules\Portfolio\Providers\PortfolioServiceProvider::class,
     App\Modules\TenantManagement\Providers\TenantManagementServiceProvider::class,
     App\Modules\Property\Providers\PropertyServiceProvider::class,
+    App\Modules\MaitenanceManagement\Providers\MaitenanceManagementServiceProvider::class,
 ];

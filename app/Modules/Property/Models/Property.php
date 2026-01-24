@@ -119,8 +119,8 @@ class Property extends Model
 
     public function amenities(): BelongsToMany
     {
-        return $this->belongsToMany(Amenity::class, 'amenity_property')
-            ->using(AmenityProperty::class)
+        return $this->belongsToMany(Amenity::class, 'amenity_property_pivot')
+            ->using(AmenityPropertyPivot::class)
             ->wherePivot('deleted_at', null);
     }
 

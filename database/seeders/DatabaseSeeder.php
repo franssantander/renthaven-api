@@ -5,6 +5,7 @@ namespace Database\Seeders;
 
 use App\Modules\Authentication\Models\Role;
 use App\Modules\Authentication\Models\User;
+use App\Modules\MaintenanceManagement\Models\MaintenanceProperty;
 use App\Modules\Portfolio\Models\Portfolio;
 use App\Modules\Property\Models\Amenity;
 use App\Modules\Property\Models\Property;
@@ -84,6 +85,17 @@ class DatabaseSeeder extends Seeder
             // If you still have portfolio_id on users table and want to track it for renters:
             $user->update(['portfolio_id' => $property->portfolio_id]);
         });
+
+        $createdLeases = Lease::with('property')->get();
+
+        // Now this will work because $createdLeases contains 520 items
+        foreach ($createdLeases->random(50) as $lease) {
+            MaintenanceProperty::factory()->count(rand(1, 2))->create([
+                'lease_id' => $lease->id,
+                'property_id' => $lease->property_id,
+                'portfolio_id' => $lease->property->portfolio_id,
+            ]);
+        }
 
         Artisan::call('passport:keys', ['--force' => true]);
 

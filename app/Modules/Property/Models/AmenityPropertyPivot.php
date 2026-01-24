@@ -6,11 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class AmenityProperty extends Pivot
+class AmenityPropertyPivot extends Pivot
 {
     use HasFactory, SoftDeletes;
 
-    protected $table = 'amenity_property';
+    protected $table = 'amenity_property_pivot';
 
     protected $guarded = [];
 

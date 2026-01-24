@@ -10,7 +10,7 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('amenity_property', function (Blueprint $table) {
+        Schema::create('amenity_property_pivot', function (Blueprint $table) {
             $table->id();
             $table->foreignId('property_id')->constrained('properties')->onDelete('cascade');
             $table->foreignId('amenity_id')->constrained('amenities')->onDelete('cascade');
