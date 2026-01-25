@@ -28,6 +28,14 @@ class MaintenanceProperty extends Model
         'updated_at' => 'datetime',
     ];
 
+    protected $searchableRelations = [
+        'issue_reported',
+        'priority',
+        'status',
+        'property.name',
+        'property.type',
+    ];
+
     protected static function booted()
     {
         parent::boot();
