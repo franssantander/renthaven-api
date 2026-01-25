@@ -3,13 +3,15 @@
 namespace App\Modules\MaintenanceManagement\Http\Controllers\API\v1;
 
 use App\Http\Controllers\Controller;
+use App\Modules\MaintenanceManagement\Actions\GetMaintenanceListAction;
 use Illuminate\Http\Request;
 
-class MaintenanceController extends Controller
+class MaintenanceManagementController extends Controller
 {
-    public function index()
+    public function index(Request $request, GetMaintenanceListAction $action)
     {
-        //
+        $data = $action->execute($request->all());
+        return $this->success($data, 'Maintenance properties data retrieved successfully');
     }
 
     public function store(Request $request)
