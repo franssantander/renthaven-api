@@ -62,8 +62,7 @@ class MaintenanceProperty extends Model
     #[Scope]
     public function forUser($query, $user)
     {
-        if ($user?->portfolio_id) {
-            // dd($user->portfolio_id);
+        if ($user->portfolio_id) {
             return $query->where('portfolio_id', $user->portfolio_id);
         }
         return $query;

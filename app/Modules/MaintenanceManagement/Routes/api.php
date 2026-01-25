@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 // require base_path('routes/api/v1/maintenance-management.php');
 Route::prefix('v1')
     ->name('v1.')
+    ->middleware('auth:api')
     ->group(function () {
         Route::prefix('maintenance-management')
             ->name('maintenance-management.')
