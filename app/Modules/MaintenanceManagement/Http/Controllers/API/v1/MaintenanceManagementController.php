@@ -3,7 +3,9 @@
 namespace App\Modules\MaintenanceManagement\Http\Controllers\API\v1;
 
 use App\Http\Controllers\Controller;
+use App\Modules\MaintenanceManagement\Actions\CreateMaintenanceAction;
 use App\Modules\MaintenanceManagement\Actions\GetMaintenanceListAction;
+use App\Modules\MaintenanceManagement\Http\Requests\CreateMaintenanceRequest;
 use Illuminate\Http\Request;
 
 class MaintenanceManagementController extends Controller
@@ -14,9 +16,10 @@ class MaintenanceManagementController extends Controller
         return $this->success($data, 'Maintenance properties data retrieved successfully');
     }
 
-    public function store(Request $request)
+    public function store(CreateMaintenanceRequest $request, CreateMaintenanceAction $action)
     {
-        //
+        $data = $action->execute($request->validated());
+        return $this->success($data, 'Maintenance successfully created');
     }
 
     public function show($id)

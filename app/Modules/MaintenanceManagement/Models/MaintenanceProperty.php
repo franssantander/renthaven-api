@@ -21,7 +21,15 @@ class MaintenanceProperty extends Model
 
     protected $table = 'maintenance_properties';
 
-    protected $guarded = [];
+    protected $fillable = [
+        'portfolio_id',
+        'property_id',
+        'lease_id',
+        'issue_reported',
+        'description',
+        'priority',
+        'status',
+    ];
 
     protected $casts = [
         'created_at' => 'datetime',

@@ -18,7 +18,7 @@ return new class extends Migration {
             $table->foreignId('lease_id')->constrained('leases')->onDelete('cascade');
             $table->string('issue_reported');
             $table->text('description')->nullable();
-            $table->enum('priority', ['low', 'medium', 'high'])->default('medium');
+            $table->enum('priority', ['low', 'medium', 'critical'])->default('medium');
             $table->enum('status', ['pending', 'in_progress', 'completed', 'cancelled'])->default('pending');
             $table->softDeletes();
             $table->timestamps();
