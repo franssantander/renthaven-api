@@ -11,9 +11,11 @@ Route::prefix('v1')
     ->group(function () {
         Route::prefix('maintenance-management')
             ->name('maintenance-management.')
-            // ->controller(ModuleController::class)
+            ->controller(MaintenanceManagementController::class)
             ->group(function () {
-                Route::apiResource('', MaintenanceManagementController::class);
+                Route::get('dashboard', 'dashboard')->name('dashboard');
+                Route::apiResource('', MaintenanceManagementController::class)
+                    ->parameters(['' => 'maintenance_property:uuid']);
                 // Standard REST-ish endpoints
                 // Route::get('/', 'index')->name('index');
                 // Route::post('/', 'store')->name('store');

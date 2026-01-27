@@ -8,12 +8,13 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')
     ->name('v1.')
     ->middleware('auth:api')
-    ->name('property.')
     ->controller(PropertyController::class)
     ->group(function () {
-        Route::prefix('property')->name('property.')->group(function () {
-            Route::get('dashboard', 'dashboard')->name('dashboard');
-            Route::apiResource('', PropertyController::class)
-                ->parameters(['' => 'property:uuid']);
-        });
+        Route::prefix('property')
+            ->name('property.')
+            ->group(function () {
+                Route::get('dashboard', 'dashboard')->name('dashboard');
+                Route::apiResource('', PropertyController::class)
+                    ->parameters(['' => 'property:uuid']);
+            });
     });

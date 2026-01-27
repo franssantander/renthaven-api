@@ -34,7 +34,7 @@ class MakeModuleDataCommand extends Command
 
         // 1. Define the path: app/Modules/{Module}/Data/{Name}.php
         // Note: You can change 'Data' to 'DTO' here if you prefer that folder name
-        $folderName = 'Data'; 
+        $folderName = 'DTO'; 
         $path = app_path("Modules/{$module}/{$folderName}");
         $filePath = "{$path}/{$name}.php";
 
@@ -45,7 +45,7 @@ class MakeModuleDataCommand extends Command
 
         // 3. Check if file already exists
         if ($this->files->exists($filePath)) {
-            $this->error("Data class {$name} already exists in module {$module}!");
+            $this->error("DTO class {$name} already exists in module {$module}!");
             return;
         }
 
@@ -54,7 +54,7 @@ class MakeModuleDataCommand extends Command
 
         $this->files->put($filePath, $content);
 
-        $this->info("Data class [{$name}] created successfully in [{$module}/{$folderName}].");
+        $this->info("DTO class [{$name}] created successfully in [{$module}/{$folderName}].");
     }
 
     protected function getStub($name, $module, $folderName)
@@ -66,9 +66,9 @@ class MakeModuleDataCommand extends Command
 
 namespace {$namespace};
 
-use Spatie\LaravelData\Data;
+use Spatie\LaravelData\DTO;
 
-class {$name} extends Data
+class {$name} extends DTO
 {
     public function __construct(
         // public string \$username,
