@@ -66,7 +66,14 @@ trait Filterable
             // Security: Only allow filtering on columns that are in $fillable
             // This prevents users from filtering on sensitive internal columns (like password/remember_token)
             if (in_array($key, $this->fillable)) {
-                $query->where($key, 'like', "%{$value}%");
+                $exactFilters = property_exists($this, 'exactFilters') ? $this->exactFilters : [];
+
+                // 2. If it's in the list, use '='. Otherwise, use 'LIKE'.
+                if (in_array($key, $exactFilters)) {
+                    $query->where($key, '=', $value);
+                } else {
+                    $query->where($key, 'like', "%{$value}%");
+                }
             }
         }
 

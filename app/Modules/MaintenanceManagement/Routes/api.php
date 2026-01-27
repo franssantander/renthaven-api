@@ -16,14 +16,5 @@ Route::prefix('v1')
                 Route::get('dashboard', 'dashboard')->name('dashboard');
                 Route::apiResource('', MaintenanceManagementController::class)
                     ->parameters(['' => 'maintenance_property:uuid']);
-                // Standard REST-ish endpoints
-                // Route::get('/', 'index')->name('index');
-                // Route::post('/', 'store')->name('store');
-                // Route::get('{id}', 'show')->name('show');
-                // Route::patch('{id}', 'update')->name('update');
-                // Route::delete('{id}', 'destroy')->name('destroy');
-        
-                // Examples for full replace vs partial update patterns
-                // Other related route here . .
             });
     });

@@ -55,6 +55,17 @@ class Property extends Model
         'createdBy.username',
     ];
 
+    protected $exactFilters = [
+        'type',
+        'status',
+        'is_active',
+        'is_available',
+        'has_parking',
+        'allows_pets',
+        'number_of_rooms',
+        'portfolio_id'
+    ];
+
     protected $casts = [
         'is_available' => 'boolean',
         'is_active' => 'boolean',
