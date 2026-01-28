@@ -31,8 +31,8 @@ class MaintenancePropertyFactory extends Factory
                 'Broken Window'
             ]),
             'description' => $this->faker->sentence(), 
-            'priority' => $this->faker->randomElement(['low', 'medium', 'high']),
-            'status' => $this->faker->randomElement(['pending', 'in_progress', 'completed']),
+            'priority' => $this->faker->randomElement(['low', 'medium', 'critical']),
+            'status' => $this->faker->randomElement(['pending', 'in_progress', 'completed', 'cancelled']),
         ];
     }
 }

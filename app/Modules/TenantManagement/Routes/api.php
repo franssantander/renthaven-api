@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\TenantManagement\Http\Controllers\API\v1\TenantManagementController;
 use Illuminate\Support\Facades\Route;
 
 // If you prefer central route files, you can import them here instead of defining inline:
@@ -9,15 +10,17 @@ Route::prefix('v1')
     ->group(function () {
         Route::prefix('tenant-management')
             ->name('tenant-management.')
-            // ->controller(ModuleController::class)
+            ->controller(TenantManagementController::class)
             ->group(function () {
+                Route::apiResource('', TenantManagementController::class)
+                    ->parameters(['' => 'tenant_management:uuid']);
                 // Standard REST-ish endpoints
                 // Route::get('/', 'index')->name('index');
                 // Route::post('/', 'store')->name('store');
                 // Route::get('{id}', 'show')->name('show');
                 // Route::patch('{id}', 'update')->name('update');
                 // Route::delete('{id}', 'destroy')->name('destroy');
-
+        
                 // Examples for full replace vs partial update patterns
                 // Other related route here . .
             });

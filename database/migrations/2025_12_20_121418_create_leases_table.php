@@ -15,6 +15,7 @@ return new class extends Migration {
             $table->uuid('uuid')->unique();
             $table->foreignId('user_id')->constrained('users');
             $table->foreignId('property_id')->constrained('properties');
+            $table->foreignId('portfolio_id')->constrained('portfolios');
             $table->date('start_date');
             $table->date('end_date')->nullable();
             $table->boolean('is_active')->default(true);
