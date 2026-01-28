@@ -30,6 +30,7 @@ return new class extends Migration {
             $table->decimal('monthly_rent_price', 15, 2);
             $table->decimal('security_deposit', 15, 2)->nullable();
 
+            $table->integer('pax')->default(2);
             $table->boolean('is_available')->default(true);
             $table->boolean('is_active')->default(true);
             $table->boolean('has_parking')->default(false);

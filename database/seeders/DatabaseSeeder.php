@@ -23,11 +23,11 @@ class DatabaseSeeder extends Seeder
         // 1. Create Roles
         $roles = [
             'superadmin' => Role::create(['name' => 'superadmin']),
-            'admin' => Role::create(['name' => 'admin']),
-            'renter' => Role::create(['name' => 'renter']),
+            'admin'      => Role::create(['name' => 'admin']),
+            'renter'     => Role::create(['name' => 'renter']),
         ];
 
-        // 2. Create Portfolios
+        // 2. Create Portfolios & Amenities
         $portfolios = Portfolio::factory()->count(5)->create();
         $this->call(AmenitySeeder::class);
         $allAmenities = Amenity::all();
@@ -35,10 +35,10 @@ class DatabaseSeeder extends Seeder
         // 3. Create Super Admin
         User::factory()->create([
             'first_name' => 'Super',
-            'last_name' => 'Admin',
-            'username' => 'superadmin',
-            'email' => 'dev@renthaven.com',
-            'role_id' => $roles['superadmin']->id,
+            'last_name'  => 'Admin',
+            'username'   => 'superadmin',
+            'email'      => 'dev@renthaven.com',
+            'role_id'    => $roles['superadmin']->id,
         ]);
 
         // 4. Create Admins (Landlords)
@@ -48,26 +48,25 @@ class DatabaseSeeder extends Seeder
             $user->update(['portfolio_id' => $portfolios->random()->id]);
         });
 
-        // 5. Create Properties (Initialize ALL as Available first)
+        // 5. Create Properties
         $properties = Property::factory()->count(100)->make()
             ->each(function ($property) use ($portfolios, $adminUsers, $allAmenities) {
                 $portfolio = $portfolios->random();
-
-                $creator = $adminUsers->where('portfolio_id', $portfolio->id)->random()
-                    ?? $adminUsers->random();
+                $creator   = $adminUsers->where('portfolio_id', $portfolio->id)->random() ?? $adminUsers->random();
 
                 $property->portfolio_id = $portfolio->id;
-                $property->created_by = $creator->id;
-                $property->updated_by = $creator->id;
-
-                // FORCE TRUE: We start with an empty building
-                $property->is_available = true;
-
+                $property->created_by   = $creator->id;
+                $property->updated_by   = $creator->id;
+                
+                // Initialize details
+                $property->pax          = rand(1, 4); // Random capacity per property
+                $property->is_available = true;       // Start empty
+                
                 $property->save();
                 $property->amenities()->attach($allAmenities->random(rand(3, 6))->pluck('id')->toArray());
             });
 
-        // 6. Create Renters & Match Leases intelligently
+        // 6. Create Renters & Assign Leases based on Pax Availability
         User::factory()->count(520)->create([
             'role_id' => $roles['renter']->id,
         ])->each(function ($user) use ($properties) {
@@ -75,57 +74,66 @@ class DatabaseSeeder extends Seeder
             // Pick a random property
             $property = $properties->random();
 
-            // Refresh property to check its *current* availability status in DB
-            $property->refresh();
+            // Count how many ACTIVE leases this property currently has
+            $currentOccupancy = Lease::where('property_id', $property->id)
+                ->where('is_active', true)
+                ->count();
 
-            // LOGIC: If property is available, this user becomes the CURRENT tenant.
-            // If it's already taken, this user becomes a PAST tenant (History).
-            if ($property->is_available) {
-                $isActive = true;
-                $startDate = Carbon::now()->subMonths(rand(1, 11)); // Started recently
-                $endDate = Carbon::now()->addMonths(rand(1, 12)); // Ends in future
+            // LOGIC: Room is available ONLY IF current tenants < pax limit
+            // AND the property is marked as available
+            if ($property->is_available && $currentOccupancy < $property->pax) {
+                
+                // --- CREATE ACTIVE LEASE ---
+                $isActive   = true;
+                $startDate  = Carbon::now()->subMonths(rand(1, 11));
+                $endDate    = Carbon::now()->addMonths(rand(1, 12));
 
-                // IMPORTANT: Mark property as occupied now
-                $property->update(['is_available' => false]);
+                // CHECK: Did this specific user just fill up the last spot?
+                // currentOccupancy + 1 (this user) == pax limit
+                if (($currentOccupancy + 1) >= $property->pax) {
+                    $property->update(['is_available' => false]);
+                }
+
             } else {
-                $isActive = false;
-                $startDate = Carbon::now()->subYears(rand(2, 5));
-                $endDate = Carbon::now()->subMonths(rand(1, 12)); // Ended in past
+                
+                // --- CREATE HISTORICAL LEASE (Room Full or Unavailable) ---
+                $isActive   = false;
+                $startDate  = Carbon::now()->subYears(rand(2, 5));
+                $endDate    = Carbon::now()->subMonths(rand(1, 12));
             }
 
             Lease::factory()->create([
-                'user_id' => $user->id,
-                'property_id' => $property->id,
+                'user_id'      => $user->id,
+                'property_id'  => $property->id,
                 'portfolio_id' => $property->portfolio_id,
-                'is_active' => $isActive,
-                'start_date' => $startDate,
-                'end_date' => $endDate,
+                'is_active'    => $isActive,
+                'start_date'   => $startDate,
+                'end_date'     => $endDate,
             ]);
-
-            // (Optional) Update user portfolio to match
-            // $user->update(['portfolio_id' => $property->portfolio_id]);
         });
 
         // 7. Maintenance Logs
+        // Only attach maintenance to leases that actually exist
         $createdLeases = Lease::with('property')->get();
 
-        foreach ($createdLeases->random(50) as $lease) {
-            MaintenanceProperty::factory()->count(rand(1, 2))->create([
-                'lease_id' => $lease->id,
-                'property_id' => $lease->property_id,
-                'portfolio_id' => $lease->property->portfolio_id,
-                // Match the maintenance date to be within the lease period
-                'created_at' => Carbon::parse($lease->start_date)->addDays(rand(5, 30)),
-            ]);
+        if ($createdLeases->count() > 0) {
+            foreach ($createdLeases->random(min(50, $createdLeases->count())) as $lease) {
+                MaintenanceProperty::factory()->count(rand(1, 2))->create([
+                    'lease_id'     => $lease->id,
+                    'property_id'  => $lease->property_id,
+                    'portfolio_id' => $lease->property->portfolio_id,
+                    'created_at'   => Carbon::parse($lease->start_date)->addDays(rand(5, 30)),
+                ]);
+            }
         }
 
-        Artisan::call('passport:keys', ['--force' => true]);
+        // 8. Passport Keys (Ensure you ran the chmod fixes before this!)
+        Artisan::call('passport:keys', ['--force' => true]); 
         Artisan::call('passport:client --personal --name="Renthaven Personal Access Client" --no-interaction');
 
         $this->command->info('Seeding Complete!');
-        $this->command->info('Total Users: ' . User::count());
         $this->command->info('Total Properties: ' . Property::count());
-        $this->command->info('Occupied Properties: ' . Property::where('is_available', false)->count());
-        $this->command->info('Total Leases: ' . Lease::count());
+        $this->command->info('Fully Occupied Properties: ' . Property::where('is_available', false)->count());
+        $this->command->info('Active Leases: ' . Lease::where('is_active', true)->count());
     }
 }

@@ -39,6 +39,7 @@ class UpdatePropertyRequest extends FormRequest
             'state' => ['sometimes'],
             'zip_code' => ['sometimes'],
             'number_of_rooms' => ['sometimes', 'integer'],
+            'pax' => ['sometimes', 'integer'],
             'number_of_bathrooms' => ['sometimes', 'integer'],
             'area_sq_ft' => ['sometimes', 'integer'],
             'monthly_rent_price' => ['sometimes', 'integer'],

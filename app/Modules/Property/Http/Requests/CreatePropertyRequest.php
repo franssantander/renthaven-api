@@ -33,6 +33,7 @@ class CreatePropertyRequest extends FormRequest
             'state' => ['required'],
             'zip_code' => ['required'],
             'number_of_rooms' => ['required', 'integer'],
+            'pax' => ['required', 'integer'],
             'number_of_bathrooms' => ['required', 'integer'],
             'area_sq_ft' => ['required', 'integer'],
             'monthly_rent_price' => ['required', 'integer'],

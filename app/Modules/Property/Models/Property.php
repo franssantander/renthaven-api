@@ -37,6 +37,7 @@ class Property extends Model
         'monthly_rent_price',
         'security_deposit',
         'is_available',
+        'pax',
         'is_active',
         'has_parking',
         'allows_pets',
