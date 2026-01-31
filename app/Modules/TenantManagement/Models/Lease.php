@@ -26,6 +26,7 @@ class Lease extends Model
     protected $fillable = [
         'user_id',
         'property_id',
+        'portfolio_id',
         'start_date',
         'end_date',
         'is_active',
