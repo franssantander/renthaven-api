@@ -13,6 +13,6 @@ Route::prefix('v1')
             ->controller(UserManagementController::class)
             ->group(function () {
                 Route::apiResource('/', UserManagementController::class)
-                    ->parameters(['' => 'id']);
+                    ->parameters(['' => 'user:uuid']);
             });
     });

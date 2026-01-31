@@ -29,7 +29,7 @@ class CreateUserRequest extends FormRequest
             'username' => ['required', 'unique:users,username'],
             'password' => ['required', 'min:8'],
             'email' => ['required', 'email', 'unique:users,email'],
-            'phone_number' => ['required', 'integer', 'unique:users,phone_number'],
+            'phone_number' => ['required', 'unique:users,phone_number'],
             'gender' => ['required', 'in:male,female'],
             'birth_date' => ['required', 'date'],
             'role_id' => ['required', 'exists:roles,id']

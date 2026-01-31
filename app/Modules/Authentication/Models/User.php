@@ -5,6 +5,7 @@ namespace App\Modules\Authentication\Models;
 use App\Modules\Authentication\Models\Role;
 use App\Modules\Portfolio\Models\Portfolio;
 use App\Modules\Property\Models\Property;
+use App\Traits\Filterable;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -21,6 +22,7 @@ class User extends Authenticatable implements OAuthenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasUuids, HasFactory, Notifiable, SoftDeletes;
+    use Filterable;
 
     /**
      * The attributes that are mass assignable.
