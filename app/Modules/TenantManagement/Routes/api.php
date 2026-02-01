@@ -14,6 +14,6 @@ Route::prefix('v1')
             ->controller(TenantManagementController::class)
             ->group(function () {
                 Route::apiResource('', TenantManagementController::class)
-                    ->parameters(['' => 'tenant_management:uuid']);
+                    ->parameters(['' => 'lease:uuid']);
             });
     });

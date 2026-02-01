@@ -4,8 +4,10 @@ namespace App\Modules\TenantManagement\Http\Controllers\API\v1;
 
 use App\Http\Controllers\Controller;
 use App\Modules\TenantManagement\Actions\AddTenantOnLeaseAction;
+use App\Modules\TenantManagement\Actions\DeleteTenantAction;
 use App\Modules\TenantManagement\Actions\GetTenantDetailsAction;
 use App\Modules\TenantManagement\Actions\GetTenantListAction;
+use App\Modules\TenantManagement\Actions\UpdateTenantAction;
 use App\Modules\TenantManagement\Models\Lease;
 use Illuminate\Http\Request;
 
@@ -29,13 +31,15 @@ class TenantManagementController extends Controller
         return $this->success($data, 200);
     }
 
-    public function update(Request $request, $id)
+    public function update(Lease $lease, Request $request, UpdateTenantAction $action)
     {
-        //
+        $data = $action->execute($lease, $request->all());
+        return $this->success($data, 200);
     }
 
-    public function destroy($id)
+    public function destroy(Lease $lease, DeleteTenantAction $action)
     {
-        //
+        $data = $action->execute($lease);
+        return $this->success($data, 200);
     }
 }
