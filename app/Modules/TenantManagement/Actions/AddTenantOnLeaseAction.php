@@ -5,10 +5,8 @@ namespace App\Modules\TenantManagement\Actions;
 use App\Modules\Authentication\Models\User;
 use App\Modules\Property\Models\Property;
 use App\Modules\TenantManagement\Models\Lease;
-use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use Symfony\Component\HttpFoundation\Response;
 
 class AddTenantOnLeaseAction
 {
