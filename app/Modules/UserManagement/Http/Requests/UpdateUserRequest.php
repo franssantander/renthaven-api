@@ -24,15 +24,15 @@ class UpdateUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'first_name' => ['sometimes'],
-            'last_name' => ['sometimes'],
-            'username' => ['sometimes', 'unique:users,username'],
-            'password' => ['sometimes', 'min:8'],
+            'first_name' => ['sometimes', 'required', 'string'],
+            'last_name' => ['sometimes', 'required', 'string'],
+            'username' => ['sometimes', 'required', 'unique:users,username'],
+            'password' => ['sometimes', 'required', 'min:8'],
             'email' => ['sometimes', 'email', 'unique:users,email'],
             'phone_number' => ['sometimes', 'unique:users,phone_number'],
             'gender' => ['sometimes', 'in:male,female'],
             'birth_date' => ['sometimes', 'date'],
-            'role_id' => ['sometimes', 'exists:roles,id']
+            'role_id' => ['sometimes', 'required', 'exists:roles,id']
         ];
     }
 

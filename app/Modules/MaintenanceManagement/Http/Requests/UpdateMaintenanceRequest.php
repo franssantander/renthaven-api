@@ -24,12 +24,12 @@ class UpdateMaintenanceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'property_id' => ['sometimes', 'exists:properties,uuid'],
-            'lease_id' => ['sometimes', 'exists:leases,uuid'],
-            'issue_reported' => ['sometimes', 'string', 'max:255'],
+            'property_id' => ['required', 'exists:properties,uuid'],
+            'lease_id' => ['required', 'exists:leases,uuid'],
+            'issue_reported' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['sometimes', 'string', 'min:10'],
-            'priority' => ['sometimes', 'in:low,medium,critical'],
-            'status' => ['sometimes', 'in:pending,in_progress,completed,cancelled']
+            'priority' => ['sometimes', 'required', 'in:low,medium,critical'],
+            'status' => ['sometimes','required', 'in:pending,in_progress,completed,cancelled']
         ];
     }
 
