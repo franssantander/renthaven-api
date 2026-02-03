@@ -8,4 +8,5 @@ return [
     App\Modules\Property\Providers\PropertyServiceProvider::class,
     App\Modules\MaintenanceManagement\Providers\MaintenanceManagementServiceProvider::class,
     App\Modules\UserManagement\Providers\UserManagementServiceProvider::class,
+    App\Modules\BillManagement\Providers\BillManagementServiceProvider::class,
 ];
