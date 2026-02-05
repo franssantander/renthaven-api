@@ -7,19 +7,13 @@ use Illuminate\Support\Facades\Route;
 // require base_path('routes/api/v1/bill-management.php');
 Route::prefix('v1')
     ->name('v1.')
+    ->middleware('auth:api')
     ->group(function () {
         Route::prefix('bill-management')
             ->name('bill-management.')
             ->controller(BillManagementController::class)
             ->group(function () {
-                // Standard REST-ish endpoints
-                // Route::get('/', 'index')->name('index');
-                // Route::post('/', 'store')->name('store');
-                // Route::get('{id}', 'show')->name('show');
-                // Route::patch('{id}', 'update')->name('update');
-                // Route::delete('{id}', 'destroy')->name('destroy');
-
-                // Examples for full replace vs partial update patterns
-                // Other related route here . .
+                Route::apiResource('', BillManagementController::class)
+                    ->parameters(['' => 'bill:uuid']);
             });
     });

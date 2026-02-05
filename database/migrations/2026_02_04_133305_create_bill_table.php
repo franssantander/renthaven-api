@@ -10,7 +10,7 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('bill', function (Blueprint $table) {
+        Schema::create('bills', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
             $table->foreignId('lease_id')->constrained('leases')->onDelete('cascade');
@@ -18,7 +18,7 @@ return new class extends Migration {
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('portfolio_id')->constrained('portfolios')->onDelete('cascade');
             $table->string('type');
-            $table->string('status')->default('unpaid');
+            $table->enum('status', ['paid', 'unpaid', 'overdue'])->default('unpaid');
             $table->decimal('amount', 10, 2);
             $table->date('due_date');
             $table->date('issued_date');
