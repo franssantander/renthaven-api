@@ -40,7 +40,7 @@ class Bill extends Model
 
     protected $casts = [
         'due_date' => 'datetime',
-        'issue_date' => 'datetime',
+        'issued_date' => 'datetime',
         'amount' => 'decimal:2',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
@@ -63,6 +63,7 @@ class Bill extends Model
             if (empty($model->uuid)) {
                 $model->uuid = (string) Str::uuid();
             }
+            $model->issued_date = now();
         });
     }
 
