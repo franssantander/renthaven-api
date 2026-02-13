@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\BillManagement\Actions\DeleteBillAction;
 use App\Modules\BillManagement\Actions\GetBillDetailAction;
 use App\Modules\BillManagement\Actions\GetBillListAction;
+use App\Modules\BillManagement\Actions\GetTransactionList;
 use App\Modules\BillManagement\Actions\SendBillOnTenantAction;
 use App\Modules\BillManagement\Actions\UpdateBillDetailAction;
 use App\Modules\BillManagement\Http\Requests\SendBillRequest;
@@ -45,14 +46,9 @@ class BillManagementController extends Controller
         return $this->success($data, 'Successfully deleted bill.');
     }
 
-    public function getTransaction(Request $request)
+    public function getTransaction(Request $request, GetTransactionList $action)
     {
-        $data = Bill::query()
-            ->forUser($request->user()) 
-            ->whereIn('status', ['paid', 'pending']) 
-            ->latest('payment_date')
-            ->get();
-
-        return $this->success($data, 'Successfully retrieved bill transaction data.');
+        $data = $action->execute($request->all());
+        return $this->success($data, 'Successfully retrieved transaction list data.');
     }
 }

@@ -7,6 +7,10 @@ class UpdateBillDetailAction
 {
     public function execute(array $params, $model)
     {
-        return $model->update($params);
+        if (isset($params['status']) && $params['status'] === 'paid') {
+            $params['payment_date'] = $params['payment_date'] ?? now();
+        }
+        $model->update($params);
+        return $model->fresh();
     }
 }

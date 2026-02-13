@@ -25,10 +25,21 @@ class UpdateBillDetailRequest extends FormRequest
     {
         return [
             'type' => ['sometimes'],
-            'status' => ['sometimes', 'in:paid,unpaid,overdue'],
+            'status' => ['sometimes', 'in:paid,pending,unpaid,overdue'],
             'amount' => ['sometimes', 'numeric', 'min:0'],
             'due_date' => ['sometimes', 'date'],
-            'description' => ['nullable', 'string', 'max:255']
+            'description' => ['nullable', 'string', 'max:255'],
+            'payment_method' => [
+                'required_if:status,paid',
+                'nullable',
+                'string'
+            ],
+            'payment_reference' => [
+                'required_if:status,paid',
+                'nullable',
+                'string'
+            ],
+            'payment_date' => ['nullable', 'date'],
         ];
     }
 
