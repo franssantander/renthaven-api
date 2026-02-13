@@ -7,9 +7,10 @@ use Illuminate\Http\Request;
 
 class RoomManagementController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $data = "";
+        return $this->success($data, "Successfully retrieved room management data.");
     }
 
     public function store(Request $request)
