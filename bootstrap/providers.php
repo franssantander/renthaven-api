@@ -9,4 +9,5 @@ return [
     App\Modules\MaintenanceManagement\Providers\MaintenanceManagementServiceProvider::class,
     App\Modules\UserManagement\Providers\UserManagementServiceProvider::class,
     App\Modules\BillManagement\Providers\BillManagementServiceProvider::class,
+    App\Modules\RoomManagement\Providers\RoomManagementServiceProvider::class,
 ];
