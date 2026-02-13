@@ -5,19 +5,17 @@ namespace App\Modules\Property\Models;
 use App\Modules\Authentication\Models\User;
 use App\Modules\Portfolio\Models\Portfolio;
 use App\Traits\Filterable;
+use App\Traits\HasMultiTenantScope;
 use Database\Factories\PropertyFactory;
-use Illuminate\Database\Eloquent\Attributes\Scope;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Str;
 
 class Property extends Model
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory, HasMultiTenantScope, SoftDeletes;
     use Filterable;
 
     protected $table = 'properties';
@@ -82,38 +80,6 @@ class Property extends Model
         return PropertyFactory::new();
     }
 
-    protected static function booted()
-    {
-        parent::boot();
-
-        static::creating(function ($model) {
-            if (empty($model->uuid)) {
-                $model->uuid = (string) Str::uuid();
-            }
-
-            if (auth()->check()) {
-                $model->portfolio_id = auth()->user()->portfolio_id;
-                $model->created_by = auth()->id();
-            }
-        });
-
-        static::updating(function ($model) {
-            if (auth()->check()) {
-                $model->updated_by = auth()->id();
-            }
-        });
-    }
-
-    public function uniqueIds(): array
-    {
-        return ['uuid'];
-    }
-
-    public function getRouteKeyName()
-    {
-        return 'uuid';
-    }
-
     public function portfolio(): BelongsTo
     {
         return $this->belongsTo(Portfolio::class);
@@ -134,22 +100,5 @@ class Property extends Model
         return $this->belongsToMany(Amenity::class, 'amenity_property_pivot')
             ->using(AmenityPropertyPivot::class)
             ->wherePivot('deleted_at', null);
-    }
-
-    #[Scope]
-    public function forUser($query, $user)
-    {
-        if ($user->portfolio_id) {
-            return $query->where('portfolio_id', $user->portfolio_id);
-        }
-
-        return $query;
-    }
-
-    public function resolveRouteBinding($value, $field = null)
-    {
-        return $this->where('uuid', $value)
-            ->forUser(auth()->user())
-            ->firstOrFail();
     }
 }

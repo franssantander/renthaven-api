@@ -2,7 +2,7 @@
 
 namespace App\Modules\Portfolio\Models;
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use App\Traits\HasMultiTenantScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -10,7 +10,7 @@ use Database\Factories\PortfolioFactory;
 
 class Portfolio extends Model
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory, HasMultiTenantScope, SoftDeletes;
 
     protected $table = 'portfolios';
 
@@ -23,11 +23,6 @@ class Portfolio extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
-
-    public function uniqueIds(): array
-    {
-        return ['uuid'];
-    }
 
     protected static function newFactory()
     {
