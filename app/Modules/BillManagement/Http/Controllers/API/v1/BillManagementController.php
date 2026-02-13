@@ -44,4 +44,15 @@ class BillManagementController extends Controller
         $data = $action->execute($bill);
         return $this->success($data, 'Successfully deleted bill.');
     }
+
+    public function getTransaction(Request $request)
+    {
+        $data = Bill::query()
+            ->forUser($request->user()) 
+            ->whereIn('status', ['paid', 'pending']) 
+            ->latest('payment_date')
+            ->get();
+
+        return $this->success($data, 'Successfully retrieved bill transaction data.');
+    }
 }

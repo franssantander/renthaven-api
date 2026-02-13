@@ -13,6 +13,7 @@ Route::prefix('v1')
             ->name('bill-management.')
             ->controller(BillManagementController::class)
             ->group(function () {
+                Route::get('transactions', 'getTransaction')->name('transactions');
                 Route::apiResource('', BillManagementController::class)
                     ->parameters(['' => 'bill:uuid']);
             });

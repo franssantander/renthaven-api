@@ -18,10 +18,14 @@ return new class extends Migration {
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('portfolio_id')->constrained('portfolios')->onDelete('cascade');
             $table->string('type');
-            $table->enum('status', ['paid', 'unpaid', 'overdue'])->default('unpaid');
+            $table->enum('status', ['paid', 'pending', 'unpaid', 'overdue'])->default('unpaid');
             $table->decimal('amount', 10, 2);
             $table->date('due_date');
             $table->date('issued_date');
+
+            $table->date('payment_date')->nullable();
+            $table->string('payment_method')->nullable();
+            $table->string('payment_reference')->nullable();
             $table->text('description')->nullable();
             $table->timestamps();
             $table->softDeletes();
