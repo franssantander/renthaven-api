@@ -9,7 +9,7 @@ class GetPropertyRoomListAction
     public function execute(array $params)
     {
         return Property::forUser(auth()->user())
-            ->with(['activeLease.user'])
+            ->with(['activeLeases.user'])
             ->filter($params);
     }
 }

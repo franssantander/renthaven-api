@@ -29,7 +29,7 @@ class MoveTenantRequest extends FormRequest
                 'required',
                 'exists:properties,id',
                 function ($attribute, $value, $fail) {
-                    $property = Property::withCount(['activeLease'])->find($value);
+                    $property = Property::withCount(['activeLeases'])->find($value);
 
                     if (!$property)
                         return $fail('Target property not found.');

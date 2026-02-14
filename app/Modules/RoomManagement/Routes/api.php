@@ -14,6 +14,6 @@ Route::prefix('v1')
             ->controller(RoomManagementController::class)
             ->group(function () {
                 Route::apiResource('', RoomManagementController::class)
-                    ->parameters(['' => 'lease:uuid']);
+                    ->parameters(['' => 'room:uuid']);
             });
     });

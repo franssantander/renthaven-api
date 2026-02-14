@@ -3,6 +3,9 @@
 namespace App\Modules\RoomManagement\Http\Controllers\API\v1;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Property\Models\Property;
+use App\Modules\RoomManagement\Actions\DeleteTenantFromPropertyAction;
+use App\Modules\RoomManagement\Actions\GetPropertyRoomDetailsAction;
 use App\Modules\RoomManagement\Actions\GetPropertyRoomListAction;
 use App\Modules\RoomManagement\Actions\MoveTenantOnProperty;
 use App\Modules\RoomManagement\Http\Requests\MoveTenantRequest;
@@ -22,20 +25,22 @@ class RoomManagementController extends Controller
         //
     }
 
-    public function show($id)
+    public function show(Property $room, GetPropertyRoomDetailsAction $action)
     {
-        //
+        $data = $action->execute($room);
+        return $this->success($data, "Successfully retrieved property room details data.");
     }
 
     //* Move tenant to other property/room
-    public function update(MoveTenantRequest $request, Lease $lease, MoveTenantOnProperty $action)
+    public function update(MoveTenantRequest $request, Lease $room, MoveTenantOnProperty $action)
     {
-        $data = $action->execute($request->validated(), $lease);
+        $data = $action->execute($request->validated(), $room);
         return $this->success($data, 'Successfully moved tenant on property.');
     }
 
-    public function destroy($id)
+    public function destroy(Lease $room, DeleteTenantFromPropertyAction $action)
     {
-        //
+        $action->execute($room);
+        return $this->success(null, 'Successfully removed tenant from property.');
     }
 }

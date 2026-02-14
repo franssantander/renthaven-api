@@ -104,7 +104,7 @@ class Property extends Model
             ->wherePivot('deleted_at', null);
     }
 
-    public function activeLease(): HasMany
+    public function activeLeases(): HasMany
     {
         return $this->hasMany(Lease::class)
             ->where('is_active', true)
@@ -113,7 +113,7 @@ class Property extends Model
 
     public function updateAvailability(): bool
     {
-        $activeCount = $this->activeLease()->count();
+        $activeCount = $this->activeLeases()->count();
         $this->is_available = $activeCount < $this->pax;
         return $this->save();
     }
