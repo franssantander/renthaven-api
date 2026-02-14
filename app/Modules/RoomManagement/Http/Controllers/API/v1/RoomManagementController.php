@@ -8,6 +8,7 @@ use App\Modules\RoomManagement\Actions\DeleteTenantFromPropertyAction;
 use App\Modules\RoomManagement\Actions\GetPropertyRoomDetailsAction;
 use App\Modules\RoomManagement\Actions\GetPropertyRoomListAction;
 use App\Modules\RoomManagement\Actions\MoveTenantOnProperty;
+use App\Modules\RoomManagement\Http\Requests\DeleteTenantFromPropertyRequest;
 use App\Modules\RoomManagement\Http\Requests\MoveTenantRequest;
 use App\Modules\TenantManagement\Models\Lease;
 use Illuminate\Http\Request;
@@ -38,9 +39,9 @@ class RoomManagementController extends Controller
         return $this->success($data, 'Successfully moved tenant on property.');
     }
 
-    public function destroy(Lease $room, DeleteTenantFromPropertyAction $action)
+    public function destroy(DeleteTenantFromPropertyRequest $request, DeleteTenantFromPropertyAction $action)
     {
-        $action->execute($room);
-        return $this->success(null, 'Successfully removed tenant from property.');
+        $action->execute($request->validated());
+        return $this->success(true, 'Successfully removed tenant from property.');
     }
 }

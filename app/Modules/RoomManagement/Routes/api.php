@@ -13,6 +13,7 @@ Route::prefix('v1')
             ->name('room-management.')
             ->controller(RoomManagementController::class)
             ->group(function () {
+                Route::delete('/delete', 'destroy');
                 Route::apiResource('', RoomManagementController::class)
                     ->parameters(['' => 'room:uuid']);
             });
