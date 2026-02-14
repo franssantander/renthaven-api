@@ -4,6 +4,7 @@ namespace App\Modules\Property\Models;
 
 use App\Modules\Authentication\Models\User;
 use App\Modules\Portfolio\Models\Portfolio;
+use App\Modules\TenantManagement\Models\Lease;
 use App\Traits\Filterable;
 use App\Traits\HasMultiTenantScope;
 use Database\Factories\PropertyFactory;
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Property extends Model
@@ -100,5 +102,19 @@ class Property extends Model
         return $this->belongsToMany(Amenity::class, 'amenity_property_pivot')
             ->using(AmenityPropertyPivot::class)
             ->wherePivot('deleted_at', null);
+    }
+
+    public function activeLease(): HasMany
+    {
+        return $this->hasMany(Lease::class)
+            ->where('is_active', true)
+            ->with('user');
+    }
+
+    public function updateAvailability(): bool
+    {
+        $activeCount = $this->activeLease()->count();
+        $this->is_available = $activeCount < $this->pax;
+        return $this->save();
     }
 }
