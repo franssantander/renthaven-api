@@ -8,12 +8,26 @@ use App\Modules\TenantManagement\Actions\DeleteTenantAction;
 use App\Modules\TenantManagement\Actions\GetTenantDetailsAction;
 use App\Modules\TenantManagement\Actions\GetTenantListAction;
 use App\Modules\TenantManagement\Actions\UpdateTenantAction;
+use App\Modules\TenantManagement\DTO\DashboardData;
 use App\Modules\TenantManagement\Http\Requests\AddTenantOnLeaseRequest;
 use App\Modules\TenantManagement\Models\Lease;
+use App\Services\DashboardMetric;
 use Illuminate\Http\Request;
 
 class TenantManagementController extends Controller
 {
+
+    public function __construct(protected DashboardMetric $dashboardMetric)
+    {
+
+    }
+
+    public function dashboard()
+    {
+        $data = DashboardData::fromService($this->dashboardMetric);
+        return $this->success($data, 'Dashboard tenant and payment metrics retrieved successfully.');
+    }
+
     public function index(Request $request, GetTenantListAction $action)
     {
         $data = $action->execute($request->all());
