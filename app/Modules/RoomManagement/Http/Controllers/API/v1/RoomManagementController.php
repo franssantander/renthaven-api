@@ -8,12 +8,26 @@ use App\Modules\RoomManagement\Actions\DeleteTenantFromPropertyAction;
 use App\Modules\RoomManagement\Actions\GetPropertyRoomDetailsAction;
 use App\Modules\RoomManagement\Actions\GetPropertyRoomListAction;
 use App\Modules\RoomManagement\Actions\MoveTenantOnProperty;
+use App\Modules\RoomManagement\DTO\DashboardData;
 use App\Modules\RoomManagement\Http\Requests\DeleteTenantFromPropertyRequest;
 use App\Modules\RoomManagement\Http\Requests\MoveTenantRequest;
+use App\Services\DashboardMetric;
 use Illuminate\Http\Request;
 
 class RoomManagementController extends Controller
 {
+
+    public function __construct(protected DashboardMetric $dashboardMetric)
+    {
+
+    }
+
+    public function dashboard()
+    {
+        $data = DashboardData::fromService($this->dashboardMetric);
+        return $this->success($data, 'Dashboard room management metrics retrieved successfully.');
+    }
+
     public function index(Request $request, GetPropertyRoomListAction $action)
     {
         $data = $action->execute($request->all());

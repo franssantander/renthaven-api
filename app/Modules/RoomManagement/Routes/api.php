@@ -13,6 +13,7 @@ Route::prefix('v1')
             ->name('room-management.')
             ->controller(RoomManagementController::class)
             ->group(function () {
+                Route::get('/dashboard', 'dashboard');
                 Route::put('/move-tenant', 'update');
                 Route::delete('/delete', 'destroy');
                 Route::apiResource('', RoomManagementController::class)
