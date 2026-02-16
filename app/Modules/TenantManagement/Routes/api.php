@@ -13,6 +13,7 @@ Route::prefix('v1')
             ->name('tenant-management.')
             ->controller(TenantManagementController::class)
             ->group(function () {
+                Route::get('dashboard', 'dashboard');
                 Route::apiResource('', TenantManagementController::class)
                     ->parameters(['' => 'lease:uuid']);
             });

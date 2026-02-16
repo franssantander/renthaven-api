@@ -66,9 +66,9 @@ class MakeModuleDataCommand extends Command
 
 namespace {$namespace};
 
-use Spatie\LaravelData\DTO;
+use Spatie\LaravelData\Data;
 
-class {$name} extends DTO
+class {$name} extends Data
 {
     public function __construct(
         // public string \$username,
