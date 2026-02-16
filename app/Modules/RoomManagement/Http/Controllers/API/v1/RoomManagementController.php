@@ -10,7 +10,6 @@ use App\Modules\RoomManagement\Actions\GetPropertyRoomListAction;
 use App\Modules\RoomManagement\Actions\MoveTenantOnProperty;
 use App\Modules\RoomManagement\Http\Requests\DeleteTenantFromPropertyRequest;
 use App\Modules\RoomManagement\Http\Requests\MoveTenantRequest;
-use App\Modules\TenantManagement\Models\Lease;
 use Illuminate\Http\Request;
 
 class RoomManagementController extends Controller
@@ -33,9 +32,9 @@ class RoomManagementController extends Controller
     }
 
     //* Move tenant to other property/room
-    public function update(MoveTenantRequest $request, Lease $room, MoveTenantOnProperty $action)
+    public function update(MoveTenantRequest $request, MoveTenantOnProperty $action)
     {
-        $data = $action->execute($request->validated(), $room);
+        $data = $action->execute($request->validated());
         return $this->success($data, 'Successfully moved tenant on property.');
     }
 

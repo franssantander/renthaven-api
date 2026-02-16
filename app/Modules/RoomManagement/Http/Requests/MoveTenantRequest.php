@@ -25,16 +25,26 @@ class MoveTenantRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['uuid', 'exists:leases,uuid'],
             'property_id' => [
                 'required',
-                'exists:properties,id',
+                'uuid',
+                'exists:properties,uuid',
                 function ($attribute, $value, $fail) {
-                    $property = Property::withCount(['activeLeases'])->find($value);
+                    $property = Property::where('uuid', $value)
+                        ->withCount(['activeLeases'])
+                        ->first();
 
-                    if (!$property)
+                    if (!$property) {
                         return $fail('Target property not found.');
-                    if ($property->active_lease_count >= $property->pax)
-                        return $fail("The property '{$property->name}' is already fully occupied (Capacity: {$property->pax}).");
+                    }
+                    $movingCount = count($this->ids ?? []);
+                    $availableSlots = $property->pax - $property->active_leases_count;
+
+                    if ($movingCount > $availableSlots) {
+                        return $fail("Not enough space. '{$property->name}' only has {$availableSlots} slot(s) left, but you are moving {$movingCount} tenant(s).");
+                    }
                 }
             ]
         ];
