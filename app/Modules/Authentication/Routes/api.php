@@ -3,6 +3,7 @@
 use App\Modules\Authentication\Http\Controllers\API\v1\LoginController;
 use App\Modules\Authentication\Http\Controllers\API\v1\LogoutController;
 use App\Modules\Authentication\Http\Controllers\API\v1\RefreshTokenController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')
@@ -14,6 +15,7 @@ Route::prefix('v1')
                 Route::post('login', LoginController::class)->name('login');
 
                 Route::middleware('auth:api')->group(function () {
+                    Route::get('me', fn(Request $req) => $req->user());
                     Route::post('logout', LogoutController::class)->name('logout');
                     Route::post('refresh-token', RefreshTokenController::class)->name('refresh-token');
                 });
