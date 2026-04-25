@@ -15,6 +15,7 @@ return new class extends Migration {
             $table->uuid('uuid')->unique();
             $table->string('name');
             $table->string('phone_number');
+            $table->string('email')->nullable()->unique();
             $table->boolean('is_active')->default(true);
             $table->softDeletes();
             $table->timestamps();

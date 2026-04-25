@@ -9,6 +9,7 @@ use App\Modules\Property\Actions\GetPropertiesListAction;
 use App\Modules\Property\Actions\GetPropertyDetailAction;
 use App\Modules\Property\Actions\UpdatePropertyAction;
 use App\Modules\Property\DTO\DashboardPropertyData;
+use App\Modules\Property\DTO\PropertyData;
 use App\Modules\Property\Http\Requests\CreatePropertyRequest;
 use App\Modules\Property\Http\Requests\UpdatePropertyRequest;
 use App\Modules\Property\Models\Property;
@@ -32,7 +33,8 @@ class PropertyController extends Controller
     public function index(Request $request, GetPropertiesListAction $action)
     {
         $data = $action->execute($request->all());
-        return $this->success($data, 'Properties data retrieved successfully');
+        // return $data;
+        return $this->success(PropertyData::collect($data), 'Properties data retrieved successfully');
     }
 
     public function store(CreatePropertyRequest $request, CreatePropertyAction $action)

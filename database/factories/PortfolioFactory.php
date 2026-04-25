@@ -23,6 +23,7 @@ class PortfolioFactory extends Factory
         return [
             'name' => $this->faker->company,
             'phone_number' => $this->faker->phoneNumber,
+            'email' => $this->faker->unique()->safeEmail,
             'is_active' => true
         ];
     }
