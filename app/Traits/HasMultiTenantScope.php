@@ -27,8 +27,8 @@ trait HasMultiTenantScope
             if (auth()->check()) {
                 $user = auth()->user();
 
-                if (Schema::hasColumn($table, 'portfolio_id') && empty($model->portfolio_id)) {
-                    $model->portfolio_id = $user->portfolio_id;
+                if (Schema::hasColumn($table, 'tenant_id') && empty($model->tenant_id)) {
+                    $model->tenant_id = $user->tenant_id;
                 }
 
                 if (Schema::hasColumn($table, 'created_by')) {
@@ -49,8 +49,8 @@ trait HasMultiTenantScope
         if (!$user || $user->role->name === 'superadmin')
             return $query;
 
-        if ($user->portfolio_id)
-            return $query->where('portfolio_id', $user->portfolio_id);
+        if ($user->tenant_id)
+            return $query->where('tenant_id', $user->tenant_id);
 
         if (Schema::hasColumn($this->getTable(), 'user_id'))
             return $query->where('user_id', $user->id);

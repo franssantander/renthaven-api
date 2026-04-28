@@ -40,9 +40,6 @@ class User extends Authenticatable implements OAuthenticatable
         'birth_date',
         'is_active',
         'email_verified_at',
-        'role_id',
-        'property_id',
-        'portfolio_id',
     ];
 
     protected static function newFactory()
@@ -105,14 +102,10 @@ class User extends Authenticatable implements OAuthenticatable
         return $this->belongsTo(Property::class);
     }
 
-    public function portfolio(): BelongsTo
-    {
-        return $this->belongsTo(Portfolio::class);
-    }
 
-    public function managedProperties()
-    {
-        return $this->hasManyThrough(Property::class, Portfolio::class);
-    }
+    // public function managedProperties()
+    // {
+    //     return $this->hasManyThrough(Property::class, Portfolio::class);
+    // }
 
 }

@@ -19,14 +19,14 @@ class DashboardData extends Data
 
     public static function fromService(DashboardMetric $metric): self
     {
-        return new self(
-            total_pending_payments: $metric->getTotalCount(
-                Bill::class,
-                ['status' => 'pending']
-            ),
-            total_active_tenants: $metric->getTotalCount(Lease::class, ['is_active' => 1]),
-            total_unpaid: $metric->getTotalCount(Bill::class, ['status' => 'unpaid']),
-            total_overdue_payments: $metric->getTotalCount(Bill::class, ['status' => 'overdue']),
-        );
+        // return new self(
+        //     total_pending_payments: $metric->getTotalCount(
+        //         Bill::class,
+        //         ['status' => 'pending']
+        //     ),
+        //     total_active_tenants: $metric->getTotalCount(Lease::class, ['is_active' => 1]),
+        //     total_unpaid: $metric->getTotalCount(Bill::class, ['status' => 'unpaid']),
+        //     total_overdue_payments: $metric->getTotalCount(Bill::class, ['status' => 'overdue']),
+        // );
     }
 }

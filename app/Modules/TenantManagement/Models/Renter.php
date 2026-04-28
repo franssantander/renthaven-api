@@ -1,0 +1,86 @@
+<?php
+
+namespace App\Modules\TenantManagement\Models;
+
+use App\Modules\Tenant\Models\Tenant;
+use App\Traits\Filterable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
+
+class Renter extends Model
+{
+    /** @use HasFactory<\Database\Factories\RenterFactory> */
+    use HasUuids, HasFactory, SoftDeletes, Filterable;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'tenant_id',
+        'first_name',
+        'last_name',
+        'email',
+        'phone_number',
+        'is_active',
+    ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+        ];
+    }
+
+    /**
+     * Relationships
+     */
+
+    /**
+     * Every renter belongs to one specific Business (Tenant).
+     */
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
+    /**
+     * Accessors & Mutators
+     */
+
+    /**
+     * Replicating your User name attribute for consistency.
+     */
+    protected function name(): Attribute
+    {
+        return Attribute::make(
+            get: fn(mixed $value, array $attributes) => $attributes['first_name'] . ' ' . $attributes['last_name']
+        );
+    }
+
+    /**
+     * Boot Logic
+     */
+    protected static function booted()
+    {
+        parent::boot();
+
+        // Consistent with your User model's UUID generation
+        static::creating(function ($model) {
+            if (empty($model->uuid)) {
+                $model->uuid = (string) Str::uuid();
+            }
+        });
+    }
+}

@@ -3,6 +3,7 @@
 namespace App\Modules\Tenant\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Tenant extends Model
 {
@@ -17,4 +18,15 @@ class Tenant extends Model
         'settings',
         'status',
     ];
+
+    protected static function booted()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->uuid)) {
+                $model->uuid = (string) Str::uuid();
+            }
+        });
+    }
 }

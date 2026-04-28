@@ -10,17 +10,13 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('plans', function (Blueprint $table) {
+        Schema::create('roles', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
-            $table->string('name');
-            $table->string('description')->nullable();
-            $table->integer('max_properties')->default(5);
-            $table->decimal('price', 10, 2)->default(0.00);
-            $table->json('features')->nullable();
-            $table->boolean('is_active')->default(true);
-            $table->softDeletes();
+            $table->string('code')->unique();
+            $table->string('name')->unique();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
@@ -29,6 +25,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('plans');
+        Schema::dropIfExists('roles');
     }
 };

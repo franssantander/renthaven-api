@@ -78,15 +78,6 @@ class Property extends Model
         'number_of_bathrooms' => 'decimal:1',
     ];
 
-    protected static function newFactory()
-    {
-        return PropertyFactory::new();
-    }
-
-    public function portfolio(): BelongsTo
-    {
-        return $this->belongsTo(Portfolio::class);
-    }
 
     public function createdBy(): BelongsTo
     {

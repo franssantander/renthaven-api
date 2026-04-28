@@ -10,17 +10,21 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('leases', function (Blueprint $table) {
+        Schema::create('renters', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
-            $table->foreignId('user_id')->constrained('users');
-            $table->foreignId('property_id')->constrained('properties');
-            $table->foreignId('tenant_id')->constrained('tenants');
-            $table->date('start_date');
-            $table->date('end_date')->nullable();
+            $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
+
+            $table->string('first_name');
+            $table->string('last_name');
+            $table->string('email');
+            $table->string('phone_number')->nullable();
+
             $table->boolean('is_active')->default(true);
-            $table->softDeletes();
             $table->timestamps();
+            $table->softDeletes();
+
+            $table->index(['tenant_id', 'email']);
         });
     }
 
@@ -29,6 +33,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('leases');
+        Schema::dropIfExists('renters');
     }
 };
