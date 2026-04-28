@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Lcobucci\JWT\Token\Builder;
 
 class Property extends Model
 {
@@ -116,5 +117,12 @@ class Property extends Model
         $activeCount = $this->activeLeases()->count();
         $this->is_available = $activeCount < $this->pax;
         return $this->save();
+    }
+
+    protected static function booted()
+    {
+        static::addGlobalScope('tenant', function (Builder $builder) {
+            $builder->where('tenant_id', auth()->user()->current_tenant_id);
+        });
     }
 }

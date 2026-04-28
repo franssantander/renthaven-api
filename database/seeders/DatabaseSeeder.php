@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
+use Modules\Plan\Database\Seeders\PlansSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -20,11 +21,15 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
+
+        //Plans
+        $this->call([PlansSeeder::class]);
+
         // 1. Create Roles
         $roles = [
             'superadmin' => Role::create(['name' => 'superadmin']),
-            'admin'      => Role::create(['name' => 'admin']),
-            'renter'     => Role::create(['name' => 'renter']),
+            'admin' => Role::create(['name' => 'admin']),
+            'renter' => Role::create(['name' => 'renter']),
         ];
 
         // 2. Create Portfolios & Amenities
@@ -35,22 +40,22 @@ class DatabaseSeeder extends Seeder
         // 3. Create Super Admin
         User::factory()->create([
             'first_name' => 'Super',
-            'last_name'  => 'Admin',
-            'username'   => 'superadmin',
-            'email'      => 'dev@renthaven.com',
-            'role_id'    => $roles['superadmin']->id,
+            'last_name' => 'Admin',
+            'username' => 'superadmin',
+            'email' => 'dev@renthaven.com',
+            'role_id' => $roles['superadmin']->id,
         ]);
 
         // 4a. Create FIXED Admin (Test Landlord)
         // We assign them the first portfolio so we know where to put the test tenant later.
         $testPortfolio = $portfolios->first();
         $testLandlord = User::factory()->create([
-            'first_name'   => 'Test',
-            'last_name'    => 'Landlord',
-            'username'     => 'admin_user',
-            'email'        => 'admin@renthaven.com',
-            'role_id'      => $roles['admin']->id,
-            'portfolio_id' => $testPortfolio->id, 
+            'first_name' => 'Test',
+            'last_name' => 'Landlord',
+            'username' => 'admin_user',
+            'email' => 'admin@renthaven.com',
+            'role_id' => $roles['admin']->id,
+            'portfolio_id' => $testPortfolio->id,
         ]);
 
         // 4b. Create Random Admins (Landlords)
@@ -59,7 +64,7 @@ class DatabaseSeeder extends Seeder
         ])->each(function ($user) use ($portfolios) {
             $user->update(['portfolio_id' => $portfolios->random()->id]);
         });
-        
+
         // Add our test landlord to the collection for property generation
         $adminUsers->push($testLandlord);
 
@@ -74,11 +79,11 @@ class DatabaseSeeder extends Seeder
                 $creator = $adminUsers->where('portfolio_id', $portfolio->id)->first() ?? $adminUsers->random();
 
                 $property->portfolio_id = $portfolio->id;
-                $property->created_by   = $creator->id;
-                $property->updated_by   = $creator->id;
-                $property->pax          = rand(1, 4);
+                $property->created_by = $creator->id;
+                $property->updated_by = $creator->id;
+                $property->pax = rand(1, 4);
                 $property->is_available = true;
-                
+
                 $property->save();
                 $property->amenities()->attach($allAmenities->random(rand(3, 6))->pluck('id')->toArray());
             });
@@ -87,22 +92,22 @@ class DatabaseSeeder extends Seeder
         // Assign this user to a property owned by the Test Landlord ($testPortfolio)
         $testTenant = User::factory()->create([
             'first_name' => 'Test',
-            'last_name'  => 'Tenant',
-            'username'   => 'renter_user',
-            'email'      => 'renter@renthaven.com',
-            'role_id'    => $roles['renter']->id,
+            'last_name' => 'Tenant',
+            'username' => 'renter_user',
+            'email' => 'renter@renthaven.com',
+            'role_id' => $roles['renter']->id,
             'portfolio_id' => $testPortfolio->id,
         ]);
 
         $testProperty = Property::where('portfolio_id', $testPortfolio->id)->first();
-        
+
         Lease::factory()->create([
-            'user_id'      => $testTenant->id,
-            'property_id'  => $testProperty->id,
+            'user_id' => $testTenant->id,
+            'property_id' => $testProperty->id,
             'portfolio_id' => $testPortfolio->id,
-            'is_active'    => true,
-            'start_date'   => Carbon::now()->subMonths(2),
-            'end_date'     => Carbon::now()->addMonths(10),
+            'is_active' => true,
+            'start_date' => Carbon::now()->subMonths(2),
+            'end_date' => Carbon::now()->addMonths(10),
         ]);
 
         // 6b. Create Random Renters & Assign Leases
@@ -127,12 +132,12 @@ class DatabaseSeeder extends Seeder
             }
 
             Lease::factory()->create([
-                'user_id'      => $user->id,
-                'property_id'  => $property->id,
+                'user_id' => $user->id,
+                'property_id' => $property->id,
                 'portfolio_id' => $property->portfolio_id,
-                'is_active'    => $isActive,
-                'start_date'   => $startDate,
-                'end_date'     => $endDate,
+                'is_active' => $isActive,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
             ]);
         });
 
@@ -141,10 +146,10 @@ class DatabaseSeeder extends Seeder
         if ($createdLeases->count() > 0) {
             foreach ($createdLeases->random(min(50, $createdLeases->count())) as $lease) {
                 MaintenanceProperty::factory()->count(rand(1, 2))->create([
-                    'lease_id'     => $lease->id,
-                    'property_id'  => $lease->property_id,
+                    'lease_id' => $lease->id,
+                    'property_id' => $lease->property_id,
                     'portfolio_id' => $lease->property->portfolio_id,
-                    'created_at'   => Carbon::parse($lease->start_date)->addDays(rand(5, 30)),
+                    'created_at' => Carbon::parse($lease->start_date)->addDays(rand(5, 30)),
                 ]);
             }
         }
