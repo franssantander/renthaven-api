@@ -3,6 +3,7 @@
 namespace App\Modules\Authentication\Data;
 
 use App\Modules\Authentication\Models\User;
+use App\Modules\RenterManagement\Models\Renter;
 use Spatie\LaravelData\Data;
 
 class LoginData extends Data
@@ -13,7 +14,7 @@ class LoginData extends Data
     ) {
     }
 
-    public static function fromModel(string $token, User $user): self
+    public static function fromModel(string $token, User|Renter $user): self
     {
         return new self(
             access_token: $token,

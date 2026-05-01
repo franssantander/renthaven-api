@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::create('tenants', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
-            $table->foreignId('plan_id')->constrained('plans')->onDelete('restrict');
+            $table->foreignId('plan_id')->constrained('plans')->onDelete('cascade');
             $table->string('name')->unique();
             $table->string('url')->unique()->nullable();
             $table->string('email')->unique()->nullable();

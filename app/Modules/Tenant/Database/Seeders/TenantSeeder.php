@@ -2,6 +2,7 @@
 
 namespace Modules\Tenant\Database\Seeders;
 
+use App\Modules\Authentication\Models\Role;
 use App\Modules\Authentication\Models\User;
 use App\Modules\RenterManagement\Models\Renter;
 use App\Modules\Tenant\Models\Tenant;
@@ -43,11 +44,16 @@ class TenantSeeder extends Seeder
 
     private function generateAccountsForTenant($tenant, $domain)
     {
+
+        $superAdminRole = Role::where('code', 'super_admin')->first();
+        $adminRole = Role::where('code', 'admin')->first();
+
         // 1. SUPERADMIN Account
         User::create([
             'tenant_id' => $tenant->id,
             'first_name' => 'Super',
             'last_name' => 'Admin',
+            'role_id' => $superAdminRole->id,
             'username' => 'superadmin_' . str_replace('.', '_', $domain),
             'email' => "superadmin@$domain",
             'password' => Hash::make('password'),
@@ -59,6 +65,7 @@ class TenantSeeder extends Seeder
             'tenant_id' => $tenant->id,
             'first_name' => 'General',
             'last_name' => 'Manager',
+            'role_id' => $adminRole->id,
             'username' => 'admin_' . str_replace('.', '_', $domain),
             'email' => "admin@$domain",
             'password' => Hash::make('password'),
@@ -73,6 +80,7 @@ class TenantSeeder extends Seeder
             'last_name' => 'Renter',
             'username' => 'renter_' . str_replace('.', '_', $domain),
             'email' => "renter@$domain",
+            'password' => Hash::make('password'),
             'phone_number' => '09123456789',
             'is_active' => true,
         ]);

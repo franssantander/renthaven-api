@@ -7,14 +7,16 @@ use App\Traits\Filterable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
+use Laravel\Passport\HasApiTokens;
 
-class Renter extends Model
+class Renter extends Authenticatable
 {
-    use HasUuids, HasFactory, SoftDeletes, Filterable;
+    use HasUuids, HasFactory, SoftDeletes, Filterable, HasApiTokens, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -27,6 +29,7 @@ class Renter extends Model
         'last_name',
         'username',
         'email',
+        'password',
         'phone_number',
         'is_active',
     ];
@@ -40,6 +43,7 @@ class Renter extends Model
     {
         return [
             'is_active' => 'boolean',
+            'password' => 'hashed',
         ];
     }
 

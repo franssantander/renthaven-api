@@ -20,7 +20,6 @@ use Laravel\Passport\HasApiTokens;
 
 class User extends Authenticatable implements OAuthenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasUuids, HasFactory, Notifiable, SoftDeletes;
     use Filterable;
 

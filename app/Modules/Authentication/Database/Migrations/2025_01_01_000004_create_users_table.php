@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->id();
             $table->uuid('uuid')->unique();
             $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
+            $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
             $table->string('first_name');
             $table->string('last_name');
             $table->string('username')->unique();

@@ -45,6 +45,11 @@ return [
             'driver' => 'passport',
             'provider' => 'users',
         ],
+
+        'renter-api' => [
+            'driver' => 'passport',
+            'provider' => 'renters',
+        ],
     ],
 
     /*
@@ -68,6 +73,11 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => App\Modules\Authentication\Models\User::class,
+        ],
+
+        'renters' => [
+            'driver' => 'eloquent',
+            'model' => App\Modules\RenterManagement\Models\Renter::class,
         ],
 
         // 'users' => [

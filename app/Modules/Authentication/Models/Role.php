@@ -11,6 +11,7 @@ class Role extends Model
 {
     use HasFactory, HasUuids, SoftDeletes;
 
+    protected $table = 'roles';
     protected $guarded = [];
 
     public function uniqueIds(): array

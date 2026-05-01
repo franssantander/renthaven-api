@@ -35,7 +35,7 @@ class TenantFactory extends Factory
                 'timezone' => $this->faker->timezone,
                 'currency' => $this->faker->currencyCode
             ]),
-            'status' => $this->faker->randomElement(['active', 'inactive', 'suspended']),
+            'status' => 'active',
         ];
     }
 }

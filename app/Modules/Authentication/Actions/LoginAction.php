@@ -4,6 +4,7 @@ namespace App\Modules\Authentication\Actions;
 
 use App\Modules\Authentication\Data\LoginData;
 use App\Modules\Authentication\Models\User;
+use App\Modules\RenterManagement\Models\Renter;
 use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -17,6 +18,12 @@ class LoginAction
             ->first();
 
         if (!$user) {
+            $user = Renter::where('username', $params['username'])
+                ->where('is_active', true)
+                ->first();
+        }
+
+        if (!$user) {
             abort(Response::HTTP_BAD_REQUEST, 'The account does not exist or is inactive.');
         }
 
@@ -25,8 +32,7 @@ class LoginAction
         }
 
         $tokenResult = $user->createToken('Personal Access Token');
-        $token = $tokenResult->accessToken;
 
-        return LoginData::fromModel($token, $user);
+        return LoginData::fromModel($tokenResult->accessToken, $user);
     }
 }
