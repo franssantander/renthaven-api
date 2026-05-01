@@ -14,7 +14,7 @@ use App\Modules\RenterManagement\Models\Lease;
 use App\Services\DashboardMetric;
 use Illuminate\Http\Request;
 
-class TenantManagementController extends Controller
+class RenterManagementController extends Controller
 {
 
     public function __construct(protected DashboardMetric $dashboardMetric)

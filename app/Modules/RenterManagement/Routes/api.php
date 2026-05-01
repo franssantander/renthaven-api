@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\RenterManagement\Http\Controllers\API\v1\RenterManagementController;
 use Illuminate\Support\Facades\Route;
 
 // If you prefer central route files, you can import them here instead of defining inline:
