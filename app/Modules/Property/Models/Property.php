@@ -3,11 +3,9 @@
 namespace App\Modules\Property\Models;
 
 use App\Modules\Authentication\Models\User;
-use App\Modules\Portfolio\Models\Portfolio;
-use App\Modules\TenantManagement\Models\Lease;
+use App\Modules\RenterManagement\Models\Lease;
 use App\Traits\Filterable;
 use App\Traits\HasMultiTenantScope;
-use Database\Factories\PropertyFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

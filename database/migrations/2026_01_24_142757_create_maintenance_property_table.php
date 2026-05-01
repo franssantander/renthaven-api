@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::create('maintenance_properties', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
-            $table->foreignId('portfolio_id')->constrained('portfolios')->onDelete('cascade');
+            $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
             $table->foreignId('property_id')->constrained('properties')->onDelete('cascade');
             $table->foreignId('lease_id')->constrained('leases')->onDelete('cascade');
             $table->string('issue_reported');
