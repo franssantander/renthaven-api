@@ -21,6 +21,7 @@ class RenterFactory extends Factory
             'last_name' => $this->faker->lastName,
             'email' => $this->faker->unique()->safeEmail,
             'phone_number' => $this->faker->phoneNumber,
+            'username' => $this->faker->userName,
             'is_active' => true,
             'tenant_id' => null,
         ];

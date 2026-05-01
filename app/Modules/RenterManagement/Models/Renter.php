@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\TenantManagement\Models;
+namespace App\Modules\RenterManagement\Models;
 
 use App\Modules\Tenant\Models\Tenant;
 use App\Traits\Filterable;
@@ -14,7 +14,6 @@ use Illuminate\Support\Str;
 
 class Renter extends Model
 {
-    /** @use HasFactory<\Database\Factories\RenterFactory> */
     use HasUuids, HasFactory, SoftDeletes, Filterable;
 
     /**
@@ -26,6 +25,7 @@ class Renter extends Model
         'tenant_id',
         'first_name',
         'last_name',
+        'username',
         'email',
         'phone_number',
         'is_active',
@@ -69,14 +69,14 @@ class Renter extends Model
         );
     }
 
-    /**
-     * Boot Logic
-     */
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
+    }
+
     protected static function booted()
     {
         parent::boot();
-
-        // Consistent with your User model's UUID generation
         static::creating(function ($model) {
             if (empty($model->uuid)) {
                 $model->uuid = (string) Str::uuid();

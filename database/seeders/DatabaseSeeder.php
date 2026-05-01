@@ -20,9 +20,9 @@ class DatabaseSeeder extends Seeder
         $this->call([
             PlansSeeder::class,
             RoleSeeder::class,
+            TenantSeeder::class,
             AmenitySeeder::class,
             PropertySeeder::class,
-            TenantSeeder::class,
             TenantUserSeeder::class,
         ]);
     }

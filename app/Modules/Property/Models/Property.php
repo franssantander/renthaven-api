@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Lcobucci\JWT\Token\Builder;
+use Modules\Property\Database\Factories\PropertyFactory;
 
 class Property extends Model
 {
@@ -20,6 +21,7 @@ class Property extends Model
     use Filterable;
 
     protected $table = 'properties';
+
 
     protected $fillable = [
         'name',
@@ -42,7 +44,7 @@ class Property extends Model
         'allows_pets',
         'contact_email',
         'contact_phone',
-        'portfolio_id',
+        'tenant_id',
         'created_by',
         'updated_by',
     ];
@@ -106,6 +108,11 @@ class Property extends Model
         $activeCount = $this->activeLeases()->count();
         $this->is_available = $activeCount < $this->pax;
         return $this->save();
+    }
+
+    protected static function newFactory()
+    {
+        return PropertyFactory::new();
     }
 
     protected static function booted()

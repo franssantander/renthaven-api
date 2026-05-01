@@ -3,7 +3,9 @@
 namespace Modules\Property\Database\Factories;
 
 use App\Modules\Property\Models\Property;
+use App\Modules\Tenant\Models\Tenant;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Model>
@@ -21,6 +23,7 @@ class PropertyFactory extends Factory
     public function definition(): array
     {
         return [
+            'uuid' => (string) Str::uuid(),
             'name' => $this->faker->streetName . ' Apartments',
             'type' => $this->faker->randomElement(['Apartment', 'House', 'Studio']),
             'description' => $this->faker->paragraph,
@@ -40,7 +43,7 @@ class PropertyFactory extends Factory
             'allows_pets' => $this->faker->boolean,
             'contact_email' => $this->faker->safeEmail,
             'contact_phone' => $this->faker->phoneNumber,
-            'tenant_id' => null,
+            'tenant_id' => Tenant::first()->id ?? 1,
         ];
     }
 }

@@ -4,6 +4,7 @@ namespace Modules\Plan\Database\Seeders;
 
 use App\Modules\Plan\Models\Plan;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class PlansSeeder extends Seeder
 {
@@ -39,10 +40,16 @@ class PlansSeeder extends Seeder
             ],
         ];
 
-        foreach ($plans as $plan) {
+        foreach ($plans as $planData) {
+            $plan = Plan::where('name', $planData['name'])->first();
+
+            if (!$plan) {
+                $planData['uuid'] = (string) Str::uuid();
+            }
+
             Plan::updateOrCreate(
-                ['name' => $plan['name']],
-                $plan
+                ['name' => $planData['name']],
+                $planData
             );
         }
     }

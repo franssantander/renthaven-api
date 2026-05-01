@@ -2,8 +2,8 @@
 
 namespace Modules\RenterManagement\Database\Seeders;
 
+use App\Modules\RenterManagement\Models\Renter;
 use App\Modules\Tenant\Models\Tenant;
-use App\Modules\TenantManagement\Models\Renter;
 use Illuminate\Database\Seeder;
 
 class RenterSeeder extends Seeder

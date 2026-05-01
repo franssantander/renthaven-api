@@ -24,7 +24,7 @@ class TenantFactory extends Factory
     {
         return [
             'uuid' => (string) Str::uuid(),
-            'plan_id' => Plan::inRandomOrder()->first()->id ?? 1,
+            'plan_id' => Plan::first()?->id ?? 1,
             'name' => $this->faker->company,
             'url' => $this->faker->unique()->domainName,
             'email' => $this->faker->unique()->safeEmail,

@@ -7,6 +7,7 @@ use App\Modules\Authentication\Models\User;
 use App\Modules\Tenant\Models\Tenant;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class TenantUserSeeder extends Seeder
 {
@@ -30,15 +31,23 @@ class TenantUserSeeder extends Seeder
                 $tenantId = Tenant::inRandomOrder()->first()->id;
             }
 
-            $role = $roles->where('code', 'admin')->first() ?? $roles->first();
+            if (str_starts_with($user->username, 'superadmin')) {
+                $role = $roles->where('code', 'superadmin')->first();
+            } elseif (str_starts_with($user->username, 'admin')) {
+                $role = $roles->where('code', 'admin')->first();
+            } else {
+                $role = $roles->where('code', 'renter')->first();
+            }
 
-            // 4. Insert into the pivot table
+            $role = $role ?? $roles->first();
+
             DB::table('tenant_users')->updateOrInsert(
                 [
                     'user_id' => $user->id,
                     'tenant_id' => $tenantId,
                 ],
                 [
+                    'uuid' => (string) Str::uuid(),
                     'role_id' => $role->id,
                     'created_at' => now(),
                     'updated_at' => now(),
