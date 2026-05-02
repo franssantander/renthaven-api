@@ -8,7 +8,7 @@ class GetPropertiesListAction
 {
     public function execute(array $params)
     {
-        return Property::with(['amenities', 'portfolio', 'createdBy', 'updatedBy'])
+        return Property::with(['tenant', 'amenities', 'createdBy', 'updatedBy'])
             ->forUser(auth()->user())
             ->filter($params);
     }

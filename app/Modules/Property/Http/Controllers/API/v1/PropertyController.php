@@ -33,7 +33,6 @@ class PropertyController extends Controller
     public function index(Request $request, GetPropertiesListAction $action)
     {
         $data = $action->execute($request->all());
-        // return $data;
         return $this->success(PropertyData::collect($data), 'Properties data retrieved successfully');
     }
 

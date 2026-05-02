@@ -4,6 +4,7 @@ namespace App\Modules\Property\Models;
 
 use App\Modules\Authentication\Models\User;
 use App\Modules\RenterManagement\Models\Lease;
+use App\Modules\Tenant\Models\Tenant;
 use App\Traits\Filterable;
 use App\Traits\HasMultiTenantScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,7 +13,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Lcobucci\JWT\Token\Builder;
 use Modules\Property\Database\Factories\PropertyFactory;
 
 class Property extends Model
@@ -50,7 +50,6 @@ class Property extends Model
     ];
 
     protected $searchableRelations = [
-        'portfolio.name',
         'createdBy.first_name',
         'createdBy.last_name',
         'createdBy.email',
@@ -65,7 +64,7 @@ class Property extends Model
         'has_parking',
         'allows_pets',
         'number_of_rooms',
-        'portfolio_id'
+        'tenant_id'
     ];
 
     protected $casts = [
@@ -78,6 +77,9 @@ class Property extends Model
         'number_of_bathrooms' => 'decimal:1',
     ];
 
+    public function tenant(){
+        return $this->belongsTo(Tenant::class, 'tenant_id');
+    }
 
     public function createdBy(): BelongsTo
     {
@@ -115,10 +117,5 @@ class Property extends Model
         return PropertyFactory::new();
     }
 
-    protected static function booted()
-    {
-        static::addGlobalScope('tenant', function (Builder $builder) {
-            $builder->where('tenant_id', auth()->user()->current_tenant_id);
-        });
-    }
+
 }

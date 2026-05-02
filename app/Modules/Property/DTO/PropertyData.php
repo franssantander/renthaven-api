@@ -2,7 +2,6 @@
 
 namespace App\Modules\Property\DTO;
 
-use App\Modules\Portfolio\DTO\PortfolioData;
 use App\Modules\Property\DTO\AmenitiesData;
 use App\Modules\Property\Models\Property;
 use Spatie\LaravelData\Attributes\DataCollectionOf;
@@ -33,8 +32,8 @@ class PropertyData extends Data
         public bool $allows_pets,
         public string $contact_email,
         public string $contact_phone,
-
-        public ?PortfolioData $portfolio,
+        public ?string $tenant_name,
+            // public ?PortfolioData $portfolio,
 
         #[DataCollectionOf(AmenitiesData::class)]
         public ?DataCollection $amenities,
@@ -69,14 +68,13 @@ class PropertyData extends Data
             allows_pets: (bool) $property->allows_pets,
             contact_email: $property->contact_email,
             contact_phone: $property->contact_phone,
-
-            portfolio: PortfolioData::from($property->portfolio) ?? null,
+            tenant_name: $property->tenant?->name ?? null,
 
             amenities: AmenitiesData::collect($property->amenities, DataCollection::class)
             ?? null,
 
-            created_by: "{$property?->createdBy->first_name} {$property?->createdBy->last_name}" ?? null,
-            updated_by: "{$property?->updatedBy->first_name} {$property?->updatedBy->last_name}" ?? null,
+            created_by: "{$property?->createdBy?->first_name} {$property?->createdBy?->last_name}" ?? null,
+            updated_by: "{$property?->updatedBy?->first_name} {$property?->updatedBy?->last_name}" ?? null,
         );
     }
 }

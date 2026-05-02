@@ -46,19 +46,25 @@ trait HasMultiTenantScope
 
     public function scopeForUser(Builder $query, $user)
     {
-        if (!$user || $user->role->name === 'superadmin')
+        if (!$user) {
             return $query;
+        }
 
-        if ($user->tenant_id)
-            return $query->where('tenant_id', $user->tenant_id);
+        $isSuperAdmin = $user->loadMissing('role')
+            ? ($user->role?->code === 'super_admin')
+            : false;
 
-        if (Schema::hasColumn($this->getTable(), 'user_id'))
-            return $query->where('user_id', $user->id);
 
+        if ($isSuperAdmin) {
+            return $query;
+        }
+
+        if ($user->tenant_id) {
+            return $query->where($this->getTable() . '.tenant_id', $user->tenant_id);
+        }
 
         return $query;
     }
-
     public function resolveRouteBinding($value, $field = null)
     {
         return $this->where('uuid', $value)

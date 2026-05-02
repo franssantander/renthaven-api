@@ -7,13 +7,24 @@ use Symfony\Component\HttpFoundation\Response;
 
 abstract class Controller
 {
-    public function success(mixed $data, string $message = 'Success', int $status = Response::HTTP_OK): JsonResponse
-    {
-        return response()->json([
+    public function success(
+        mixed $data = null,
+        string $message = 'Success',
+        int $status = Response::HTTP_OK,
+    ): JsonResponse {
+        $response = [
             'success' => true,
-            'data' => $data,
             'message' => $message,
-            'status' => $status
-        ], $status);
+            'status' => $status,
+        ];
+
+        if ($data !== null) {
+            $response = array_merge(
+                $response,
+                is_array($data) ? $data : $data->toArray()
+            );
+        }
+
+        return response()->json($response, $status);
     }
 }
