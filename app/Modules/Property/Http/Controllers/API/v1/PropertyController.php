@@ -21,7 +21,6 @@ class PropertyController extends Controller
 
     public function __construct(protected DashboardMetric $dashboardMetric)
     {
-
     }
 
     public function dashboard()
@@ -56,7 +55,7 @@ class PropertyController extends Controller
 
     public function destroy(Property $property, DeletePropertyAction $action)
     {
-        $data = $action->execute($property);
-        return $this->success($data, 'Property deleted successfully');
+        $action->execute($property);
+        return $this->success(null, 'Property deleted successfully');
     }
 }

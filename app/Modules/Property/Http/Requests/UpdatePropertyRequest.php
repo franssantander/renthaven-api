@@ -25,31 +25,41 @@ class UpdatePropertyRequest extends FormRequest
     public function rules(): array
     {
         $property = $this->route('property');
+        $propertyId = is_object($property) ? $property->id : $property;
+        
         return [
             'name' => [
                 'sometimes',
                 'required',
                 'min:3',
-                Rule::unique('properties')->ignore($property->id)
+                Rule::unique('properties', 'name')
+                    ->ignore($propertyId)
+                    ->where('tenant_id', auth()->user()->tenant_id)
             ],
-            'type' => ['sometimes', 'required'],
-            'description' => ['sometimes', 'min:10'],
+            'type' => ['sometimes', 'required', 'string'],
+            'description' => ['sometimes', 'required', 'min:10'],
             'address_line_1' => ['sometimes', 'required', 'min:5'],
-            'address_line_2' => ['sometimes', 'min:5'],
+            'address_line_2' => ['nullable', 'string'],
             'city' => ['sometimes', 'required'],
             'state' => ['sometimes', 'required'],
             'zip_code' => ['sometimes', 'required'],
-            'number_of_rooms' => ['sometimes', 'integer'],
-            'pax' => ['sometimes', 'integer'],
-            'number_of_bathrooms' => ['sometimes', 'integer'],
-            'area_sq_ft' => ['sometimes', 'integer'],
-            'monthly_rent_price' => ['sometimes', 'required', 'integer'],
-            'security_deposit' => ['sometimes', 'required', 'integer'],
+
+            'number_of_rooms' => ['sometimes', 'integer', 'min:0'],
+            'pax' => ['sometimes', 'integer', 'min:1'],
+            'number_of_bathrooms' => ['sometimes', 'numeric', 'min:0'],
+            'area_sq_ft' => ['sometimes', 'integer', 'min:1'],
+            'monthly_rent_price' => ['sometimes', 'required', 'numeric'],
+            'security_deposit' => ['sometimes', 'required', 'numeric'],
+
             'is_available' => ['sometimes', 'boolean'],
+            'is_active' => ['sometimes', 'boolean'],
             'has_parking' => ['sometimes', 'boolean'],
             'allows_pets' => ['sometimes', 'boolean'],
-            'contact_email' => ['sometimes', 'email', 'exists:users,email'],
-            'phone_number' => ['sometimes', 'exists:users,phone_number'],
+
+            'contact_email' => ['sometimes', 'required', 'email'],
+            'contact_phone' => ['sometimes', 'required'],
+            'amenities' => ['sometimes', 'array'],
+            'amenities.*' => ['exists:amenities,id'],
         ];
     }
 
