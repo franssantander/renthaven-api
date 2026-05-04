@@ -5,6 +5,7 @@ namespace App\Modules\Property\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
 
 class CreatePropertyRequest extends FormRequest
 {
@@ -24,25 +25,27 @@ class CreatePropertyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'min:3', 'unique:properties,name'],
+            'name' => ['required', 'min:3', Rule::unique('properties', 'name')->where('tenant_id', auth()->user()->tenant_id)],
             'type' => ['required'],
             'description' => ['required', 'min:10'],
             'address_line_1' => ['required', 'min:5'],
-            'address_line_2' => ['required', 'min:5'],
+            'address_line_2' => ['nullable', 'string'],
             'city' => ['required'],
             'state' => ['required'],
             'zip_code' => ['required'],
             'number_of_rooms' => ['required', 'integer'],
             'pax' => ['required', 'integer'],
-            'number_of_bathrooms' => ['required', 'integer'],
+            'number_of_bathrooms' => ['required', 'numeric', 'min:0'],
             'area_sq_ft' => ['required', 'integer'],
-            'monthly_rent_price' => ['required', 'integer'],
-            'security_deposit' => ['required', 'integer'],
-            'is_available' => ['required', 'boolean'],
+            'monthly_rent_price' => ['required', 'numeric', 'min:0'],
+            'security_deposit' => ['required', 'numeric', 'min:0'],
+            'is_available' => ['boolean'],
             'has_parking' => ['required', 'boolean'],
             'allows_pets' => ['required', 'boolean'],
             'contact_email' => ['required', 'email'],
             'contact_phone' => ['required'],
+            'amenities' => ['nullable', 'array'],
+            'amenities.*' => ['exists:amenities,id'],
         ];
     }
 
