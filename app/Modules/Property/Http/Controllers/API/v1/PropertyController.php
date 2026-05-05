@@ -44,7 +44,7 @@ class PropertyController extends Controller
     public function show(Property $property, GetPropertyDetailAction $action)
     {
         $data = $action->execute($property);
-        return $this->success($data, 'Property details retrieved successfully');
+        return $this->success(PropertyData::from($data), 'Property details retrieved successfully');
     }
 
     public function update(UpdatePropertyRequest $request, Property $property, UpdatePropertyAction $action)
