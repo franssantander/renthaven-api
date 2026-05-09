@@ -22,7 +22,7 @@ class Lease extends Model
     protected $table = 'leases';
 
     protected $fillable = [
-        'user_id',
+        'renter_user_id',
         'property_id',
         'tenant_id',
         'start_date',

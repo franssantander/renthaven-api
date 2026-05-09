@@ -6,7 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class AddRenterOnLeaseRequest extends FormRequest
+class AddRenterRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,9 +24,12 @@ class AddRenterOnLeaseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'renter_user_id' => ['required', 'exists:renter_users,uuid'],
-            'property_id' => ['required', 'exists:properties,uuid'],
-            'start_date' => ['required', 'date'],
+            'first_name' => ['required', 'string', 'min:3'],
+            'last_name' => ['required', 'string', 'min:3'],
+            'username' => ['required', 'string', 'min:3', 'unique:renter_users,username'],
+            'email' => ['required', 'email', 'unique:renter_users,email'],
+            'phone_number' => ['required', 'string', 'unique:renter_users,phone_number'],
+            'password' => ['required', 'min:8'],
         ];
     }
 

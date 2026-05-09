@@ -36,6 +36,11 @@ class RenterManagementController extends Controller
 
     public function store(AddRenterOnLeaseRequest $request, AddRenterOnLeaseAction $action)
     {
+      
+    }
+
+    public function addTenantOnLease(AddRenterOnLeaseRequest $request, AddRenterOnLeaseAction $action)
+    {
         $data = $action->execute($request->all());
         return $this->success($data, 200);
     }

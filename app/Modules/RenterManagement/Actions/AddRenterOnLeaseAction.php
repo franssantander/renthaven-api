@@ -2,9 +2,9 @@
 
 namespace App\Modules\RenterManagement\Actions;
 
-use App\Modules\Authentication\Models\User;
 use App\Modules\Property\Models\Property;
 use App\Modules\RenterManagement\Models\Lease;
+use App\Modules\RenterManagement\Models\RenterUser;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -13,10 +13,10 @@ class AddRenterOnLeaseAction
     public function execute(array $params)
     {
         return DB::transaction(function () use ($params) {
-            $user = User::where('uuid', $params['user_id'])->firstOrFail();
+            $user = RenterUser::where('uuid', $params['renter_user_id'])->firstOrFail();
             $property = Property::where('uuid', $params['property_id'])->firstOrFail();
 
-            $alreadyTenant = Lease::where('user_id', $user->id)
+            $alreadyTenant = Lease::where('renter_user_id', $user->id)
                 ->where('property_id', $property->id)
                 ->where('is_active', true)
                 ->exists();
@@ -46,7 +46,7 @@ class AddRenterOnLeaseAction
             }
 
             $leaseData = [
-                'user_id' => $user->id,
+                'renter_user_id' => $user->id,
                 'property_id' => $property->id,
                 'tenant_id' => auth()->user()->tenant_id,
                 'start_date' => $params['start_date'],
