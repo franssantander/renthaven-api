@@ -4,7 +4,7 @@ namespace App\Modules\Authentication\Actions;
 
 use App\Modules\Authentication\Data\LoginData;
 use App\Modules\Authentication\Models\User;
-use App\Modules\RenterManagement\Models\Renter;
+use App\Modules\RenterManagement\Models\RenterUser;
 use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -18,7 +18,7 @@ class LoginAction
             ->first();
 
         if (!$user) {
-            $user = Renter::where('username', $params['username'])
+            $user = RenterUser::where('username', $params['username'])
                 ->where('is_active', true)
                 ->first();
         }

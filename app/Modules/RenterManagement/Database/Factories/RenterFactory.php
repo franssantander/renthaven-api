@@ -2,7 +2,9 @@
 
 namespace Modules\RenterManagement\Database\Factories;
 
+use App\Modules\RenterManagement\Models\RenterUser;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Hash;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Model>
@@ -14,6 +16,8 @@ class RenterFactory extends Factory
      *
      * @return array<string, mixed>
      */
+    protected $model = RenterUser::class;
+
     public function definition(): array
     {
         return [
@@ -21,7 +25,8 @@ class RenterFactory extends Factory
             'last_name' => $this->faker->lastName,
             'email' => $this->faker->unique()->safeEmail,
             'phone_number' => $this->faker->phoneNumber,
-            'username' => $this->faker->userName,
+            'username' => $this->faker->unique()->userName(),
+            'password' => Hash::make('password'),
             'is_active' => true,
             'tenant_id' => null,
         ];

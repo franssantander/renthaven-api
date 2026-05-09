@@ -13,8 +13,9 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Passport\HasApiTokens;
+use Modules\RenterManagement\Database\Factories\RenterFactory;
 
-class Renter extends Authenticatable
+class RenterUser extends Authenticatable
 {
     use HasUuids, HasFactory, SoftDeletes, Filterable, HasApiTokens, Notifiable;
 
@@ -86,5 +87,10 @@ class Renter extends Authenticatable
                 $model->uuid = (string) Str::uuid();
             }
         });
+    }
+
+    protected static function newFactory()
+    {
+        return RenterFactory::new();
     }
 }

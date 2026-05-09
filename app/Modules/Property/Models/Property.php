@@ -77,7 +77,8 @@ class Property extends Model
         'number_of_bathrooms' => 'decimal:1',
     ];
 
-    public function tenant(){
+    public function tenant()
+    {
         return $this->belongsTo(Tenant::class, 'tenant_id');
     }
 
@@ -101,9 +102,9 @@ class Property extends Model
     public function activeLeases(): HasMany
     {
         return $this->hasMany(Lease::class)
-            ->where('is_active', true)
-            ->with('user');
+            ->where('is_active', true);
     }
+
 
     public function updateAvailability(): bool
     {
@@ -116,6 +117,5 @@ class Property extends Model
     {
         return PropertyFactory::new();
     }
-
 
 }

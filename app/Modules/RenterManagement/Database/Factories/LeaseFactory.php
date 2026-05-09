@@ -1,9 +1,9 @@
 <?php
 
-namespace Database\Factories;
+namespace Modules\RenterManagement\Database\Factories;
 
-use App\Modules\RenterManagement\Models\Lease;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Model>
@@ -15,13 +15,13 @@ class LeaseFactory extends Factory
      *
      * @return array<string, mixed>
      */
-    protected $model = Lease::class;
-
     public function definition(): array
     {
+        $startDate = $this->faker->dateTimeBetween('-1 year', 'now');
         return [
-            'start_date' => $this->faker->dateTimeBetween('-1 year', 'now'),
-            'end_date' => $this->faker->dateTimeBetween('now', '+1 year'),
+            'uuid' => (string) Str::uuid(),
+            'start_date' => $startDate,
+            'end_date' => $this->faker->dateTimeBetween($startDate, '+1 year'),
             'is_active' => true,
         ];
     }

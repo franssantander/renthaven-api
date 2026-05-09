@@ -9,6 +9,8 @@ use Modules\Authentication\Database\Seeders\RoleSeeder;
 use Modules\Plan\Database\Seeders\PlansSeeder;
 use Modules\Property\Database\Seeders\AmenitySeeder;
 use Modules\Property\Database\Seeders\PropertySeeder;
+use Modules\RenterManagement\Database\Seeders\LeaseSeeder;
+use Modules\RenterManagement\Database\Seeders\RenterSeeder;
 use Modules\Tenant\Database\Seeders\TenantSeeder;
 
 class DatabaseSeeder extends Seeder
@@ -23,6 +25,8 @@ class DatabaseSeeder extends Seeder
             TenantSeeder::class,
             AmenitySeeder::class,
             PropertySeeder::class,
+            RenterSeeder::class,
+            LeaseSeeder::class
         ]);
 
         Artisan::call('passport:client', [

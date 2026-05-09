@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::create('leases', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
-            $table->foreignId('user_id')->constrained('users');
+            $table->foreignId('renter_user_id')->constrained('renter_users')->onDelete('cascade');
             $table->foreignId('property_id')->constrained('properties');
             $table->foreignId('tenant_id')->constrained('tenants');
             $table->date('start_date');

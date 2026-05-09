@@ -2,15 +2,15 @@
 
 namespace App\Modules\RenterManagement\Models;
 
-use App\Modules\Authentication\Models\User;
 use App\Modules\Property\Models\Property;
-use App\Traits\Filterable;
 use App\Traits\HasMultiTenantScope;
+use App\Traits\Filterable;
 use Database\Factories\LeaseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Modules\RenterManagement\Models\RenterUser;
 
 class Lease extends Model
 {
@@ -24,7 +24,7 @@ class Lease extends Model
     protected $fillable = [
         'user_id',
         'property_id',
-        'portfolio_id',
+        'tenant_id',
         'start_date',
         'end_date',
         'is_active',
@@ -37,10 +37,10 @@ class Lease extends Model
     ];
 
     protected $searchableRelations = [
-        'user.first_name',
-        'user.last_name',
-        'user.email',
-        'user.username',
+        'renters.first_name',
+        'renters.last_name',
+        'renters.email',
+        'renters.username',
         'property.name',
     ];
 
@@ -55,8 +55,8 @@ class Lease extends Model
         return $this->belongsTo(Property::class);
     }
 
-    public function user(): BelongsTo
+    public function renter(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(RenterUser::class, 'renter_user_id');
     }
 }

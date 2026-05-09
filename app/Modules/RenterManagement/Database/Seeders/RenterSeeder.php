@@ -2,7 +2,7 @@
 
 namespace Modules\RenterManagement\Database\Seeders;
 
-use App\Modules\RenterManagement\Models\Renter;
+use App\Modules\RenterManagement\Models\RenterUser;
 use App\Modules\Tenant\Models\Tenant;
 use Illuminate\Database\Seeder;
 
@@ -21,7 +21,7 @@ class RenterSeeder extends Seeder
         }
 
         foreach ($tenants as $tenant) {
-            Renter::factory()
+            RenterUser::factory()
                 ->count(50)
                 ->create([
                     'tenant_id' => $tenant->id,

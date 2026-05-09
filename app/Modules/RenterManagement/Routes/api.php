@@ -9,8 +9,8 @@ Route::prefix('v1')
     ->name('v1.')
     ->middleware('auth:api')
     ->group(function () {
-        Route::prefix('tenant-management')
-            ->name('tenant-management.')
+        Route::prefix('renter-management')
+            ->name('renter-management.')
             ->controller(RenterManagementController::class)
             ->group(function () {
                 Route::get('dashboard', 'dashboard');

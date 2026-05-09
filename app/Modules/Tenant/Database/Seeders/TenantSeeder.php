@@ -4,7 +4,7 @@ namespace Modules\Tenant\Database\Seeders;
 
 use App\Modules\Authentication\Models\Role;
 use App\Modules\Authentication\Models\User;
-use App\Modules\RenterManagement\Models\Renter;
+use App\Modules\RenterManagement\Models\RenterUser;
 use App\Modules\Tenant\Models\Tenant;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -73,7 +73,7 @@ class TenantSeeder extends Seeder
         ]);
 
 
-        Renter::create([
+        RenterUser::create([
             'uuid' => (string) Str::uuid(),
             'tenant_id' => $tenant->id,
             'first_name' => 'John',
