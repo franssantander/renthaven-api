@@ -24,6 +24,7 @@ class AddRenterRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'tenant_id' => ['required', 'exists:tenants,id'],
             'first_name' => ['required', 'string', 'min:3'],
             'last_name' => ['required', 'string', 'min:3'],
             'username' => ['required', 'string', 'min:3', 'unique:renter_users,username'],

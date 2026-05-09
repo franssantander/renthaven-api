@@ -31,6 +31,7 @@ class RenterUser extends Authenticatable
         'username',
         'email',
         'password',
+        'age',
         'phone_number',
         'is_active',
     ];

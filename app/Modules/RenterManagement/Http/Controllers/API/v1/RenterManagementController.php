@@ -3,6 +3,7 @@
 namespace App\Modules\RenterManagement\Http\Controllers\API\v1;
 
 use App\Http\Controllers\Controller;
+use App\Modules\RenterManagement\Actions\AddRenterAction;
 use App\Modules\RenterManagement\Actions\AddRenterOnLeaseAction;
 use App\Modules\RenterManagement\Actions\DeleteRenterAction;
 use App\Modules\RenterManagement\Actions\GetRenterDetailsAction;
@@ -10,6 +11,7 @@ use App\Modules\RenterManagement\Actions\GetRenterListAction;
 use App\Modules\RenterManagement\Actions\UpdateRenterAction;
 use App\Modules\RenterManagement\DTO\DashboardData;
 use App\Modules\RenterManagement\Http\Requests\AddRenterOnLeaseRequest;
+use App\Modules\RenterManagement\Http\Requests\AddRenterRequest;
 use App\Modules\RenterManagement\Models\Lease;
 use App\Services\DashboardMetric;
 use Illuminate\Http\Request;
@@ -34,9 +36,10 @@ class RenterManagementController extends Controller
         return $this->success($data, 200);
     }
 
-    public function store(AddRenterOnLeaseRequest $request, AddRenterOnLeaseAction $action)
+    public function store(AddRenterRequest $request, AddRenterAction $action)
     {
-      
+        $data = $action->execute($request->validated());
+        return $this->success($data, 'Tenant created successfully');
     }
 
     public function addTenantOnLease(AddRenterOnLeaseRequest $request, AddRenterOnLeaseAction $action)
