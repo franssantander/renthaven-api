@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\RenterManagement\Actions\AddRenterAction;
 use App\Modules\RenterManagement\Actions\AddRenterOnLeaseAction;
 use App\Modules\RenterManagement\Actions\DeleteRenterAction;
+use App\Modules\RenterManagement\Actions\GetAwaitingRentersAction;
 use App\Modules\RenterManagement\Actions\GetRenterDetailsAction;
 use App\Modules\RenterManagement\Actions\GetRenterListAction;
 use App\Modules\RenterManagement\Actions\UpdateRenterAction;
@@ -31,6 +32,12 @@ class RenterManagementController extends Controller
     }
 
     public function index(Request $request, GetRenterListAction $action)
+    {
+        $data = $action->execute($request->all());
+        return $this->success($data, 200);
+    }
+
+    public function getAwaitingRenters(Request $request, GetAwaitingRentersAction $action)
     {
         $data = $action->execute($request->all());
         return $this->success($data, 200);

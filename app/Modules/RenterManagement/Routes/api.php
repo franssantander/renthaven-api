@@ -14,6 +14,7 @@ Route::prefix('v1')
             ->controller(RenterManagementController::class)
             ->group(function () {
                 Route::get('dashboard', 'dashboard');
+                Route::get('get-awaiting-renters', 'getAwaitingRenters');
                 Route::apiResource('', RenterManagementController::class)
                     ->parameters(['' => 'lease:uuid']);
             });
