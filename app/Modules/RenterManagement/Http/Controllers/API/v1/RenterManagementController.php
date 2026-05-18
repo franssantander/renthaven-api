@@ -51,7 +51,7 @@ class RenterManagementController extends Controller
 
     public function addTenantOnLease(AddRenterOnLeaseRequest $request, AddRenterOnLeaseAction $action)
     {
-        $data = $action->execute($request->all());
+        $data = $action->execute($request->validated());
         return $this->success($data, 200);
     }
 
@@ -63,13 +63,13 @@ class RenterManagementController extends Controller
 
     public function update(Lease $lease, Request $request, UpdateRenterAction $action)
     {
-        $data = $action->execute($lease, $request->validated());
+        $data = $action->execute($lease, $request->all());
         return $this->success($data, 200);
     }
 
     public function destroy(Lease $lease, DeleteRenterAction $action)
     {
-        $data = $action->execute($lease);
-        return $this->success($data, 200);
+        $action->execute($lease);
+        return $this->success(null, 'Lease deleted successfuly');
     }
 }

@@ -24,8 +24,9 @@ class AddRenterOnLeaseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'renter_user_id' => ['required', 'exists:renter_users,uuid'],
             'property_id' => ['required', 'exists:properties,uuid'],
+            'renter_user_ids' => ['required', 'array', 'min:1'],
+            'renter_user_ids.*' => ['required', 'exists:renter_users,uuid'],
             'start_date' => ['required', 'date'],
         ];
     }

@@ -6,6 +6,7 @@ use App\Modules\Property\Models\Property;
 use App\Modules\RenterManagement\Models\Lease;
 use App\Modules\RenterManagement\Models\RenterUser;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class AddRenterOnLeaseAction
@@ -13,23 +14,12 @@ class AddRenterOnLeaseAction
     public function execute(array $params)
     {
         return DB::transaction(function () use ($params) {
-            $user = RenterUser::where('uuid', $params['renter_user_id'])->firstOrFail();
             $property = Property::where('uuid', $params['property_id'])->firstOrFail();
+            $renterUuids = (array) $params['renter_user_ids'];
 
-            $alreadyTenant = Lease::where('renter_user_id', $user->id)
-                ->where('property_id', $property->id)
-                ->where('is_active', true)
-                ->exists();
-
-            if ($alreadyTenant) {
+            if (!$property->is_available || !$property->is_active) {
                 throw ValidationException::withMessages([
-                    'user_id' => 'This user is already an active tenant of the specified property.'
-                ]);
-            }
-
-            if (!$property->is_available) {
-                throw ValidationException::withMessages([
-                    'property_id' => 'This property is currently unavailable or fully occupied.'
+                    'property_id' => 'This property is currently unavailable for new leases.'
                 ]);
             }
 
@@ -37,28 +27,47 @@ class AddRenterOnLeaseAction
                 ->where('is_active', true)
                 ->count();
 
-            if ($currentOccupancy >= $property->pax) {
-                $property->update(['is_available' => false]);
-
+            if (($currentOccupancy + count($renterUuids)) > $property->pax) {
                 throw ValidationException::withMessages([
-                    'property_id' => "This property has reached its max capacity of {$property->pax} tenants."
+                    'renter_user_ids' => "Capacity exceeded. Only " . ($property->pax - $currentOccupancy) . " spot(s) remaining."
                 ]);
             }
 
-            $leaseData = [
-                'renter_user_id' => $user->id,
-                'property_id' => $property->id,
-                'tenant_id' => auth()->user()->tenant_id,
-                'start_date' => $params['start_date'],
-                'is_active' => true,
-            ];
+            $users = RenterUser::whereIn('uuid', $renterUuids)->get();
 
-            $lease = Lease::create($leaseData);
-            if (($currentOccupancy + 1) >= $property->pax) {
+            $createdLeases = [];
+            foreach ($renterUuids as $index => $uuid) {
+                $user = $users->where('uuid', $uuid)->first();
+
+                if (!$user) {
+                    throw ValidationException::withMessages(["renter_user_ids.{$index}" => "User not found."]);
+                }
+
+                $isAlreadyLeasing = Lease::where('renter_user_id', $user->id)
+                    ->where('is_active', true)
+                    ->exists();
+
+                if ($isAlreadyLeasing) {
+                    throw ValidationException::withMessages([
+                        "renter_user_ids.{$index}" => "User {$user->first_name} already has an active lease."
+                    ]);
+                }
+
+                $createdLeases[] = Lease::create([
+                    'uuid' => Str::uuid(),
+                    'renter_user_id' => $user->id,
+                    'property_id' => $property->id,
+                    'tenant_id' => auth()->user()->tenant_id,
+                    'start_date' => $params['start_date'],
+                    'is_active' => true,
+                ]);
+            }
+
+            if (($currentOccupancy + count($createdLeases)) >= $property->pax) {
                 $property->update(['is_available' => false]);
             }
 
-            return $lease;
+            return $createdLeases;
         });
     }
 }

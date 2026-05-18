@@ -13,7 +13,7 @@ class LeaseData extends Data
         public string $end_date,
         public bool $is_active,
         public string $created_at,
-        public bool $is_active,
+    
     ) {
     }
 }
