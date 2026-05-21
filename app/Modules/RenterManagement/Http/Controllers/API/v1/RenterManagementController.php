@@ -11,6 +11,7 @@ use App\Modules\RenterManagement\Actions\GetRenterDetailsAction;
 use App\Modules\RenterManagement\Actions\GetRenterListAction;
 use App\Modules\RenterManagement\Actions\UpdateRenterAction;
 use App\Modules\RenterManagement\DTO\DashboardData;
+use App\Modules\RenterManagement\DTO\LeaseData;
 use App\Modules\RenterManagement\Http\Requests\AddRenterOnLeaseRequest;
 use App\Modules\RenterManagement\Http\Requests\AddRenterRequest;
 use App\Modules\RenterManagement\Models\Lease;
@@ -34,13 +35,14 @@ class RenterManagementController extends Controller
     public function index(Request $request, GetRenterListAction $action)
     {
         $data = $action->execute($request->all());
-        return $this->success($data, 200);
+        return $this->success(LeaseData::collect($data), "Leases retrieved successfully");
+        // return $this->success($data, "Leases retrieved successfully");
     }
 
     public function getAwaitingRenters(Request $request, GetAwaitingRentersAction $action)
     {
         $data = $action->execute($request->all());
-        return $this->success($data, 200);
+        return $this->success($data, "Awaiting renters retrieved successfully");
     }
 
     public function store(AddRenterRequest $request, AddRenterAction $action)
