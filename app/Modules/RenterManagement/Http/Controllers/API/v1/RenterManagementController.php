@@ -24,7 +24,6 @@ class RenterManagementController extends Controller
 
     public function __construct(protected DashboardMetric $dashboardMetric)
     {
-
     }
 
     public function dashboard()
@@ -54,19 +53,19 @@ class RenterManagementController extends Controller
     public function addTenantOnLease(AddRenterOnLeaseRequest $request, AddRenterOnLeaseAction $action)
     {
         $data = $action->execute($request->validated());
-        return $this->success($data, 200);
+        return $this->success($data, "Tenant added to lease successfully");
     }
 
     public function show(Lease $lease, GetRenterDetailsAction $action)
     {
         $data = $action->execute($lease);
-        return $this->success(LeaseDetailsData::from($data), 200);
+        return $this->success(LeaseDetailsData::from($data), "Lease details retrieved successfully");
     }
 
     public function update(Lease $lease, Request $request, UpdateRenterAction $action)
     {
         $data = $action->execute($lease, $request->all());
-        return $this->success($data, 200);
+        return $this->success($data, "Tenant updated successfully");
     }
 
     public function destroy(Lease $lease, DeleteRenterAction $action)
