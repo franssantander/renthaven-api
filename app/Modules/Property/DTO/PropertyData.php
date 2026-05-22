@@ -11,7 +11,8 @@ use Spatie\LaravelData\DataCollection;
 class PropertyData extends Data
 {
     public function __construct(
-        public int $uuid,
+        public int $id,
+        public string $uuid,
         public string $name,
         public string $type,
         public string $description,
@@ -47,6 +48,7 @@ class PropertyData extends Data
     {
 
         return new self(
+            id: $property->id,
             uuid: $property->uuid,
             name: $property->name,
             type: $property->type,

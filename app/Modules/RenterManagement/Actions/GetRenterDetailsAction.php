@@ -6,6 +6,6 @@ class GetRenterDetailsAction
 {
     public function execute($lease)
     {
-        return $lease->load(['user', 'property']);
+        return $lease->load(['renter', 'property']);
     }
 }
