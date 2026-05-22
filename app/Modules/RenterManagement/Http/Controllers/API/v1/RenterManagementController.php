@@ -9,7 +9,8 @@ use App\Modules\RenterManagement\Actions\DeleteRenterAction;
 use App\Modules\RenterManagement\Actions\GetAwaitingRentersAction;
 use App\Modules\RenterManagement\Actions\GetRenterDetailsAction;
 use App\Modules\RenterManagement\Actions\GetRenterListAction;
-use App\Modules\RenterManagement\Actions\UpdateRenterAction;
+use App\Modules\RenterManagement\Actions\ChangeRenterProperty;
+use App\Modules\RenterManagement\Actions\UpdateRenterDetails;
 use App\Modules\RenterManagement\DTO\DashboardData;
 use App\Modules\RenterManagement\DTO\LeaseData;
 use App\Modules\RenterManagement\DTO\LeaseDetailsData;
@@ -62,7 +63,13 @@ class RenterManagementController extends Controller
         return $this->success(LeaseDetailsData::from($data), "Lease details retrieved successfully");
     }
 
-    public function update(Lease $lease, Request $request, UpdateRenterAction $action)
+    public function update(Lease $lease, Request $request, UpdateRenterDetails $action)
+    {
+        $data = $action->execute($lease, $request->all());
+        return $this->success($data, "Lease updated successfully");
+    }
+
+    public function changeRenterProperty(Lease $lease, Request $request, ChangeRenterProperty $action)
     {
         $data = $action->execute($lease, $request->all());
         return $this->success($data, "Tenant updated successfully");

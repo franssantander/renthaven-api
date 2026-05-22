@@ -7,7 +7,7 @@ use App\Modules\RenterManagement\Models\Lease;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
-class UpdateRenterAction
+class ChangeRenterProperty
 {
     public function execute(Lease $lease, array $params)
     {
