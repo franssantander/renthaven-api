@@ -10,6 +10,7 @@ use App\Modules\Property\Actions\GetPropertyDetailAction;
 use App\Modules\Property\Actions\UpdatePropertyAction;
 use App\Modules\Property\DTO\DashboardPropertyData;
 use App\Modules\Property\DTO\PropertyData;
+use App\Modules\Property\DTO\PropertyDetailsData;
 use App\Modules\Property\Http\Requests\CreatePropertyRequest;
 use App\Modules\Property\Http\Requests\UpdatePropertyRequest;
 use App\Modules\Property\Models\Property;
@@ -44,7 +45,7 @@ class PropertyController extends Controller
     public function show(Property $property, GetPropertyDetailAction $action)
     {
         $data = $action->execute($property);
-        return $this->success(PropertyData::from($data), 'Property details retrieved successfully');
+        return $this->success(PropertyDetailsData::from($data), 'Property details retrieved successfully');
     }
 
     public function update(UpdatePropertyRequest $request, Property $property, UpdatePropertyAction $action)

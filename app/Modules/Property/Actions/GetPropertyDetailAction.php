@@ -7,6 +7,6 @@ class GetPropertyDetailAction
 {
     public function execute($property)
     {
-        return $property->load(['tenant', 'createdBy', 'updatedBy', 'amenities']);
+        return $property->load(['tenant', 'createdBy', 'updatedBy', 'amenities', 'activeLeases.renter']);
     }
 }
