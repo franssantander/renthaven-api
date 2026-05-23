@@ -26,7 +26,12 @@ class PropertyData extends Data
         public int $area_sq_ft,
         public mixed $monthly_rent_price,
         public mixed $security_deposit,
+
+        public bool $is_shared,
+        public int $total_units,
         public int $pax,
+        public int $occupied,
+
         public bool $is_available,
         public bool $is_active,
         public bool $has_parking,
@@ -64,6 +69,9 @@ class PropertyData extends Data
             monthly_rent_price: $property->monthly_rent_price,
             security_deposit: $property->security_deposit,
             pax: (int) $property->pax,
+            is_shared: (bool) $property->is_shared,
+            total_units: (int) $property->total_units,
+            occupied: (int) $property->occupied,
             is_available: (bool) $property->is_available,
             is_active: (bool) $property->is_active,
             has_parking: (bool) $property->has_parking,
