@@ -15,7 +15,6 @@ class LeaseSeeder extends Seeder
         $tenants = Tenant::all();
 
         foreach ($tenants as $tenant) {
-            // Get all properties and renters for THIS tenant only
             $properties = Property::where('tenant_id', $tenant->id)->get();
             $renters = RenterUser::where('tenant_id', $tenant->id)->get();
 
@@ -23,15 +22,17 @@ class LeaseSeeder extends Seeder
                 continue;
             }
 
-            // Shuffle renters to distribute them randomly
             $renterPool = $renters->shuffle();
 
             foreach ($properties as $property) {
-                // Determine how many people to put in this property (from 0 to pax)
-                $occupancyCount = rand(0, $property->pax);
+                // --- ALIGNMENT LOGIC ---
+                // Determine max capacity based on the business model
+                $maxCapacity = $property->is_shared ? $property->pax : $property->total_units;
+
+                // Randomly decide how many spots to fill (from 0 to max capacity)
+                $occupancyCount = rand(0, $maxCapacity);
 
                 for ($i = 0; $i < $occupancyCount; $i++) {
-                    // Check if we still have renters available in the pool
                     if ($renterPool->isEmpty()) {
                         break;
                     }
@@ -42,18 +43,23 @@ class LeaseSeeder extends Seeder
                         'renter_user_id' => $renter->id,
                         'property_id' => $property->id,
                         'tenant_id' => $tenant->id,
+                        'is_active' => true,
                     ]);
                 }
 
-                // Update is_available status based on occupancy
-                // If the number of active leases equals or exceeds pax, set available to false
-                $currentLeasesCount = $property->activeLeases()->count();
+                // --- UPDATE PROPERTY STATE ---
+                // Refresh count from the database to be sure
+                $currentActiveCount = Lease::where('property_id', $property->id)
+                    ->where('is_active', true)
+                    ->count();
+
                 $property->update([
-                    'is_available' => $currentLeasesCount < $property->pax
+                    'occupied' => $currentActiveCount,
+                    'is_available' => $currentActiveCount < $maxCapacity
                 ]);
             }
         }
 
-        $this->command->info('Leases seeded and property availability updated successfully!');
+        $this->command->info('Leases seeded: Capacities respected for both Shared and Residence types!');
     }
 }

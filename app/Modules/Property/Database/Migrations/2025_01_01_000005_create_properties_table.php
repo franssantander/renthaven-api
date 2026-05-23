@@ -24,13 +24,17 @@ return new class extends Migration {
             $table->string('zip_code')->nullable();
 
             $table->integer('number_of_rooms');
-            $table->decimal('number_of_bathrooms', 3, 1);
+            $table->integer('number_of_bathrooms');
             $table->integer('area_sq_ft');
 
             $table->decimal('monthly_rent_price', 15, 2);
             $table->decimal('security_deposit', 15, 2)->nullable();
 
+            $table->boolean('is_shared')->default(false);
+            $table->integer('total_units')->default(1);
             $table->integer('pax')->default(2);
+            $table->integer('occupied')->default(0);
+            
             $table->boolean('is_available')->default(true);
             $table->boolean('is_active')->default(true);
             $table->boolean('has_parking')->default(false);

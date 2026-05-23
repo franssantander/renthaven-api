@@ -2,26 +2,24 @@
 
 namespace Modules\RenterManagement\Database\Factories;
 
+use App\Modules\RenterManagement\Models\Lease;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Model>
- */
 class LeaseFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    protected $model = Lease::class;
+
     public function definition(): array
     {
-        $startDate = $this->faker->dateTimeBetween('-1 year', 'now');
+        // Start date sometime in the last 6 months
+        $startDate = $this->faker->dateTimeBetween('-6 months', 'now');
+
         return [
             'uuid' => (string) Str::uuid(),
-            'start_date' => $startDate,
-            'end_date' => $this->faker->dateTimeBetween($startDate, '+1 year'),
+            'start_date' => $startDate->format('Y-m-d'),
+            // End date is 1 year after start date
+            'end_date' => $this->faker->dateTimeBetween('now', '+1 year')->format('Y-m-d'),
             'is_active' => true,
         ];
     }
