@@ -47,8 +47,8 @@ class RenterManagementController extends Controller
 
     public function store(AddRenterRequest $request, AddRenterAction $action)
     {
-        $data = $action->execute($request->validated());
-        return $this->success($data, 'Tenant created successfully');
+        $action->execute($request->validated());
+        return $this->success(true, 'Tenant created successfully');
     }
 
     public function addTenantOnLease(AddRenterOnLeaseRequest $request, AddRenterOnLeaseAction $action)

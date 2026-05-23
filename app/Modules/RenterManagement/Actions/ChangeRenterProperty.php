@@ -14,14 +14,17 @@ class ChangeRenterProperty
         return DB::transaction(function () use ($lease, $params) {
             $oldProperty = $lease->property;
 
+            // 1. Identify the New Property
             $newProperty = isset($params['property_uuid'])
                 ? Property::where('uuid', $params['property_uuid'])->firstOrFail()
                 : $oldProperty;
 
+            // 2. If moving to a different property, check if it has space
             if ($newProperty->id !== $oldProperty->id) {
                 $this->validateCapacity($newProperty);
             }
 
+            // 3. Update the Lease record
             if (isset($params['property_uuid'])) {
                 $params['property_id'] = $newProperty->id;
                 unset($params['property_uuid']);
@@ -29,11 +32,13 @@ class ChangeRenterProperty
 
             $lease->update($params);
 
-            // 4. Sync BOTH properties (The one they left and the one they joined)
-            $this->syncPropertyAvailability($oldProperty);
+            // 4. Sync BOTH properties
+            // Refresh counts for the property they left
+            $this->syncPropertyStats($oldProperty);
 
+            // Refresh counts for the property they joined (if different)
             if ($newProperty->id !== $oldProperty->id) {
-                $this->syncPropertyAvailability($newProperty);
+                $this->syncPropertyStats($newProperty);
             }
 
             return $lease->load('property');
@@ -41,32 +46,39 @@ class ChangeRenterProperty
     }
 
     /**
-     * Helper to check if a property can take more tenants
+     * Helper to check if a property can take more tenants based on its business model
      */
     protected function validateCapacity(Property $property)
     {
-        $occupancy = Lease::where('property_id', $property->id)
+        // Calculate Max Capacity dynamically
+        $maxCapacity = $property->is_shared ? $property->pax : $property->total_units;
+
+        $currentOccupancy = Lease::where('property_id', $property->id)
             ->where('is_active', true)
             ->count();
 
-        if ($occupancy >= $property->pax) {
+        if ($currentOccupancy >= $maxCapacity) {
             throw ValidationException::withMessages([
-                'property_uuid' => "Target property '{$property->name}' is full."
+                'property_uuid' => "Target property '{$property->name}' is full. (Capacity: {$maxCapacity})"
             ]);
         }
     }
 
     /**
-     * Helper to recalculate and save 'is_available' status
+     * Helper to recalculate and save 'occupied' and 'is_available'
      */
-    protected function syncPropertyAvailability(Property $property)
+    protected function syncPropertyStats(Property $property)
     {
-        $occupancy = Lease::where('property_id', $property->id)
+        $currentOccupancy = Lease::where('property_id', $property->id)
             ->where('is_active', true)
             ->count();
 
+        // Calculate Max Capacity dynamically
+        $maxCapacity = $property->is_shared ? $property->pax : $property->total_units;
+
         $property->update([
-            'is_available' => $occupancy < $property->pax
+            'occupied' => $currentOccupancy,
+            'is_available' => $currentOccupancy < $maxCapacity
         ]);
     }
 }
