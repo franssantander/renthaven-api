@@ -32,6 +32,7 @@ class AddRenterRequest extends FormRequest
             'phone_number' => 'required|string',
             'age' => 'required|integer',
             'property_uuid' => 'nullable|uuid|exists:properties,uuid',
+            'unit_number' => 'nullable|string|max:255',
             'start_date' => 'nullable|date',
         ];
     }

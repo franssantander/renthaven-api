@@ -17,6 +17,7 @@ return new class extends Migration {
             $table->foreignId('property_id')->constrained('properties');
             $table->foreignId('tenant_id')->constrained('tenants');
             $table->decimal('monthly_rent', 15, 2);
+            $table->string("unit_number")->nullable();
             $table->date('start_date');
             $table->date('end_date')->nullable();
             $table->boolean('is_active')->default(true);

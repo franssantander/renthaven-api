@@ -5,6 +5,7 @@ namespace App\Modules\Property\Http\Controllers\API\v1;
 use App\Http\Controllers\Controller;
 use App\Modules\Property\Actions\CreatePropertyAction;
 use App\Modules\Property\Actions\DeletePropertyAction;
+use App\Modules\Property\Actions\GetAvailableUnits;
 use App\Modules\Property\Actions\GetPropertiesListAction;
 use App\Modules\Property\Actions\GetPropertyDetailAction;
 use App\Modules\Property\Actions\UpdatePropertyAction;
@@ -28,6 +29,12 @@ class PropertyController extends Controller
     {
         $data = DashboardPropertyData::fromService($this->dashboardMetric);
         return $this->success($data, 'Dashboard property metrics retrieved successfully');
+    }
+
+    public function getAvailableUnits(Property $property, GetAvailableUnits $action)
+    {
+        $data = $action->execute($property);
+        return $this->success($data, "Available units retrieved successfully");
     }
 
     public function index(Request $request, GetPropertiesListAction $action)

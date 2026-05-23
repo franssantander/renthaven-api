@@ -67,7 +67,9 @@ trait HasMultiTenantScope
     }
     public function resolveRouteBinding($value, $field = null)
     {
-        return $this->where('uuid', $value)
+        $field = $field ?? 'uuid';
+
+        return $this->where($field, $value)
             ->forUser(auth()->user())
             ->firstOrFail();
     }

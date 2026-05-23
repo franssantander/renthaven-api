@@ -28,7 +28,7 @@ class LeaseSeeder extends Seeder
                 $maxCapacity = $property->is_shared ? $property->pax : $property->total_units;
                 $occupancyCount = rand(0, $maxCapacity);
 
-                for ($i = 0; $i < $occupancyCount; $i++) {
+                for ($i = 1; $i <= $occupancyCount; $i++) {
                     if ($renterPool->isEmpty()) {
                         break;
                     }
@@ -41,6 +41,7 @@ class LeaseSeeder extends Seeder
                         'tenant_id' => $tenant->id,
                         'is_active' => true,
                         'monthly_rent' => $property->monthly_rent_price,
+                        'unit_number' => $property->is_shared ? "Bed $i" : "Unit $i",
                     ]);
                 }
 
@@ -55,6 +56,6 @@ class LeaseSeeder extends Seeder
             }
         }
 
-        $this->command->info('Leases seeded: Capacities and Snapshotted Rent Prices applied!');
+        $this->command->info('Leases seeded: Unit numbers and rent prices aligned!');
     }
 }
