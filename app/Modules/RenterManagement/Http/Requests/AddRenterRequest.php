@@ -24,13 +24,15 @@ class AddRenterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'tenant_id' => ['required', 'exists:tenants,id'],
-            'first_name' => ['required', 'string', 'min:3'],
-            'last_name' => ['required', 'string', 'min:3'],
-            'username' => ['required', 'string', 'min:3', 'unique:renter_users,username'],
-            'email' => ['required', 'email', 'unique:renter_users,email'],
-            'phone_number' => ['required', 'string', 'unique:renter_users,phone_number'],
-            'password' => ['required', 'min:8'],
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'username' => 'required|string|unique:renter_users,username',
+            'password' => 'required|string|min:8',
+            'email' => 'required|email|unique:renter_users,email',
+            'phone_number' => 'required|string',
+            'age' => 'required|integer',
+            'property_uuid' => 'nullable|uuid|exists:properties,uuid',
+            'start_date' => 'nullable|date',
         ];
     }
 

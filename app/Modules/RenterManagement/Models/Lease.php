@@ -25,6 +25,7 @@ class Lease extends Model
         'renter_user_id',
         'property_id',
         'tenant_id',
+        'monthly_rent',
         'start_date',
         'end_date',
         'is_active',

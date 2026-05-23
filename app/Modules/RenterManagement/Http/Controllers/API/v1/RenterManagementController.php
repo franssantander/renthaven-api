@@ -48,13 +48,14 @@ class RenterManagementController extends Controller
     public function store(AddRenterRequest $request, AddRenterAction $action)
     {
         $action->execute($request->validated());
-        return $this->success(true, 'Tenant created successfully');
+        return $this->success(null, "Tenant added to lease successfully");
     }
 
-    public function addTenantOnLease(AddRenterOnLeaseRequest $request, AddRenterOnLeaseAction $action)
+    //todo maybe some use cases require a separate endpoint for adding a renter user to the system without assigning them to a lease immediately. If so, we can implement that here.
+    public function addRenterOnLease(AddRenterOnLeaseRequest $request, AddRenterOnLeaseAction $action)
     {
-        $data = $action->execute($request->validated());
-        return $this->success($data, "Tenant added to lease successfully");
+        $action->execute($request->validated());
+        return $this->success(null, 'Tenant created successfully');
     }
 
     public function show(Lease $lease, GetRenterDetailsAction $action)

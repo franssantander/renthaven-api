@@ -69,6 +69,7 @@ class AddRenterOnLeaseAction
                     'renter_user_id' => $user->id,
                     'property_id' => $property->id,
                     'tenant_id' => auth()->user()->tenant_id,
+                    'monthly_rent' => $property->monthly_rent_price,
                     'start_date' => $params['start_date'],
                     'is_active' => true,
                 ]);
