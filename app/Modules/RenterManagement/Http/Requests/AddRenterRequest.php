@@ -31,9 +31,11 @@ class AddRenterRequest extends FormRequest
             'email' => 'required|email|unique:renter_users,email',
             'phone_number' => 'required|string',
             'age' => 'required|integer',
+            'lease_type' => 'nullable|string|in:fixed,monthly',
             'property_uuid' => 'nullable|uuid|exists:properties,uuid',
             'unit_number' => 'nullable|string|max:255',
             'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date',
         ];
     }
 

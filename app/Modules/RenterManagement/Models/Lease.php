@@ -19,6 +19,9 @@ class Lease extends Model
 
     protected $guarded = [];
 
+    const TYPE_FIXED = 'fixed';
+    const TYPE_MONTHLY = 'monthly';
+
     protected $table = 'leases';
 
     protected $fillable = [
@@ -27,6 +30,7 @@ class Lease extends Model
         'tenant_id',
         'monthly_rent',
         'unit_number',
+        'lease_type',
         'start_date',
         'end_date',
         'is_active',

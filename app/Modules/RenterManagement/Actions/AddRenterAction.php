@@ -31,14 +31,17 @@ class AddRenterAction
                     'property_id' => $params['property_uuid'],
                     'renter_user_ids' => [$user->uuid],
                     'start_date' => $params['start_date'] ?? now()->toDateString(),
+                    'end_date' => $params['end_date'] ?? null,
+                    'lease_type' => $params['lease_type'] ?? 'monthly',
                     'unit_number' => $params['unit_number'] ?? null,
                     'monthly_rent' => $params['monthly_rent'] ?? null,
+
                 ];
 
                 $this->addRenterOnLeaseAction->execute($leaseParams);
             }
 
-            return $user->load('activeLeases.property');
+            return $user->load('activeLease.property');
         });
     }
 }

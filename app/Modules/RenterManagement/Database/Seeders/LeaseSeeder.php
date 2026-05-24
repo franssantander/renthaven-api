@@ -26,6 +26,7 @@ class LeaseSeeder extends Seeder
 
             foreach ($properties as $property) {
                 $maxCapacity = $property->is_shared ? $property->pax : $property->total_units;
+
                 $occupancyCount = rand(0, $maxCapacity);
 
                 for ($i = 1; $i <= $occupancyCount; $i++) {
@@ -34,14 +35,19 @@ class LeaseSeeder extends Seeder
                     }
 
                     $renter = $renterPool->pop();
+                    $prefix = $property->is_shared ? 'Bed' : 'Unit';
 
-                    Lease::factory()->create([
+                    $factory = (rand(1, 10) <= 3)
+                        ? Lease::factory()->fixed()
+                        : Lease::factory();
+
+                    $factory->create([
                         'renter_user_id' => $renter->id,
                         'property_id' => $property->id,
                         'tenant_id' => $tenant->id,
-                        'is_active' => true,
                         'monthly_rent' => $property->monthly_rent_price,
-                        'unit_number' => $property->is_shared ? "Bed $i" : "Unit $i",
+                        'unit_number' => "{$prefix} {$i}",
+                        'is_active' => true,
                     ]);
                 }
 
@@ -56,6 +62,6 @@ class LeaseSeeder extends Seeder
             }
         }
 
-        $this->command->info('Leases seeded: Unit numbers and rent prices aligned!');
+        $this->command->info('Leases seeded: Types (Fixed/Monthly) and Units are now perfectly aligned!');
     }
 }

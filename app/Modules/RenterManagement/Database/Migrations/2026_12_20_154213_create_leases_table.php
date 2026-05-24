@@ -20,6 +20,7 @@ return new class extends Migration {
             $table->string("unit_number")->nullable();
             $table->date('start_date');
             $table->date('end_date')->nullable();
+            $table->string('lease_type')->default('monthly');
             $table->boolean('is_active')->default(true);
             $table->softDeletes();
             $table->timestamps();

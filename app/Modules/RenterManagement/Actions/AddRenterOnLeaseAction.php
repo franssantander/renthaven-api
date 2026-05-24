@@ -5,6 +5,7 @@ namespace App\Modules\RenterManagement\Actions;
 use App\Modules\Property\Models\Property;
 use App\Modules\RenterManagement\Models\Lease;
 use App\Modules\RenterManagement\Models\RenterUser;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -17,6 +18,7 @@ class AddRenterOnLeaseAction
             // 1. Fetch Property and determine its math rules
             $property = Property::where('uuid', $params['property_id'])->firstOrFail();
             $renterUuids = (array) $params['renter_user_ids'];
+            $leaseType = $params['lease_type'] ?? Lease::TYPE_MONTHLY;
 
             // Determine capacity based on business type
             $maxCapacity = $property->is_shared ? $property->pax : $property->total_units;
@@ -26,6 +28,23 @@ class AddRenterOnLeaseAction
                 throw ValidationException::withMessages([
                     'property_id' => 'This property is currently full or inactive.'
                 ]);
+            }
+
+            if ($leaseType === Lease::TYPE_FIXED && empty($params['end_date'])) {
+                throw ValidationException::withMessages([
+                    'end_date' => 'End date is required for fixed-term leases.'
+                ]);
+            }
+
+            if (!empty($params['end_date'])) {
+                $startDate = Carbon::parse($params['start_date']);
+                $endDate = Carbon::parse($params['end_date']);
+
+                if ($endDate->isBefore($startDate)) {
+                    throw ValidationException::withMessages([
+                        'end_date' => 'End date must be after start date.'
+                    ]);
+                }
             }
 
             // 3. Capacity Validation
@@ -40,6 +59,19 @@ class AddRenterOnLeaseAction
                 throw ValidationException::withMessages([
                     'renter_user_ids' => "Capacity exceeded. This property has only {$remainingSpots} spot(s) left."
                 ]);
+            }
+
+            if (!empty($params['unit_number'])) {
+                $isUnitTaken = Lease::where('property_id', $property->id)
+                    ->where('unit_number', $params['unit_number'])
+                    ->where('is_active', true)
+                    ->exists();
+
+                if ($isUnitTaken) {
+                    throw ValidationException::withMessages([
+                        'unit_number' => "Unit number {$params['unit_number']} is already occupied."
+                    ]);
+                }
             }
 
             // 4. Process Renters
@@ -71,7 +103,9 @@ class AddRenterOnLeaseAction
                     'tenant_id' => auth()->user()->tenant_id,
                     'monthly_rent' => $property->monthly_rent_price,
                     'unit_number' => $params['unit_number'] ?? null,
+                    'lease_type' => $leaseType,
                     'start_date' => $params['start_date'],
+                    'end_date' => ($leaseType === Lease::TYPE_FIXED) ? $params['end_date'] : null,
                     'is_active' => true,
                 ]);
             }

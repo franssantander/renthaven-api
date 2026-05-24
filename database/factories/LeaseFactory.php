@@ -20,9 +20,18 @@ class LeaseFactory extends Factory
     public function definition(): array
     {
         return [
-            'start_date' => $this->faker->dateTimeBetween('-1 year', 'now'),
-            'end_date' => $this->faker->dateTimeBetween('now', '+1 year'),
+            'start_date' => $this->faker->dateTimeBetween('-1 year', 'now')->format('Y-m-d'),
+            'end_date' => null,
+            'lease_type' => Lease::TYPE_MONTHLY,
             'is_active' => true,
         ];
+    }
+
+    public function fixed(): static
+    {
+        return $this->state(fn(array $attributes) => [
+            'lease_type' => Lease::TYPE_FIXED,
+            'end_date' => $this->faker->dateTimeBetween('now', '+1 year')->format('Y-m-d'),
+        ]);
     }
 }
