@@ -72,6 +72,7 @@ class Property extends Model
 
     protected $casts = [
         'is_available' => 'boolean',
+        'is_shared' => 'boolean',
         'is_active' => 'boolean',
         'has_parking' => 'boolean',
         'allows_pets' => 'boolean',
