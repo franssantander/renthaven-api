@@ -8,26 +8,36 @@ use Illuminate\Support\Facades\Hash;
 
 class UpdateRenterDetails
 {
-    public function execute(RenterUser $renter, array $params)
+    public function __construct(
+        protected UpdateRenterLeaseAction $updateRenterLeaseAction
+    ) {
+    }
+
+    public function execute(RenterUser $user, array $params)
     {
-        return DB::transaction(function () use ($renter, $params) {
-            if (!empty($params['password'])) {
+        return DB::transaction(function () use ($user, $params) {
+
+            if (isset($params['password'])) {
                 $params['password'] = Hash::make($params['password']);
             }
+            $user->update($params);
 
-            $renter->update($params);
-
-            $activeLease = $renter->activeLeases()->first();
+            $activeLease = $user->activeLease()->withTrashed()->first();
 
             if ($activeLease) {
-                $activeLease->update([
+                $leaseParams = [
                     'start_date' => $params['start_date'] ?? $activeLease->start_date,
-                    'monthly_rent' => $params['monthly_rent'] ?? $activeLease->monthly_rent,
+                    'end_date' => $params['end_date'] ?? $activeLease->end_date,
+                    'lease_type' => $params['lease_type'] ?? $activeLease->lease_type,
                     'unit_number' => $params['unit_number'] ?? $activeLease->unit_number,
-                ]);
+                    'monthly_rent' => $params['monthly_rent'] ?? $activeLease->monthly_rent,
+                    'is_active' => $params['is_active'] ?? $user->is_active, // Sync user status to lease
+                ];
+
+                $this->updateRenterLeaseAction->execute($activeLease, $leaseParams);
             }
 
-            return $renter->load('activeLeases.property');
+            return $user->load('activeLease.property');
         });
     }
 }

@@ -13,6 +13,9 @@ class LeaseData extends Data
     public function __construct(
         public int $id,
         public string $uuid,
+        public string $monthly_rent,
+        public string $unit_number,
+        public string $lease_type,
         public string $start_date,
         public ?string $end_date,
         public bool $is_active,

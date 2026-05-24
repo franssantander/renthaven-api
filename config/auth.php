@@ -1,5 +1,7 @@
 <?php
 
+use App\Modules\RenterManagement\Models\RenterUser;
+
 return [
 
     /*
@@ -77,7 +79,7 @@ return [
 
         'renters' => [
             'driver' => 'eloquent',
-            'model' => App\Modules\RenterManagement\Models\Renter::class,
+            'model' => RenterUser::class
         ],
 
         // 'users' => [

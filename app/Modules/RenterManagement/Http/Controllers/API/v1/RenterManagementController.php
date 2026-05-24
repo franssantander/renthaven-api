@@ -16,7 +16,9 @@ use App\Modules\RenterManagement\DTO\LeaseData;
 use App\Modules\RenterManagement\DTO\LeaseDetailsData;
 use App\Modules\RenterManagement\Http\Requests\AddRenterOnLeaseRequest;
 use App\Modules\RenterManagement\Http\Requests\AddRenterRequest;
+use App\Modules\RenterManagement\Http\Requests\UpdateRenterRequest;
 use App\Modules\RenterManagement\Models\Lease;
+use App\Modules\RenterManagement\Models\RenterUser;
 use App\Services\DashboardMetric;
 use Illuminate\Http\Request;
 
@@ -64,10 +66,13 @@ class RenterManagementController extends Controller
         return $this->success(LeaseDetailsData::from($data), "Lease details retrieved successfully");
     }
 
-    public function update(Lease $lease, Request $request, UpdateRenterDetails $action)
-    {
-        $data = $action->execute($lease, $request->all());
-        return $this->success($data, "Lease updated successfully");
+    public function update(
+        Lease $lease,
+        UpdateRenterRequest $request,
+        UpdateRenterDetails $action
+    ) {
+        $action->execute($lease->renter, $request->validated());
+        return $this->success(null, "Lease and Renter updated successfully");
     }
 
     public function changeRenterProperty(Lease $lease, Request $request, ChangeRenterProperty $action)

@@ -14,6 +14,7 @@ class RenterUserData extends Data
         public int $tenant_id,
         public string $first_name,
         public string $last_name,
+        public string $username,
         public ?string $email,
         public ?string $phone_number,
         public ?string $age,
