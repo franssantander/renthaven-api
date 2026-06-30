@@ -5,12 +5,12 @@ namespace App\Modules\RenterManagement\Models;
 use App\Modules\Property\Models\Property;
 use App\Traits\HasMultiTenantScope;
 use App\Traits\Filterable;
-use Database\Factories\LeaseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Modules\RenterManagement\Models\RenterUser;
+use Modules\RenterManagement\Database\Factories\LeaseFactory;
 
 class Lease extends Model
 {

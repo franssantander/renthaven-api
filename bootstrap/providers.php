@@ -10,4 +10,5 @@ return [
     App\Modules\Tenant\Providers\TenantServiceProvider::class,
     App\Modules\Plan\Providers\PlanServiceProvider::class,
     App\Modules\RenterManagement\Providers\RenterManagementServiceProvider::class,
+    App\Modules\Ledger\Providers\LedgerServiceProvider::class,
 ];

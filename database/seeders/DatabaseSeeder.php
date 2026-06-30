@@ -6,6 +6,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
 use Modules\Authentication\Database\Seeders\RoleSeeder;
+use Modules\Ledger\Database\Seeders\LeasePaymentSeeder;
 use Modules\Plan\Database\Seeders\PlansSeeder;
 use Modules\Property\Database\Seeders\AmenitySeeder;
 use Modules\Property\Database\Seeders\PropertySeeder;
@@ -26,7 +27,8 @@ class DatabaseSeeder extends Seeder
             AmenitySeeder::class,
             PropertySeeder::class,
             RenterSeeder::class,
-            LeaseSeeder::class
+            LeaseSeeder::class,
+            LeasePaymentSeeder::class
         ]);
 
         Artisan::call('passport:client', [

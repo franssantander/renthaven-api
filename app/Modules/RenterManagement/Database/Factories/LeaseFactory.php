@@ -20,7 +20,21 @@ class LeaseFactory extends Factory
             'start_date' => $startDate->format('Y-m-d'),
             // End date is 1 year after start date
             'end_date' => $this->faker->dateTimeBetween('now', '+1 year')->format('Y-m-d'),
+            'lease_type' => 'monthly',
             'is_active' => true,
         ];
+    }
+
+    public function fixed(): self
+    {
+        return $this->state(function (array $attributes) {
+            return [
+                'lease_type' => 'fixed',
+
+                'end_date' => \Carbon\Carbon::parse($attributes['start_date'] ?? now())
+                    ->addYear()
+                    ->toDateString(),
+            ];
+        });
     }
 }
