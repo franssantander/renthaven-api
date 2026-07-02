@@ -5,7 +5,10 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 use App\HasHasPublicUuidTrait;
+use App\Notifications\ResetPasswordNotification;
+use App\Notifications\VerifyEmailNotification;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,7 +20,7 @@ use Laravel\Passport\HasApiTokens;
 
 #[Fillable(['role_id', 'tenant_business_id', 'full_name', 'email', 'phone', 'username', 'password'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable implements OAuthenticatable
+class User extends Authenticatable implements OAuthenticatable, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable, HasHasPublicUuidTrait;
@@ -50,6 +53,16 @@ class User extends Authenticatable implements OAuthenticatable
     public function tenantBusiness(): BelongsTo
     {
         return $this->belongsTo(TenantBusiness::class);
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new VerifyEmailNotification());
     }
 
 }

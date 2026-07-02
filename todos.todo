@@ -39,10 +39,10 @@
         ✔ [BE] implement user login functionality @done(26-07-03 00:10)
         ☐ [BE] implement password reset functionality
         ☐ [BE] implement email verification functionality
-        ☐ [BE] implement user role
+        ✔ [BE] implement user role @done(26-07-03 01:02)
         ☐ [BE] implement CRUD for user profile (consider the tenant business logic)
     📌 Plans & Businesses:
-        ☐ [BE] Supply the data resource
+        ✔ [BE] Supply the data resource @done(26-07-03 01:01)
         ☐ [BE] Build a plan management system (CRUD for plans, plan features, etc.)
         ☐ [BE] Build a tenant business management system (CRUD for tenant businesses, business)
 
