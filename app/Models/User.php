@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+use App\HasHasPublicUuidTrait;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -18,7 +20,7 @@ use Laravel\Passport\HasApiTokens;
 class User extends Authenticatable implements OAuthenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, HasHasPublicUuidTrait;
 
     /**
      * Get the attributes that should be cast.
@@ -49,4 +51,5 @@ class User extends Authenticatable implements OAuthenticatable
     {
         return $this->belongsTo(TenantBusiness::class);
     }
+
 }

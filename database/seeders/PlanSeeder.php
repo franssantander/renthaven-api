@@ -2,10 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\Plan;
 use Carbon\Carbon;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class PlanSeeder extends Seeder
 {
@@ -58,7 +57,7 @@ class PlanSeeder extends Seeder
         ];
 
         foreach ($plans as $plan) {
-            DB::table('plans')->updateOrInsert(
+            Plan::updateOrCreate(
                 ['slug' => $plan['slug']],
                 $plan
             );

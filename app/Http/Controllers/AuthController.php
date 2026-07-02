@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\UserData;
 use App\Http\Requests\LoginRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -39,7 +40,7 @@ class AuthController extends Controller
             );
 
             return $this->success(
-                ['user' => $user],
+                UserData::from($user),
                 'Login successful.'
             )->withCookie($cookie);
         } catch (ValidationException $e) {
