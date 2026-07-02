@@ -16,7 +16,13 @@ return new class extends Migration {
             $table->string('name');
             $table->string('email')->unique();
             $table->string('phone')->unique();
-            $table->enum('status', ['active', 'inactive']);
+
+            $table->string('contact_person')->nullable();
+            $table->string('tin', 15)->nullable()->unique();
+            $table->text('business_address')->nullable();
+            $table->string('logo_url')->nullable();
+
+            $table->enum('status', ['active', 'inactive'])->default('active');
             $table->softDeletes();
             $table->timestamps();
         });

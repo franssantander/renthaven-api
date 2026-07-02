@@ -13,8 +13,12 @@ return new class extends Migration {
         Schema::create('plans', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('slug')->unique();
             $table->text('description')->nullable();
             $table->decimal('price', 8, 2);
+            $table->integer('max_properties')->default(1);
+            $table->integer('max_units')->default(5);
+
             $table->timestamps();
         });
     }

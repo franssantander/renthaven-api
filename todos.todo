@@ -31,6 +31,11 @@
          
 
 📝TODOS:
+    📌 Plans & Businesses:
+        ☐ [BE] Build a plan management system (CRUD for plans, plan features, etc.)
+        ☐ [BE] Build a tenant business management system (CRUD for tenant businesses, business)
+
+
     Authentication:
         ☐ [BE] implement user login functionality
         ☐ [BE] implement password reset functionality
