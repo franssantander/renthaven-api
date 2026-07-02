@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use Carbon\CarbonInterval;
 use Illuminate\Support\Number;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Passport\Passport;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,6 +24,10 @@ class AppServiceProvider extends ServiceProvider
     {
         Number::useLocale('en_PH');
         Number::useCurrency('PHP');
+
+        Passport::tokensExpireIn(CarbonInterval::days(15));
+        Passport::refreshTokensExpireIn(CarbonInterval::days(30));
+        Passport::personalAccessTokensExpireIn(CarbonInterval::months(6));
 
     }
 }

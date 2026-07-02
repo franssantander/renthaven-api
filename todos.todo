@@ -31,20 +31,20 @@
          
 
 📝TODOS:
-    📌 Plans & Businesses:
-        ☐ [BE] Build a plan management system (CRUD for plans, plan features, etc.)
-        ☐ [BE] Build a tenant business management system (CRUD for tenant businesses, business)
 
 
-    Authentication:
-        ☐ [BE] implement user login functionality
+
+⚡IN-PROGRESS:
+    📌Authentication:
+        ✔ [BE] implement user login functionality @done(26-07-03 00:10)
         ☐ [BE] implement password reset functionality
         ☐ [BE] implement email verification functionality
         ☐ [BE] implement user role
         ☐ [BE] implement CRUD for user profile (consider the tenant business logic)
-
-
-⚡IN-PROGRESS:
+    📌 Plans & Businesses:
+        ☐ [BE] Supply the data resource
+        ☐ [BE] Build a plan management system (CRUD for plans, plan features, etc.)
+        ☐ [BE] Build a tenant business management system (CRUD for tenant businesses, business)
 
 
 

@@ -13,8 +13,8 @@ class Plan extends Model
 
     protected $casts = [
         "price" => 'decimal:2',
-        "created_at" => 'date',
-        "updated_at" => 'date'
+        "created_at" => 'datetime',
+        "updated_at" => 'datetime'
     ];
 
 }

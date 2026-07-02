@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Container\Attributes\Database;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Artisan;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,13 +17,16 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        DatabaseSeeder::call([PlanSeeder::class, TenantBusinessSeeder::class, RoleSeeder::class, UserSeeder::class]);
+
+        $this->command->info('Creating personal access client for Passport...');
+
+        Artisan::call('passport:client', [
+            '--personal' => true,
+            '--name' => 'Rental Client',
+            '--no-interaction' => true,
         ]);
 
-        DatabaseSeeder::call([PlanSeeder::class, TenantBusinessSeeder::class]);
     }
 }
