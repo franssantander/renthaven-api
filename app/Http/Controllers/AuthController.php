@@ -69,6 +69,12 @@ class AuthController extends Controller
             ->withCookie($forgetCookie);
     }
 
+    public function me(Request $request)
+    {
+        $user = $request->user()->load('role', 'tenantBusiness');
+
+        return $this->success(UserData::from($user), 'User profile retrieved successfully.');
+    }
 
     public function forgotPassword(ForgotPasswordRequest $request)
     {
@@ -76,11 +82,9 @@ class AuthController extends Controller
             $request->only('email')
         );
 
-        // Always return a generic success message regardless of whether the
-        // email exists, to avoid leaking which emails are registered.
         return $this->success(
             null,
-            'If an account with that email exists, a password reset link has been sent.'
+            'A password reset link has been sent to your email address.'
         );
     }
 
