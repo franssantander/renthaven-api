@@ -14,7 +14,6 @@ class UserData extends Data
         public string $username,
         public RoleData $role,
         #[MapInputName('tenant_business')]
-        public ?TenantBusinessData $tenantBusiness,
-    ) {
-    }
+        public ?TenantBusinessData $tenant_business,
+    ) {}
 }

@@ -23,10 +23,6 @@
     📌 Renters Management:
         ☐ [BE] implement CRUD for renters (associated with lease)
         ☐ [BE] handle validation for renter creation / assigning (e.g., lease association, renter details)
-        
-    📌 User Management:
-        ☐ [BE] implement CRUD for user management (consider the tenant business logic)
-        ☐ [BE] implement user permissions and roles (e.g., admin, property manager, tenant)
 
          
 
@@ -41,6 +37,11 @@
         ☐ [BE] implement email verification functionality
         ✔ [BE] implement user role @done(26-07-03 01:02)
         ☐ [BE] implement CRUD for user profile (consider the tenant business logic)
+
+    📌 User Management:
+        ☐ [BE] implement CRUD for user management (consider the tenant business logic)
+        ☐ [BE] implement user permissions and roles (e.g., admin, property manager, tenant)
+        
     📌 Plans & Businesses:
         ✔ [BE] Supply the data resource @done(26-07-03 01:01)
         ☐ [BE] Build a plan management system (CRUD for plans, plan features, etc.)
