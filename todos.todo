@@ -1,10 +1,5 @@
 
 🪵BACKLOGS:
-
-    📌 Business Creation Flow:
-        ☐ [BE] implement Business Creation Flow (CRUD for business, business settings, etc.)
-        ☐ [BE] implement email verification functionality
-
     📌 Property:
         ☐ [BE] implement paginated property listing
         ☐ [BE] implement CRUD for property
@@ -28,19 +23,24 @@
         ☐ [BE] implement CRUD for renters (associated with lease)
         ☐ [BE] handle validation for renter creation / assigning (e.g., lease association, renter details)
 
-
-⚡IN-PROGRESS:
+✏️TODOS:
     📌 User Management:
         ☐ [BE] implement CRUD for user management (consider the tenant business logic)
         ☐ [BE] implement user permissions and roles (e.g., admin, property manager, tenant)
-        
+
     📌 Plans & Businesses:
         ☐ [BE] Build a plan management system (CRUD for plans, plan features, etc.)
         ☐ [BE] Build a tenant business management system (CRUD for tenant businesses, business)
 
+⚡IN-PROGRESS:
+    📌 Business Creation Flow:
+        ☐ [BE] implement Business Creation Flow (CRUD for business, business settings, etc.)
+        ☐ [BE] implement email verification functionality
+        ☐ [BE] implement CRUD Business Profile
 
-Archive:
-  ✔ [BE] implement user login functionality @done(26-07-03 00:10) @project(⚡IN-PROGRESS.📌Authentication)
-  ✔ [BE] implement password reset functionality @done(26-07-04 03:23) @project(⚡IN-PROGRESS.📌Authentication)
-  ✔ [BE] implement user role @done(26-07-03 01:02) @project(⚡IN-PROGRESS.📌Authentication)
-  ✔ [BE] Supply the data resource @done(26-07-03 01:01) @project(⚡IN-PROGRESS.📌 Plans & Businesses)
+✅DONE:
+  ✔ [BE] implement user login functionality @done(26-07-04 03:33) @project(⚡IN-PROGRESS.📌 Authentication)
+  ✔ [BE] implement password reset functionality @done(26-07-04 03:33) @project(⚡IN-PROGRESS.📌 Authentication)
+  ✔ [BE] implement user role @done(26-07-04 03:33) @project(⚡IN-PROGRESS.📌 Authentication)
+  ✔ [BE] Supply the data resource @done(26-07-04 03:33) @project(⚡IN-PROGRESS.📌 Authentication)
+
