@@ -20,7 +20,7 @@ class PlanSeeder extends Seeder
                 'description' => 'Try out the system. Perfect for micro-landlords testing the platform.',
                 'price' => 0.00,
                 'max_properties' => 2,
-                'max_units' => 10,
+                'max_units' => 5,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],

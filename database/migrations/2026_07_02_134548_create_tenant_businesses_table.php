@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\StatusEnum;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +25,7 @@ return new class extends Migration {
             $table->text('business_address')->nullable();
             $table->string('logo_url')->nullable();
 
-            $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->enum('status', StatusEnum::cases())->default(StatusEnum::ACTIVE->value);
             $table->softDeletes();
             $table->timestamps();
         });

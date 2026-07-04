@@ -3,6 +3,12 @@
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
+Route::prefix('auth')->group(function () {
+    Route::get('email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
+        ->name('verification.verify')
+        ->middleware('signed');
+});
+
 
 Route::prefix('auth')->name('auth.')->group(function () {
     Route::post('login', [AuthController::class, 'login'])->name('login');

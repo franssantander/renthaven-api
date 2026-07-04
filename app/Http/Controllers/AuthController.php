@@ -21,37 +21,43 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request)
     {
-        try {
-            $credentials = $request->validated();
+        $credentials = $request->validated();
 
-            if (!Auth::attempt($credentials)) {
-                throw ValidationException::withMessages([
-                    'username' => ['The provided credentials are incorrect.'],
-                ]);
-            }
-
-            $user = Auth::user()->load('role', 'tenantBusiness');
-            $token = $user->createToken('auth_token')->accessToken;
-
-            $cookie = cookie(
-                $this->cookieName,
-                $token,
-                60 * 24 * 7,   // 7 days, in minutes
-                '/',           // path
-                null,          // domain
-                app()->environment('production'), // secure — HTTPS only in prod
-                true,          // httpOnly
-                false,         // raw
-                'Strict'       // sameSite
-            );
-
-            return $this->success(
-                UserData::from($user),
-                'Login successful.'
-            )->withCookie($cookie);
-        } catch (ValidationException $e) {
-            return $this->error($e);
+        if (!Auth::attempt($credentials)) {
+            throw ValidationException::withMessages([
+                'username' => ['The provided credentials are incorrect.'],
+            ]);
         }
+
+        $user = Auth::user();
+
+        if (!$user->hasVerifiedEmail()) {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'email' => ['Please verify your email address before logging in.'],
+            ]);
+        }
+
+        $user->load('role', 'tenantBusiness');
+        $token = $user->createToken('auth_token')->accessToken;
+
+        $cookie = cookie(
+            $this->cookieName,
+            $token,
+            60 * 24 * 7,   // 7 days, in minutes
+            '/',           // path
+            null,          // domain
+            app()->environment('production'), // secure — HTTPS only in prod
+            true,          // httpOnly
+            false,         // raw
+            'Strict'       // sameSite
+        );
+
+        return $this->success(
+            UserData::from($user),
+            'Login successful.'
+        )->withCookie($cookie);
     }
 
     public function logout(Request $request)
@@ -149,6 +155,6 @@ class AuthController extends Controller
             event(new Verified($user));
         }
 
-        return $this->success(null, 'Email verified successfully.');
+        return redirect(config('app.frontend_url') . '/dashboard?verified=true');
     }
 }
