@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\TenantBusinessData;
 use App\Data\UserData;
+use App\Enum\RoleEnum;
 use App\Enum\StatusEnum;
 use App\Http\Requests\RegisterBusinessRequest;
+use App\Http\Requests\StoreTenantBusinessRequest;
 use App\Models\Role;
 use App\Models\TenantBusiness;
 use App\Models\User;
@@ -12,6 +15,7 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Symfony\Component\HttpFoundation\Response;
 
 class TenantBusinessController extends Controller
 {
@@ -36,17 +40,18 @@ class TenantBusinessController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreTenantBusinessRequest $request)
     {
-        //
+        $business = TenantBusiness::create($request->validated());
+        return $this->success($business, 'Business created successfully.');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(TenantBusiness $tenantBusiness)
     {
-        //
+        return $this->success(TenantBusinessData::from($tenantBusiness), 'Business retrieved successfully.');
     }
 
     /**

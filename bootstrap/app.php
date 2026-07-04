@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AuthenticateFromCookie;
+use App\Http\Middleware\CheckRole;
 use App\Support\ApiResponder;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -21,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
             AuthenticateFromCookie::class,
         ]);
         $middleware->trustProxies(at: '*');
+        $middleware->alias(['role' => CheckRole::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

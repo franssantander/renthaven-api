@@ -28,13 +28,16 @@
         ☐ [BE] Build a tenant business management system (CRUD for tenant businesses, business)
 
 📝TODOS:
-    📌 User Management:
-        ☐ [BE] implement CRUD for user management (consider the tenant business logic)
-        ☐ [BE] implement user permissions and roles (e.g., admin, property manager, tenant)
 
 ⚡IN-PROGRESS:
+
+    📌 User Management:
+        ☐ [BE] implement user permissions and roles (e.g., admin, property manager, tenant)
+        ☐ [BE] implement CRUD for user management (consider the tenant business logic)
+    
+
     📌 Business Creation Flow:
-        ☐ [BE] implement Business Creation Flow (CRUD for business, business settings, etc.)
+        ✔ [BE] implement Business Creation Flow @done(26-07-04 20:33)
         ✔ [BE] implement email verification functionality @done(26-07-04 20:32)
         ☐ [BE] implement CRUD Business Profile
 
