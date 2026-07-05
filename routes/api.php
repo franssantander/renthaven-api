@@ -1,4 +1,5 @@
 <?php
 
-require __DIR__ . '/auth.php';
-require __DIR__ . '/tenant_business.php';
+require __DIR__ . '/v1/auth.php';
+require __DIR__ . '/v1/tenant_business.php';
+require __DIR__ . '/v1/user_management.php';

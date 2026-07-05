@@ -22,7 +22,6 @@ return Application::configure(basePath: dirname(__DIR__))
             AuthenticateFromCookie::class,
         ]);
         $middleware->trustProxies(at: '*');
-        $middleware->alias(['role' => CheckRole::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

@@ -12,6 +12,7 @@ class TenantBusinessData extends Data
         public string $uuid,
         public string $name,
         public string $email,
+        public ?string $tin,
         public ?string $phone,
         public ?string $contact_person,
         public ?string $buusiness_address,

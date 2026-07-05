@@ -1,9 +1,11 @@
 <?php
 
+use App\Enum\StatusEnum;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use PHPUnit\Logging\OpenTestReporting\Status;
 
 return new class extends Migration {
     /**
@@ -17,12 +19,14 @@ return new class extends Migration {
             $table->foreignId('role_id')->constrained('roles');
             $table->foreignId('tenant_business_id')->nullable()->constrained('tenant_businesses')->cascadeOnDelete();
             $table->string('full_name');
+            $table->string('username')->unique();
+            $table->string('password');
             $table->string('email')->unique();
             $table->string('phone')->nullable();
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('username')->unique();
-            $table->string('password');
+            $table->enum('status', array_column(StatusEnum::cases(), 'value'))->default(StatusEnum::ACTIVE->value);
             $table->rememberToken();
+            $table->softDeletes();
             $table->timestamps();
         });
 

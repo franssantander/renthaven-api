@@ -1,14 +1,10 @@
 
 🪵BACKLOGS:
-    📌 Property:
-        ☐ [BE] implement paginated property listing
-        ☐ [BE] implement CRUD for property
-            Property Units:
-                ☐ [BE] implement CRUD for unit
-                ☐ [BE] implement unit availability status
-                ☐ [BE] implement unit pricing and amenities
-                ☐ [BE] implement unit images and media management
-        ☐ [BE] implement dashboard counts for property
+
+    📌 User Permissions Management:
+        ☐ [BE] implement user permissions and roles (e.g., admin, property manager, tenant)
+        ☐ [BE] CRUD for user permission management
+        ☐ [BE] Middleware implementation
 
     📌 Renters(Lease):
         ☐ [BE] implement CRUD for lease (associated with property and unit)
@@ -23,25 +19,31 @@
         ☐ [BE] implement CRUD for renters (associated with lease)
         ☐ [BE] handle validation for renter creation / assigning (e.g., lease association, renter details)
 
-    📌 Plans & Businesses:
+    📌 Plans & Businesses (Business Side):
         ☐ [BE] Build a plan management system (CRUD for plans, plan features, etc.)
-        ☐ [BE] Build a tenant business management system (CRUD for tenant businesses, business)
 
 📝TODOS:
+    📌 Audit Logger:
+        ☐ [BE] implement audit logging for an app 
+        ☐ [BE] build the schema
 
-⚡IN-PROGRESS:
+    📌 Property:
+        ☐ [BE] implement paginated property listing
+        ☐ [BE] implement CRUD for property
+            Property Units:
+                ☐ [BE] implement CRUD for unit
+                ☐ [BE] implement unit availability status
+                ☐ [BE] implement unit pricing and amenities
+                ☐ [BE] implement unit images and media management
+        ☐ [BE] implement dashboard counts for property
 
-    📌 User Management:
-        ☐ [BE] implement user permissions and roles (e.g., admin, property manager, tenant)
-        ☐ [BE] implement CRUD for user management (consider the tenant business logic)
-    
 
-    📌 Business Creation Flow:
-        ✔ [BE] implement Business Creation Flow @done(26-07-04 20:33)
-        ✔ [BE] implement email verification functionality @done(26-07-04 20:32)
-        ☐ [BE] implement CRUD Business Profile
 
 ✅DONE:
+  ✔ [BE] implement CRUD for user management (consider the tenant business logic) @done(26-07-05 19:03) @project(⚡IN-PROGRESS.📌 User Management)
+  ✔ [BE] implement Business Creation Flow @done(26-07-04 20:33) @project(⚡IN-PROGRESS.📌 Business Creation Flow)
+  ✔ [BE] implement email verification functionality @done(26-07-04 20:32) @project(⚡IN-PROGRESS.📌 Business Creation Flow)
+  ✔ [BE] implement CRUD Business Profile @done(26-07-05 12:25) @project(⚡IN-PROGRESS.📌 Business Creation Flow)
   ✔ [BE] implement user login functionality @done(26-07-04 03:33) @project(⚡IN-PROGRESS.📌 Authentication)
   ✔ [BE] implement password reset functionality @done(26-07-04 03:33) @project(⚡IN-PROGRESS.📌 Authentication)
   ✔ [BE] implement user role @done(26-07-04 03:33) @project(⚡IN-PROGRESS.📌 Authentication)

@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
+use App\Enum\StatusEnum;
 use App\HasHasPublicUuidTrait;
 use App\Notifications\ResetPasswordNotification;
 use App\Notifications\VerifyEmailNotification;
@@ -13,17 +14,18 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\Contracts\OAuthenticatable;
 use Laravel\Passport\HasApiTokens;
 
-#[Fillable(['role_id', 'tenant_business_id', 'full_name', 'email', 'phone', 'username', 'password'])]
+#[Fillable(['role_id', 'tenant_business_id', 'full_name', 'email', 'phone', 'username', 'password', 'status'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements OAuthenticatable, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable, HasHasPublicUuidTrait;
+    use HasApiTokens, HasFactory, Notifiable, HasHasPublicUuidTrait, SoftDeletes;
 
     /**
      * Get the attributes that should be cast.
@@ -35,6 +37,7 @@ class User extends Authenticatable implements OAuthenticatable, MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'status' => StatusEnum::class
         ];
     }
 
@@ -64,5 +67,4 @@ class User extends Authenticatable implements OAuthenticatable, MustVerifyEmail
     {
         $this->notify(new VerifyEmailNotification());
     }
-
 }

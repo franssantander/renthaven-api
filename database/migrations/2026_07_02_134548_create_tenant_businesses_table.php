@@ -25,7 +25,7 @@ return new class extends Migration {
             $table->text('business_address')->nullable();
             $table->string('logo_url')->nullable();
 
-            $table->enum('status', StatusEnum::cases())->default(StatusEnum::ACTIVE->value);
+            $table->enum('status', array_column(StatusEnum::cases(), 'value'))->default(StatusEnum::ACTIVE->value);
             $table->softDeletes();
             $table->timestamps();
         });

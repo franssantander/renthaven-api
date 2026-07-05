@@ -7,12 +7,14 @@ use App\HasHasPublicUuidTrait;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Table('tenant_businesses')]
 #[Fillable(['plan_id', 'name', 'email', 'phone', 'contact_person', 'tin', 'business_address', 'logo', 'status'])]
 class TenantBusiness extends Model
 {
-    use HasHasPublicUuidTrait;
+    use HasHasPublicUuidTrait, SoftDeletes;
 
     protected function casts(): array
     {
@@ -24,5 +26,10 @@ class TenantBusiness extends Model
     public function uniqueIds(): array
     {
         return ['uuid'];
+    }
+
+    public function users(): HasMany
+    {
+        return $this->hasMany(User::class);
     }
 }
