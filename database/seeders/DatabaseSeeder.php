@@ -17,7 +17,14 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
 
-        DatabaseSeeder::call([PlanSeeder::class, TenantBusinessSeeder::class, RoleSeeder::class, UserSeeder::class]);
+        DatabaseSeeder::call([
+            PlanSeeder::class,
+            TenantBusinessSeeder::class,
+            RoleSeeder::class,
+            UserSeeder::class,
+            PermissionModuleSeeder::class,
+            PermissionActionSeeder::class
+        ]);
 
         $this->command->info('Creating personal access client for Passport...');
 
@@ -26,6 +33,5 @@ class DatabaseSeeder extends Seeder
             '--name' => 'Rental Client',
             '--no-interaction' => true,
         ]);
-
     }
 }
