@@ -15,7 +15,6 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         $superAdminId = DB::table('roles')->where('slug', 'super_admin')->value('id');
-        $sysAdminRoleId = DB::table('roles')->where('slug', 'system_admin')->value('id');
         $adminRoleId = DB::table('roles')->where('slug', 'admin')->value('id');
         $staffRoleId = DB::table('roles')->where('slug', 'staff')->value('id');
 
@@ -42,17 +41,6 @@ class UserSeeder extends Seeder
             ],
 
             // BUSINESS A: Dela Cruz Apartments
-            [
-                'role_id' => $sysAdminRoleId,
-                'tenant_business_id' => $businessAId,
-                'full_name' => 'Dela Cruz IT Support',
-                'email' => 'sysadmin@delacruzrentals.ph',
-                'username' => 'delacruztech',
-                'password' => $defaultPassword,
-                'email_verified_at' => $now,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
             [
                 'role_id' => $adminRoleId,
                 'tenant_business_id' => $businessAId,
@@ -89,17 +77,6 @@ class UserSeeder extends Seeder
 
             // BUSINESS B: Sampaloc University Belt Dorms
             [
-                'role_id' => $sysAdminRoleId,
-                'tenant_business_id' => $businessBId,
-                'full_name' => 'U-Belt Dorms IT SysAdmin',
-                'email' => 'it@ubelt-dorms.com',
-                'username' => 'ubelttech',
-                'password' => $defaultPassword,
-                'email_verified_at' => $now,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
                 'role_id' => $adminRoleId,
                 'tenant_business_id' => $businessBId,
                 'full_name' => 'Maria Santos',
@@ -123,17 +100,6 @@ class UserSeeder extends Seeder
             ],
 
             // BUSINESS C: Metro Share Condominiums
-            [
-                'role_id' => $sysAdminRoleId,
-                'tenant_business_id' => $businessCId,
-                'full_name' => 'Metro Share Network Admin',
-                'email' => 'sysadmin@metrosharecondos.ph',
-                'username' => 'metrosharetech',
-                'password' => $defaultPassword,
-                'email_verified_at' => $now,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
             [
                 'role_id' => $adminRoleId,
                 'tenant_business_id' => $businessCId,
@@ -159,17 +125,6 @@ class UserSeeder extends Seeder
 
             // BUSINESS D: Cebu Highlands Housing Corp
             [
-                'role_id' => $sysAdminRoleId,
-                'tenant_business_id' => $businessDId,
-                'full_name' => 'Cebu Highlands IT Dept',
-                'email' => 'it.support@cebuhighlands.com',
-                'username' => 'cebuhighlandstech',
-                'password' => $defaultPassword,
-                'email_verified_at' => $now,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
                 'role_id' => $adminRoleId,
                 'tenant_business_id' => $businessDId,
                 'full_name' => 'Christina Garcia',
@@ -193,17 +148,6 @@ class UserSeeder extends Seeder
             ],
 
             // BUSINESS E: Apex Property Management Group
-            [
-                'role_id' => $sysAdminRoleId,
-                'tenant_business_id' => $businessEId,
-                'full_name' => 'Apex Systems Administrator',
-                'email' => 'noc@apexproperties.ph',
-                'username' => 'apexpropertiestech',
-                'password' => $defaultPassword,
-                'email_verified_at' => $now,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
             [
                 'role_id' => $adminRoleId,
                 'tenant_business_id' => $businessEId,

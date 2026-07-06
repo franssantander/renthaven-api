@@ -2,14 +2,12 @@
 
 namespace App\Models;
 
-use App\HasHasPublicUuidTrait;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
 
-#[Table('permission_modules')]
-#[Fillable('name', 'slug', 'description')]
-class PermissionModule extends Model
+#[Table('role_permission')]
+class RolePermission extends Model
 {
-    use HasHasPublicUuidTrait;
+    //
 }

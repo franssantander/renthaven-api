@@ -23,11 +23,6 @@ class TenantBusiness extends Model
         ];
     }
 
-    public function uniqueIds(): array
-    {
-        return ['uuid'];
-    }
-
     public function users(): HasMany
     {
         return $this->hasMany(User::class);

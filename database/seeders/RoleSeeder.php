@@ -22,12 +22,6 @@ class RoleSeeder extends Seeder
                 'updated_at' => Carbon::now(),
             ],
             [
-                'name' => 'System Admin',
-                'slug' => 'system_admin',
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
-            ],
-            [
                 'name' => 'Admin',
                 'slug' => 'admin',
                 'created_at' => Carbon::now(),
@@ -53,6 +47,5 @@ class RoleSeeder extends Seeder
                 $role
             );
         }
-
     }
 }

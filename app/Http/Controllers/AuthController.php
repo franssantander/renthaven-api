@@ -78,8 +78,10 @@ class AuthController extends Controller
     public function me(Request $request)
     {
         $user = $request->user()->load('role', 'tenantBusiness');
+        $userData = UserData::from($user);
+        $userData->permissions = $user->getPermissionMatrix();
 
-        return $this->success(UserData::from($user), 'User profile retrieved successfully.');
+        return $this->success($userData, 'User profile retrieved successfully.');
     }
 
     public function forgotPassword(ForgotPasswordRequest $request)

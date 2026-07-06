@@ -1,0 +1,12 @@
+{
+    "permissions": [
+        {
+            "module": "dashboard",
+            "actions": ["view"]
+        },
+        {
+            "module": "user_management",
+            "actions": ["view", "create", "delete", "update"]
+        }
+    ]
+}

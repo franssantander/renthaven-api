@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use Laravel\Passport\Contracts\OAuthenticatable;
 use Laravel\Passport\HasApiTokens;
 
@@ -66,5 +67,48 @@ class User extends Authenticatable implements OAuthenticatable, MustVerifyEmail
     public function sendEmailVerificationNotification(): void
     {
         $this->notify(new VerifyEmailNotification());
+    }
+
+    public function hasPermission(string $moduleSlug, string $actionCode): bool
+    {
+        // Super Admins always get a free pass to everything
+        if ($this->role->slug === 'super_admin') {
+            return true;
+        }
+
+        return DB::table('role_permissions')
+            ->join('permission_modules', 'role_permissions.permission_module_id', '=', 'permission_modules.id')
+            ->join('permission_actions', 'role_permissions.permission_action_id', '=', 'permission_actions.id')
+            ->where('role_permissions.role_id', $this->role_id)
+            ->where('permission_modules.slug', $moduleSlug)
+            ->where('permission_actions.slug', $actionCode)
+            ->exists();
+    }
+
+    public function getPermissionMatrix(): array
+    {
+        if ($this->relationLoaded('role') && $this->role->slug === 'super_admin') {
+            $allModules = DB::table('permission_modules')->pluck('slug');
+            $allActions = DB::table('permission_actions')->pluck('slug')->toArray();
+
+            return $allModules->map(fn($slug) => [
+                'module' => $slug,
+                'actions' => $allActions
+            ])->toArray();
+        }
+
+        return DB::table('role_permissions')
+            ->join('permission_modules', 'role_permissions.permission_module_id', '=', 'permission_modules.id')
+            ->join('permission_actions', 'role_permissions.permission_action_id', '=', 'permission_actions.id')
+            ->where('role_permissions.role_id', $this->role_id)
+            ->select('permission_modules.slug as module', 'permission_actions.slug as action')
+            ->get()
+            ->groupBy('module')
+            ->map(fn($items, $moduleSlug) => [
+                'module' => $moduleSlug,
+                'actions' => $items->pluck('action')->toArray()
+            ])
+            ->values()
+            ->toArray();
     }
 }

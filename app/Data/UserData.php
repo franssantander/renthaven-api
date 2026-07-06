@@ -15,5 +15,6 @@ class UserData extends Data
         public RoleData $role,
         #[MapInputName('tenant_business')]
         public ?TenantBusinessData $tenant_business,
+        public ?array $permissions = null,
     ) {}
 }

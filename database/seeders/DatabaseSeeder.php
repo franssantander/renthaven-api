@@ -23,7 +23,8 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             UserSeeder::class,
             PermissionModuleSeeder::class,
-            PermissionActionSeeder::class
+            PermissionActionSeeder::class,
+            RolePermissionSeeder::class,
         ]);
 
         $this->command->info('Creating personal access client for Passport...');
