@@ -9,9 +9,9 @@ Route::prefix('user-management')
     ->middleware('auth:api')
     ->controller(UserManagementController::class)
     ->group(function () {
-        Route::get('/', 'index')->name('index');
-        Route::post('/', 'store')->name('store');
-        Route::get('/{user}', 'show')->name('show');
-        Route::put('/{user}', 'update')->name('update');
-        Route::delete('/{user}', 'destroy')->name('destroy');
+        Route::get('/', 'index')->name('index')->middleware('permission:user_management,view');
+        Route::post('/', 'store')->name('store')->middleware('permission:user_management,create');
+        Route::get('/{user}', 'show')->name('show')->middleware('permission:user_management,view');
+        Route::put('/{user}', 'update')->name('update')->middleware('permission:user_management,update');
+        Route::delete('/{user}', 'destroy')->name('destroy')->middleware('permission:user_management,delete');
     });

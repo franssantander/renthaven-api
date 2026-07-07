@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Permission\GetUserPermissionMatrixAction;
 use App\Actions\Permission\RevokeAllUserPermissionsAction;
 use App\Actions\Permission\SyncUserPermissionAction;
 use App\Data\Permission\PermissionModuleData;
@@ -11,8 +12,10 @@ use App\Http\Requests\RevokeAllPermissionsRequest;
 use App\Models\PermissionAction;
 use App\Models\PermissionModule;
 use App\Models\RolePermission;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\Response;
 
 class PermissionController extends Controller
 {
@@ -42,9 +45,17 @@ class PermissionController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(User $user, GetUserPermissionMatrixAction $action)
     {
-        //
+        $authUser = auth()->user();
+        if ($authUser->role->slug !== 'super_admin' && $authUser->tenant_business_id !== $user->tenant_business_id) {
+            return $this->error(null, 'Unauthorized to view this user\'s permissions.',  Response::HTTP_FORBIDDEN);
+        }
+
+        $matrix = $action->handle($user);
+        return response()->json([
+            'data' => $matrix
+        ]);
     }
 
     /**

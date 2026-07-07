@@ -9,11 +9,8 @@ Route::prefix('permission')
     ->middleware('auth:api')
     ->controller(PermissionController::class)
     ->group(function () {
-        Route::get('/', 'index')->name('index');
-        Route::post('/', 'store')->name('store');
-        Route::get('/{user}', 'show')->name('show');
-        Route::put('/{user}', 'update')->name('update');
-        Route::delete('/{user}', 'destroy')->name('destroy');
-        Route::post('/sync', 'sync')->name('sync');
-        Route::post('/revoke-all', 'revokeAll')->name('revoke-all');
+        Route::get('/', 'index')->name('index')->middleware('permission:permission_management,view');
+        Route::get('/{user}', 'show')->name('show')->middleware('permission:permission_management,view');
+        Route::post('/sync', 'sync')->name('sync')->middleware('permission:permission_management,update');
+        Route::post('/revoke-all', 'revokeAll')->name('revoke-all')->middleware('permission:permission_management,delete');
     });

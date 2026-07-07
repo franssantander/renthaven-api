@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\PermissionAction;
 use App\Models\PermissionModule;
 use App\Models\Role;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -16,9 +15,10 @@ class RolePermissionSeeder extends Seeder
      */
     public function run(): void
     {
+        DB::table('role_permissions')->truncate();
+
         $modules = PermissionModule::pluck('id', 'slug')->toArray();
         $actions = PermissionAction::pluck('id', 'slug')->toArray();
-
         $presets = [
             'staff' => [
                 'dashboard'         => ['view'],
@@ -36,14 +36,7 @@ class RolePermissionSeeder extends Seeder
                 'properties'        => ['view', 'create', 'update', 'delete', 'restore'],
                 'renter_tenants'    => ['view', 'create', 'update', 'delete', 'export', 'restore'],
                 'user_management'   => ['view', 'create', 'update', 'delete'],
-            ],
-            'super_admin' => [
-                'dashboard'         => ['view'],
-                'ledger'            => ['view', 'create', 'update', 'delete', 'export', 'restore'],
-                'payment_approvals' => ['view', 'create', 'update', 'delete', 'approve', 'restore'],
-                'properties'        => ['view', 'create', 'update', 'delete', 'restore'],
-                'renter_tenants'    => ['view', 'create', 'update', 'delete', 'export', 'restore'],
-                'user_management'   => ['view', 'create', 'update', 'delete', 'export', 'restore'],
+                'tenant_business'   => ['view', 'create', 'update', 'delete'],
             ],
         ];
 
@@ -69,7 +62,20 @@ class RolePermissionSeeder extends Seeder
             }
         }
 
-        DB::table('role_permissions')->truncate();
+        $superAdmin = Role::where('slug', 'super_admin')->first();
+
+        if ($superAdmin) {
+            foreach ($modules as $moduleSlug => $moduleId) {
+                foreach ($actions as $actionSlug => $actionId) {
+                    $insertData[] = [
+                        'role_id' => $superAdmin->id,
+                        'permission_module_id' => $moduleId,
+                        'permission_action_id' => $actionId,
+                    ];
+                }
+            }
+        }
+
         DB::table('role_permissions')->insert($insertData);
     }
 }

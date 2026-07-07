@@ -71,23 +71,34 @@ class User extends Authenticatable implements OAuthenticatable, MustVerifyEmail
 
     public function hasPermission(string $moduleSlug, string $actionCode): bool
     {
-        if ($this->role->slug === 'super_admin') {
+        if ($this->relationLoaded('role') && $this->role->slug === 'super_admin') {
             return true;
         }
 
-        $hasCustomPermissions = DB::table('permission_per_user')->where('user_id', $this->id)->exists();
+        // 1. Check if the user has direct ACTIVE custom overrides
+        $hasCustomPermissions = DB::table('permission_per_user')
+            ->where('user_id', $this->id)
+            ->where('is_active', true)
+            ->exists();
 
         $targetTable = $hasCustomPermissions ? 'permission_per_user' : 'role_permissions';
         $foreignKey  = $hasCustomPermissions ? 'user_id' : 'role_id';
         $foreignId   = $hasCustomPermissions ? $this->id : $this->role_id;
 
-        return DB::table($targetTable)
+        $query = DB::table($targetTable)
             ->join('permission_modules', "{$targetTable}.permission_module_id", '=', 'permission_modules.id')
             ->join('permission_actions', "{$targetTable}.permission_action_id", '=', 'permission_actions.id')
             ->where("{$targetTable}.{$foreignKey}", $foreignId)
             ->where('permission_modules.slug', $moduleSlug)
-            ->where('permission_actions.code', $actionCode)
-            ->exists();
+            // 🟢 Changed from 'permission_actions.code' to 'permission_actions.slug'
+            ->where('permission_actions.slug', $actionCode);
+
+        // 2. Enforce active status checking for overrides
+        if ($hasCustomPermissions) {
+            $query->where("{$targetTable}.is_active", true);
+        }
+
+        return $query->exists();
     }
 
 

@@ -8,10 +8,10 @@ Route::prefix('tenant-business')->controller(TenantBusinessController::class)->n
     Route::post('register', 'registerBusiness')->name('register');
 
     Route::middleware('auth:api')->group(function () {
-        Route::get('/', 'index')->name('index');
-        Route::post('/', 'store')->name('store');
-        Route::get('/{tenantBusiness}', 'show')->name('show');
-        Route::put('/{tenantBusiness}', 'update')->name('update');
-        Route::delete('/{tenantBusiness}', 'destroy')->name('destroy');
+        Route::get('/', 'index')->name('index')->middleware('permission:tenant_business,view');
+        Route::post('/', 'store')->name('store')->middleware('permission:tenant_business,create');
+        Route::get('/{tenantBusiness}', 'show')->name('show')->middleware('permission:tenant_business,view');
+        Route::put('/{tenantBusiness}', 'update')->name('update')->middleware('permission:tenant_business,update');
+        Route::delete('/{tenantBusiness}', 'destroy')->name('destroy')->middleware('permission:tenant_business,delete');
     });
 });

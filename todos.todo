@@ -32,21 +32,26 @@
                 ☐ [BE] implement unit images and media management
         ☐ [BE] implement dashboard counts for property
 
+        
 ⚡IN-PROGRESS:
+
+    
+✅DONE:
+    📌 Authentication:
+        ✔ [BE] implement user login functionality @done(26-07-08 00:42)
+        ✔ [BE] implement password reset functionality @done(26-07-08 00:42)
+        ✔ [BE] implement user role @done(26-07-08 00:42)
+        ✔ [BE] supply the data resource @done(26-07-08 00:42)
+    📌 Business Creation Flow:
+        ✔ [BE] implement CRUD for user management (consider the tenant business logic) @done(26-07-08 00:40)
+        ✔ [BE] implement Business Creation Flow @done(26-07-08 00:40)
+        ✔ [BE] implement email verification functionality @done(26-07-08 00:40)
+        ✔ [BE] implement CRUD Business Profile @done(26-07-08 00:40)
+   📌 User Management:
+        ✔ [BE] implement CRUD for user management (consider the tenant business logic)
     📌 User Permissions Management:
         ✔ [BE] implement user permissions and roles (e.g., admin, property manager, tenant) @done(26-07-07 23:34)
         ✔ [BE] CRUD for user permission management @done(26-07-07 23:34)
-        ☐ [BE] Middleware implementation
+        ✔ [BE] Middleware implementation @done(26-07-08 00:34)
 
-
-
-✅DONE:
-  ✔ [BE] implement CRUD for user management (consider the tenant business logic) @done(26-07-05 19:03) @project(⚡IN-PROGRESS.📌 User Management)
-  ✔ [BE] implement Business Creation Flow @done(26-07-04 20:33) @project(⚡IN-PROGRESS.📌 Business Creation Flow)
-  ✔ [BE] implement email verification functionality @done(26-07-04 20:32) @project(⚡IN-PROGRESS.📌 Business Creation Flow)
-  ✔ [BE] implement CRUD Business Profile @done(26-07-05 12:25) @project(⚡IN-PROGRESS.📌 Business Creation Flow)
-  ✔ [BE] implement user login functionality @done(26-07-04 03:33) @project(⚡IN-PROGRESS.📌 Authentication)
-  ✔ [BE] implement password reset functionality @done(26-07-04 03:33) @project(⚡IN-PROGRESS.📌 Authentication)
-  ✔ [BE] implement user role @done(26-07-04 03:33) @project(⚡IN-PROGRESS.📌 Authentication)
-  ✔ [BE] Supply the data resource @done(26-07-04 03:33) @project(⚡IN-PROGRESS.📌 Authentication)
 

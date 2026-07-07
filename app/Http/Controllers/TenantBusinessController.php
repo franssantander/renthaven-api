@@ -13,6 +13,7 @@ use App\Models\TenantBusiness;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Spatie\LaravelData\PaginatedDataCollection;
@@ -20,76 +21,56 @@ use Symfony\Component\HttpFoundation\Response;
 
 class TenantBusinessController extends Controller
 {
-
-
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
         $user = auth()->user();
+        $query = TenantBusiness::query();
 
-        //TODO move this in permission feature
         if ($user->role->slug !== 'super_admin') {
-            return $this->error(null, 'Unauthorized to get business list.', Response::HTTP_FORBIDDEN);
+            $query->where('id', $user->tenant_business_id);
         }
-        
-        $query = TenantBusiness::query()->paginate($request->input('per_page', 15));
-        return TenantBusinessData::collect($query, PaginatedDataCollection::class);
-    }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        $businesses = $query->latest()->paginate($request->input('per_page', 15));
+        return TenantBusinessData::collect($businesses, PaginatedDataCollection::class);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreTenantBusinessRequest $request)
+    public function store(StoreTenantBusinessRequest $request): JsonResponse
     {
         $user = auth()->user();
-
-        //TODO move this in permission feature
         if ($user->role->slug !== 'super_admin') {
-            return $this->error(null, 'Unauthorized to create business profile.', Response::HTTP_FORBIDDEN);
+            return $this->error(null, 'Unauthorized to create new business profile.', Response::HTTP_FORBIDDEN);
         }
         $business = TenantBusiness::create($request->validated());
-        return $this->success($business, 'Business created successfully.');
+        return $this->success($business, 'Business created successfully.', Response::HTTP_CREATED);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(TenantBusiness $tenantBusiness)
+    public function show(TenantBusiness $tenantBusiness): JsonResponse
     {
         $user = auth()->user();
 
-        //TODO move this in permission feature
         if ($user->role->slug !== 'super_admin' && $user->tenant_business_id !== $tenantBusiness->id) {
             return $this->error(null, 'Unauthorized to view this business profile.', Response::HTTP_FORBIDDEN);
         }
-        return $this->success(TenantBusinessData::from($tenantBusiness), 'Business retrieved successfully.');
-    }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
+        return $this->success(TenantBusinessData::from($tenantBusiness), 'Business retrieved successfully.');
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateTenantBusinessRequest $request, TenantBusiness $tenantBusiness)
+    public function update(UpdateTenantBusinessRequest $request, TenantBusiness $tenantBusiness): JsonResponse
     {
         $user = auth()->user();
-        //TODO move this in permission feature
+
         if ($user->role->slug !== 'super_admin' && $user->tenant_business_id !== $tenantBusiness->id) {
             return $this->error(null, 'Unauthorized to update this business profile.', Response::HTTP_FORBIDDEN);
         }
@@ -101,19 +82,12 @@ class TenantBusinessController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(TenantBusiness $tenantBusiness)
+    public function destroy(TenantBusiness $tenantBusiness): JsonResponse
     {
         $user = auth()->user();
 
-        //TODO move this on user permission feature
-        $allowedRoles = ['super_admin', 'admin'];
-        if (!in_array($user->role->slug, $allowedRoles)) {
-            return $this->error(null, 'Unauthorized. Your role does not have permission to delete a business.', Response::HTTP_FORBIDDEN);
-        }
-
-        //TODO move this on user permission feature
-        if ($user->role->slug === 'admin' && $user->tenant_business_id !== $tenantBusiness->id) {
-            return $this->error(null, 'Unauthorized. You can on ly delete your own business profile.', Response::HTTP_FORBIDDEN);
+        if ($user->role->slug !== 'super_admin' && $user->tenant_business_id !== $tenantBusiness->id) {
+            return $this->error(null, 'Unauthorized. You can only delete your own business profile.', Response::HTTP_FORBIDDEN);
         }
 
         DB::transaction(function () use ($tenantBusiness) {
@@ -124,9 +98,13 @@ class TenantBusinessController extends Controller
         return $this->success(null, 'Business and its associated users have been successfully deleted.');
     }
 
-    public function registerBusiness(RegisterBusinessRequest $request)
+    /**
+     * Register a brand new business and primary admin user.
+     */
+    public function registerBusiness(RegisterBusinessRequest $request): JsonResponse
     {
         $validated = $request->validated();
+
         $result = DB::transaction(function () use ($validated) {
             $business = TenantBusiness::create([
                 'plan_id'          => $validated['plan_id'],
@@ -134,7 +112,7 @@ class TenantBusinessController extends Controller
                 'email'            => $validated['business_email'],
                 'phone'            => $validated['business_phone'],
                 'business_address' => $validated['business_address'] ?? null,
-                'status'           =>  StatusEnum::INACTIVE->value,
+                'status'           => StatusEnum::INACTIVE->value,
             ]);
 
             $adminRole = Role::where('slug', 'admin')->firstOrFail();
@@ -153,7 +131,6 @@ class TenantBusinessController extends Controller
 
             return compact('user', 'business');
         });
-
 
         $token = $result['user']->createToken('auth_token')->accessToken;
         $cookie = cookie('auth_token', $token, 60 * 24 * 7, '/', null, app()->environment('production'), true, false, 'Strict');

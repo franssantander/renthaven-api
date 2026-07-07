@@ -44,6 +44,16 @@ class PermissionModuleSeeder extends Seeder
                 'slug' => 'user_management',
                 'description' => 'Manage system users, roles, and permissions.',
             ],
+            [
+                'name' => 'Permission Management',
+                'slug' => 'permission_management',
+                'description' => 'Manage system permission, assign, and revoke.',
+            ],
+            [
+                'name' => 'Tenant Business',
+                'slug' => 'tenant_business',
+                'description' => 'Manage business profile, informations, and details.',
+            ],
         ];
 
         foreach ($modules as $module) {
