@@ -34,8 +34,8 @@
 
 ⚡IN-PROGRESS:
     📌 User Permissions Management:
-        ☐ [BE] implement user permissions and roles (e.g., admin, property manager, tenant)
-        ☐ [BE] CRUD for user permission management
+        ✔ [BE] implement user permissions and roles (e.g., admin, property manager, tenant) @done(26-07-07 23:34)
+        ✔ [BE] CRUD for user permission management @done(26-07-07 23:34)
         ☐ [BE] Middleware implementation
 
 

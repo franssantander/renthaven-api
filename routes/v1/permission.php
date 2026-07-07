@@ -14,4 +14,6 @@ Route::prefix('permission')
         Route::get('/{user}', 'show')->name('show');
         Route::put('/{user}', 'update')->name('update');
         Route::delete('/{user}', 'destroy')->name('destroy');
+        Route::post('/sync', 'sync')->name('sync');
+        Route::post('/revoke-all', 'revokeAll')->name('revoke-all');
     });

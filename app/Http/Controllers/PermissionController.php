@@ -2,7 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Permission\RevokeAllUserPermissionsAction;
+use App\Actions\Permission\SyncUserPermissionAction;
 use App\Data\Permission\PermissionModuleData;
+use App\Data\Permission\SyncUserPermissionsData;
+use App\Http\Requests\Permission\SyncUserPermissionRequest;
+use App\Http\Requests\RevokeAllPermissionsRequest;
 use App\Models\PermissionAction;
 use App\Models\PermissionModule;
 use App\Models\RolePermission;
@@ -32,10 +37,7 @@ class PermissionController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
-        //
-    }
+    public function store(Request $request) {}
 
     /**
      * Display the specified resource.
@@ -67,5 +69,17 @@ class PermissionController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function sync(SyncUserPermissionRequest $request, SyncUserPermissionAction $action)
+    {
+        $action->handle($request->validated('user_id'), $request->input('permissions', []));
+        return $this->success(null, 'User permissions synchronized successfully.');
+    }
+
+    public function revokeAll(RevokeAllPermissionsRequest $request, RevokeAllUserPermissionsAction $action)
+    {
+        $action->handle($request->validated('user_id'));
+        return $this->success(null, 'All custom user permissions have been successfully revoked.');
     }
 }

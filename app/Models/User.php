@@ -71,19 +71,25 @@ class User extends Authenticatable implements OAuthenticatable, MustVerifyEmail
 
     public function hasPermission(string $moduleSlug, string $actionCode): bool
     {
-        // Super Admins always get a free pass to everything
         if ($this->role->slug === 'super_admin') {
             return true;
         }
 
-        return DB::table('role_permissions')
-            ->join('permission_modules', 'role_permissions.permission_module_id', '=', 'permission_modules.id')
-            ->join('permission_actions', 'role_permissions.permission_action_id', '=', 'permission_actions.id')
-            ->where('role_permissions.role_id', $this->role_id)
+        $hasCustomPermissions = DB::table('permission_per_user')->where('user_id', $this->id)->exists();
+
+        $targetTable = $hasCustomPermissions ? 'permission_per_user' : 'role_permissions';
+        $foreignKey  = $hasCustomPermissions ? 'user_id' : 'role_id';
+        $foreignId   = $hasCustomPermissions ? $this->id : $this->role_id;
+
+        return DB::table($targetTable)
+            ->join('permission_modules', "{$targetTable}.permission_module_id", '=', 'permission_modules.id')
+            ->join('permission_actions', "{$targetTable}.permission_action_id", '=', 'permission_actions.id')
+            ->where("{$targetTable}.{$foreignKey}", $foreignId)
             ->where('permission_modules.slug', $moduleSlug)
-            ->where('permission_actions.slug', $actionCode)
+            ->where('permission_actions.code', $actionCode)
             ->exists();
     }
+
 
     public function getPermissionMatrix(): array
     {
@@ -97,11 +103,24 @@ class User extends Authenticatable implements OAuthenticatable, MustVerifyEmail
             ])->toArray();
         }
 
-        return DB::table('role_permissions')
-            ->join('permission_modules', 'role_permissions.permission_module_id', '=', 'permission_modules.id')
-            ->join('permission_actions', 'role_permissions.permission_action_id', '=', 'permission_actions.id')
-            ->where('role_permissions.role_id', $this->role_id)
-            ->select('permission_modules.slug as module', 'permission_actions.slug as action')
+        $hasCustomPermissions = DB::table('permission_per_user')
+            ->where('user_id', $this->id)
+            ->exists();
+
+        $targetTable = $hasCustomPermissions ? 'permission_per_user' : 'role_permissions';
+        $foreignKey  = $hasCustomPermissions ? 'user_id' : 'role_id';
+        $foreignId   = $hasCustomPermissions ? $this->id : $this->role_id;
+
+        $query = DB::table($targetTable)
+            ->join('permission_modules', "{$targetTable}.permission_module_id", '=', 'permission_modules.id')
+            ->join('permission_actions', "{$targetTable}.permission_action_id", '=', 'permission_actions.id')
+            ->where("{$targetTable}.{$foreignKey}", $foreignId);
+
+        if ($hasCustomPermissions) {
+            $query->where("{$targetTable}.is_active", true);
+        }
+
+        return $query->select('permission_modules.slug as module', 'permission_actions.slug as action')
             ->get()
             ->groupBy('module')
             ->map(fn($items, $moduleSlug) => [
