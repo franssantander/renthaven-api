@@ -1,12 +1,30 @@
-{
-    "permissions": [
-        {
-            "module": "dashboard",
-            "actions": ["view"]
-        },
-        {
-            "module": "user_management",
-            "actions": ["view", "create", "delete", "update"]
-        }
-    ]
-}
+[
+    {
+        "id": 2,
+        "module": "dashboard",
+        "actions": [
+            {
+                "id": 1,
+                "name": "View"
+            }
+        ]
+    },
+    {
+        "id": 2,
+        "module": "user_management",
+        "actions": [
+            {
+                "id": 1,
+                "name": "View"
+            },
+            {
+                "id": 2,
+                "name": "Add"
+            },
+            {
+                "id": 3,
+                "name": "Delete"
+            }
+        ]
+    }
+]

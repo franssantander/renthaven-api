@@ -12,14 +12,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('role_permissions', function (Blueprint $table) {
+        Schema::create('permission_module_action', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->default(DB::raw('(UUID())'))->unique();
-            $table->foreignId('role_id')->constrained('roles')->cascadeOnDelete();
             $table->foreignId('permission_module_id')->constrained('permission_modules')->cascadeOnDelete();
             $table->foreignId('permission_action_id')->constrained('permission_actions')->cascadeOnDelete();
-            $table->softDeletes();
-            $table->unique(['role_id', 'permission_module_id', 'permission_action_id'], 'role_module_action_unique');
+            $table->unique(['permission_module_id', 'permission_action_id'], 'module_action_unique');
+            $table->timestamps();
         });
     }
 
@@ -28,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('role_permissions');
+        Schema::dropIfExists('permission_module_action');
     }
 };
