@@ -1,10 +1,5 @@
 
 🪵BACKLOGS:
-
-    📌 Renters(Lease):
-        ☐ [BE] implement CRUD for lease (associated with property and unit)
-        ☐ [BE] implement handle validation for lease creation / assining (e.g., unit availability, lease terms)
-        ☐ [BE] consider lease terms like monthly and fixed leases, and implement accordingly.
         
     📌 Lease Payment (Ledger):
         ☐ [BE] implement updating lease payment status (e.g., paid, pending, overdue)
@@ -21,10 +16,6 @@
 
     
 ⚡IN-PROGRESS:
-    📌 Audit Logger:
-        ☐ [BE] build the schema
-        ☐ [BE] implement audit logging for an app 
-
     
     📌 Property:
         ☐ [BE] implement paginated property listing
@@ -36,6 +27,11 @@
                 ☐ [BE] implement unit images and media management
         ☐ [BE] implement dashboard counts for property
 
+
+    📌 Renters(Lease):
+        ☐ [BE] implement CRUD for lease (associated with property and unit)
+        ☐ [BE] implement handle validation for lease creation / assining (e.g., unit availability, lease terms)
+        ☐ [BE] consider lease terms like monthly and fixed leases, and implement accordingly.
     
 
 ✅DONE:
@@ -56,83 +52,7 @@
         ✔ [BE] CRUD for user permission management @done(26-07-07 23:34)
         ✔ [BE] Middleware implementation @done(26-07-08 00:34)
 
+    📌 Audit Logger:
+        ✔ [BE] build the schema @done(26-07-08 21:27)
+        ✔ [BE] implement audit logging for an app @done(26-07-08 21:27)
 
-
-
-        <?php
-
-namespace App\Services\Payroll;
-
-use App\Enums\LogAction;
-use App\Enums\LogModule;
-use App\Models\PayrollAuditLog;
-use App\Models\PayrollCatalog;
-use App\Models\PayrollCompany;
-use App\Models\PayrollEmployee;
-use App\Models\PayrollExport;
-use App\Models\PayrollHrisSyncBatch;
-use App\Models\PayrollInput;
-use App\Models\PayrollNotification;
-use App\Models\PayrollRun;
-use App\Models\PayrollRunResult;
-use App\Models\PayrollRunResultIssue;
-use App\Models\PayrollRunResultLine;
-use App\Models\User;
-use App\Services\ActivityLog\LogDescription;
-use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Auth;
-
-class PayrollAuditLogger
-{
-    /**
-     * @param  array<string, mixed>  $context
-     */
-    public function record(
-        string|LogModule $module,
-        string|LogAction $action,
-        ?Model $auditable = null,
-        array $context = [],
-        ?Authenticatable $actor = null,
-        ?array $oldValues = null,
-        ?array $newValues = null,
-    ): PayrollAuditLog {
-        $actor ??= Auth::user();
-        $request = app()->bound('request') ? request() : null;
-
-        return PayrollAuditLog::query()->create([
-            'user_id'            => $actor?->getAuthIdentifier(),
-            'payroll_company_id' => $this->companyIdFor($auditable),
-            'actor_email'        => $actor !== null && method_exists($actor, 'getAttribute') ? $actor->getAttribute('email') : null,
-            'module'             => $module,
-            'action'             => $action,
-            'description'        => LogDescription::generate($module, $action, $actor, $auditable, $context),
-            'old_values'         => $oldValues,
-            'new_values'         => $newValues,
-            'auditable_type'     => $auditable?->getMorphClass(),
-            'auditable_id'       => $auditable?->getKey(),
-            'context'            => $context,
-            'ip_address'         => $request?->ip(),
-            'user_agent'         => $request?->userAgent(),
-        ]);
-    }
-
-    private function companyIdFor(?Model $auditable): ?int
-    {
-        return match (true) {
-            $auditable instanceof PayrollCompany => (int) $auditable->getKey(),
-            $auditable instanceof User           => (int) $auditable->company_id,
-            $auditable instanceof PayrollCatalog => (int) $auditable->company_id,
-            $auditable instanceof PayrollEmployee,
-            $auditable instanceof PayrollInput,
-            $auditable instanceof PayrollRun,
-            $auditable instanceof PayrollRunResult,
-            $auditable instanceof PayrollRunResultLine,
-            $auditable instanceof PayrollRunResultIssue,
-            $auditable instanceof PayrollHrisSyncBatch,
-            $auditable instanceof PayrollNotification => (int) $auditable->payroll_company_id,
-            $auditable instanceof PayrollExport       => (int) $auditable->run?->payroll_company_id ?: null,
-            default                                   => null,
-        };
-    }
-}
