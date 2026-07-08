@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Data\UserData;
+use App\Enum\AuditAction;
+use App\Enum\AuditModule;
 use App\Http\Requests\UserManagement\StoreUserManagementRequest;
 use App\Http\Requests\UserManagement\UpdateUserManagementRequest;
 use App\Models\User;
+use App\Services\AuditLog\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
@@ -13,6 +16,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 class UserManagementController extends Controller
 {
+
+    public function __construct(protected AuditLogger $auditLogger) {}
+
     /**
      * Display a listing of the resource scoped by tenant.
      */
@@ -44,6 +50,15 @@ class UserManagementController extends Controller
 
         $data['password'] = Hash::make($data['password']);
         $newUser = User::create($data);
+
+        $this->auditLogger->record(
+            module: AuditModule::USER_MANAGEMENT,
+            action: AuditAction::CREATED,
+            description: "Created user account for {$newUser->email}",
+            auditable: $newUser,
+            newValues: $newUser->getAttributes(),
+        );
+
 
         return $this->success($newUser, 'User created successfully.', Response::HTTP_CREATED);
     }
@@ -87,8 +102,17 @@ class UserManagementController extends Controller
         if ($authUser->role->slug !== 'super_admin') {
             unset($data['tenant_business_id']);
         }
+        $before = $user->getOriginal();
 
         $user->update($data);
+
+        $this->auditLogger->record(
+            module: AuditModule::USER_MANAGEMENT,
+            action: AuditAction::UPDATED,
+            description: "Updated user details for {$user->email}.",
+            auditable: $user,
+            oldValues: $before,
+        );
 
         return $this->success($user, 'User updated successfully.');
     }
@@ -109,6 +133,13 @@ class UserManagementController extends Controller
         }
 
         $user->delete();
+
+        $this->auditLogger->record(
+            module: AuditModule::USER_MANAGEMENT,
+            action: AuditAction::DELETED,
+            description: "Deleted user details for {$user->email}.",
+            auditable: $user,
+        );
 
         return $this->success(null, 'User deleted successfully.');
     }

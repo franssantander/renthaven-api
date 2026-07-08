@@ -4,7 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
-use App\Enum\StatusEnum;
+use App\Enum\Status;
 use App\HasHasPublicUuidTrait;
 use App\Notifications\ResetPasswordNotification;
 use App\Notifications\VerifyEmailNotification;
@@ -38,7 +38,7 @@ class User extends Authenticatable implements OAuthenticatable, MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'status' => StatusEnum::class
+            'status' => Status::class
         ];
     }
 

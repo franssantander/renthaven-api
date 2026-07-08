@@ -2,7 +2,7 @@
 
 namespace App\Data;
 
-use App\Enum\StatusEnum;
+use App\Enum\Status;
 use phpDocumentor\Reflection\Types\Boolean;
 use Spatie\LaravelData\Data;
 
@@ -17,6 +17,6 @@ class TenantBusinessData extends Data
         public ?string $contact_person,
         public ?string $buusiness_address,
         public ?string $logo_url,
-        public ?StatusEnum $status,
+        public ?Status $status,
     ) {}
 }

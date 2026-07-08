@@ -1,11 +1,10 @@
 <?php
 
-use App\Enum\StatusEnum;
+use App\Enum\Status;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use PHPUnit\Logging\OpenTestReporting\Status;
 
 return new class extends Migration {
     /**
@@ -24,7 +23,7 @@ return new class extends Migration {
             $table->string('email')->unique();
             $table->string('phone')->nullable();
             $table->timestamp('email_verified_at')->nullable();
-            $table->enum('status', array_column(StatusEnum::cases(), 'value'))->default(StatusEnum::ACTIVE->value);
+            $table->enum('status', array_column(Status::cases(), 'value'))->default(Status::ACTIVE->value);
             $table->rememberToken();
             $table->softDeletes();
             $table->timestamps();

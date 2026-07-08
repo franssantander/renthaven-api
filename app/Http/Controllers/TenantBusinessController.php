@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Data\TenantBusinessData;
 use App\Data\UserData;
-use App\Enum\StatusEnum;
+use App\Enum\Status;
 use App\Http\Requests\TenantBusiness\StoreTenantBusinessRequest;
 use App\Http\Requests\TenantBusiness\UpdateTenantBusinessRequest;
 use App\Http\Requests\TenantBusiness\RegisterBusinessRequest;
@@ -112,7 +112,7 @@ class TenantBusinessController extends Controller
                 'email'            => $validated['business_email'],
                 'phone'            => $validated['business_phone'],
                 'business_address' => $validated['business_address'] ?? null,
-                'status'           => StatusEnum::INACTIVE->value,
+                'status'           => Status::INACTIVE->value,
             ]);
 
             $adminRole = Role::where('slug', 'admin')->firstOrFail();

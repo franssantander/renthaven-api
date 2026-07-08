@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Data\UserData;
+use App\Enum\AuditAction;
+use App\Enum\AuditModule;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Models\User;
+use App\Services\AuditLog\AuditLogger;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,6 +20,11 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+
+    public function __construct(
+        protected AuditLogger $auditLogger
+    ) {}
+
     protected string $cookieName = 'auth_token';
 
     public function login(LoginRequest $request)
@@ -24,6 +32,12 @@ class AuthController extends Controller
         $credentials = $request->validated();
 
         if (!Auth::attempt($credentials)) {
+            $this->auditLogger->record(
+                module: AuditModule::AUTH,
+                action: AuditAction::LOGIN_FAILED,
+                description: "Failed login attempt for username: {$credentials['username']}",
+                context: ['username' => $credentials['username']],
+            );
             throw ValidationException::withMessages([
                 'username' => ['The provided credentials are incorrect.'],
             ]);
@@ -33,7 +47,12 @@ class AuthController extends Controller
 
         if (!$user->hasVerifiedEmail()) {
             Auth::logout();
-
+            $this->auditLogger->record(
+                module: AuditModule::AUTH,
+                action: AuditAction::LOGIN_BLOCKED_UNVERIFIED,
+                description: "Login blocked for {$user->email} — email not verified",
+                auditable: $user,
+            );
             throw ValidationException::withMessages([
                 'email' => ['Please verify your email address before logging in.'],
             ]);
@@ -41,6 +60,13 @@ class AuthController extends Controller
 
         $user->load('role', 'tenantBusiness');
         $token = $user->createToken('auth_token')->accessToken;
+
+        $this->auditLogger->record(
+            module: AuditModule::AUTH,
+            action: AuditAction::LOGIN_SUCCESS,
+            description: "{$user->email} logged in",
+            auditable: $user,
+        );
 
         $cookie = cookie(
             $this->cookieName,
@@ -68,6 +94,15 @@ class AuthController extends Controller
             $token = $user->token();
             $token?->revoke();
         }
+
+
+        $this->auditLogger->record(
+            module: AuditModule::AUTH,
+            action: AuditAction::LOGIN_SUCCESS,
+            description: "{$user->email} logout",
+            auditable: $user,
+        );
+
 
         $forgetCookie = Cookie::forget($this->cookieName);
 

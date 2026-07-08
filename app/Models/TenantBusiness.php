@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enum\StatusEnum;
+use App\Enum\Status;
 use App\HasHasPublicUuidTrait;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -19,7 +19,7 @@ class TenantBusiness extends Model
     protected function casts(): array
     {
         return [
-            'status' => StatusEnum::class
+            'status' => Status::class
         ];
     }
 
