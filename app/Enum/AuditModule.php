@@ -9,4 +9,5 @@ enum AuditModule: string
     case USER_MANAGEMENT = 'user_management';
     case BILLING = 'billing';
     case TENANT_BUSINESS = 'tenant_business';
+    case PROPERTY = 'property';
 }

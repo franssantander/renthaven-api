@@ -19,7 +19,7 @@
     
     📌 Property:
         ☐ [BE] implement paginated property listing
-        ☐ [BE] implement CRUD for property
+        ✔ [BE] implement CRUD for property @done(26-07-10 22:17)
             Property Units:
                 ☐ [BE] implement CRUD for unit
                 ☐ [BE] implement unit availability status

@@ -8,6 +8,7 @@ use App\Enum\Status;
 use App\HasHasPublicUuidTrait;
 use App\Notifications\ResetPasswordNotification;
 use App\Notifications\VerifyEmailNotification;
+use App\Traits\BelongsToTenantBusiness;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -27,7 +28,7 @@ use Laravel\Passport\HasApiTokens;
 class User extends Authenticatable implements OAuthenticatable, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable, HasHasPublicUuidTrait, SoftDeletes;
+    use HasApiTokens, HasFactory, Notifiable, HasHasPublicUuidTrait, SoftDeletes, BelongsToTenantBusiness;
 
     /**
      * Get the attributes that should be cast.

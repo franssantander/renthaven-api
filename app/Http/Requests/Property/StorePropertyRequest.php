@@ -1,0 +1,42 @@
+<?php
+
+namespace App\Http\Requests\Property;
+
+use App\Enum\PropertyType;
+use App\Enum\Role;
+use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+class StorePropertyRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'tenant_business_id' => ['required', 'integer', 'exists:tenant_businesses,id'],
+            'name'                => ['required', 'unique:properties,name', 'string', 'max:255'],
+            'address'             => ['nullable', 'string', 'max:1000'],
+            'type'                => ['required', Rule::enum(PropertyType::class)],
+        ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->user()?->role?->slug !== Role::SUPER_ADMIN->value) {
+            $this->merge(['tenant_business_id' => $this->user()?->tenant_business_id]);
+        }
+    }
+}

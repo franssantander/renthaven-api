@@ -24,111 +24,112 @@ class PropertyManagementSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Fetch or create multi-tenant SaaS context
+        // 1. Context setup
         $tenant = TenantBusiness::firstOrCreate(
             ['id' => 1],
             ['name' => 'Apex Property Management Ltd']
         );
 
-        // 2. Fetch correct integer role ID for users
         $tenantRoleId = DB::table('roles')
             ->where('slug', Role::TENANT->value)
             ->orWhere('name', Role::TENANT->value)
             ->value('id') ?? 3;
 
-        // 3. Properties setup
         $properties = [
             [
                 'tenant_business_id' => $tenant->id,
                 'name'               => 'Grand Horizon Apartments',
                 'address'            => '742 Evergreen Terrace, Sector 7G, Springfield',
                 'type'               => PropertyType::APARTMENT->value ?? 'apartment',
-            ],
-            [
-                'tenant_business_id' => $tenant->id,
-                'name'               => 'Oakridge Townhomes',
-                'address'            => '1042 Maple Boulevard, Whisper Valley',
-                'type'               => PropertyType::TOWNHOUSE->value ?? 'townhouse',
             ]
         ];
 
         foreach ($properties as $propertyIndex => $propertyData) {
             $property = Property::create($propertyData);
 
-            // 4. Create 5 structural units per property with varying real-world states
-            for ($i = 1; $i <= 5; $i++) {
-                $unitNumber = ($propertyIndex + 1) * 100 + $i;
+            // 2. Structural Units layout matching all target scenarios
+            $unitScenarios = [
+                [
+                    'name' => 'Unit 101',
+                    'capacity' => 2,
+                    'status' => 'available', // 0/2 Filled
+                    'renters_count' => 0
+                ],
+                [
+                    'name' => 'Unit 102',
+                    'capacity' => 2,
+                    'status' => 'partially_occupied', // 1/2 Filled 
+                    'renters_count' => 1
+                ],
+                [
+                    'name' => 'Unit 103',
+                    'capacity' => 2,
+                    'status' => 'occupied', // 2/2 Filled
+                    'renters_count' => 2
+                ]
+            ];
 
-                // Explicitly map scenarios so vacancy logic matches perfectly:
-                // Unit 1 & 3: Vacant properties (Single & Multi capacity)
-                // Unit 2 & 5: Fully occupied single-person spaces
-                // Unit 4:    Fully occupied double-person spaces (Requires 2 renters)
-                $capacity = ($i === 3 || $i === 4) ? 2 : 1;
-                $isOccupied = ($i === 2 || $i === 4 || $i === 5);
+            foreach ($unitScenarios as $scenario) {
+                // Resolve enum values if they exist, otherwise fallback safely to string matches
+                $resolvedStatus = match ($scenario['status']) {
+                    'occupied'           => PropertyUnitStatus::OCCUPIED->value ?? 'occupied',
+                    'partially_occupied' => defined('App\Enum\PropertyUnitStatus::PARTIALLY_OCCUPIED') ? PropertyUnitStatus::PARTIALLY_OCCUPIED->value : 'partially_occupied',
+                    default              => PropertyUnitStatus::AVAILABLE->value ?? 'available',
+                };
 
                 $unit = PropertyUnit::create([
                     'property_id' => $property->id,
-                    'name'        => "Unit {$unitNumber}",
-                    'capacity'    => $capacity,
-                    'rent_price'  => $capacity === 2 ? 1850.00 : 1200.00,
-                    'status'      => $isOccupied
-                        ? (PropertyUnitStatus::OCCUPIED->value ?? 'occupied')
-                        : (PropertyUnitStatus::AVAILABLE->value ?? 'available'),
+                    'name'        => $scenario['name'],
+                    'capacity'    => $scenario['capacity'],
+                    'rent_price'  => 1950.00,
+                    'status'      => $resolvedStatus,
                 ]);
 
-                // 5. If the unit is occupied, fill ALL available capacity slots
-                if ($isOccupied) {
 
-                    for ($slot = 1; $slot <= $capacity; $slot++) {
+                for ($slot = 1; $slot <= $scenario['renters_count']; $slot++) {
 
-                        $firstName = fake()->firstName();
-                        $lastName = fake()->lastName();
-                        $email = fake()->unique()->safeEmail();
-                        $phone = fake()->unique()->numerify('+1 (555) ###-####');
-                        $userId = null;
+                    $firstName = fake()->firstName();
+                    $lastName = fake()->lastName();
+                    $email = fake()->unique()->safeEmail();
+                    $phone = fake()->unique()->numerify('+1 (555) ###-####');
+                    $userId = null;
 
-                        // Give some tenants an online web portal user account, leave others offline
-                        $shouldHaveAccount = ($i === 2 || ($i === 4 && $slot === 1));
-
-                        if ($shouldHaveAccount) {
-                            $user = User::create([
-                                'role_id'            => $tenantRoleId,
-                                'tenant_business_id' => $tenant->id,
-                                'full_name'          => "{$firstName} {$lastName}",
-                                'username'           => fake()->unique()->userName(),
-                                'email'              => $email,
-                                'phone'              => $phone,
-                                'password'           => Hash::make('password'),
-                                'email_verified_at'  => now(),
-                                'status'             => Status::ACTIVE->value ?? 'active',
-                            ]);
-
-                            $userId = $user->id;
-                            $metadata = ['notes' => "Active tenant account for slot {$slot}."];
-                        } else {
-                            $metadata = ['notes' => "Offline record for slot {$slot}. Invitation pending."];
-                        }
-
-                        // Create the renter profile record
-                        $renter = Renter::create([
+                    if ($slot === 1) {
+                        $user = User::create([
+                            'role_id'            => $tenantRoleId,
                             'tenant_business_id' => $tenant->id,
-                            'user_id'            => $userId,
-                            'first_name'         => $firstName,
-                            'last_name'          => $lastName,
+                            'full_name'          => "{$firstName} {$lastName}",
+                            'username'           => fake()->unique()->userName(),
                             'email'              => $email,
                             'phone'              => $phone,
-                            'metadata'           => json_encode($metadata),
+                            'password'           => Hash::make('password'),
+                            'email_verified_at'  => now(),
+                            'status'             => Status::ACTIVE->value ?? 'active',
                         ]);
 
-                        // Create an individual lease contract binding this renter slot to the unit
-                        Lease::create([
-                            'property_unit_id' => $unit->id,
-                            'renter_id'        => $renter->id,
-                            'start_date'       => Carbon::now()->subMonths(fake()->numberBetween(1, 4))->toDateString(),
-                            'end_date'         => Carbon::now()->addMonths(fake()->numberBetween(6, 12))->toDateString(),
-                            'is_active'        => true,
-                        ]);
+                        $userId = $user->id;
                     }
+
+                    $renter = Renter::create([
+                        'tenant_business_id' => $tenant->id,
+                        'user_id'            => $userId,
+                        'first_name'         => $firstName,
+                        'last_name'          => $lastName,
+                        'email'              => $email,
+                        'phone'              => $phone,
+                        'metadata'           => json_encode([
+                            'unit_status_context' => $scenario['status'],
+                            'tenant_slot_index'   => $slot
+                        ]),
+                    ]);
+
+                    Lease::create([
+                        'property_unit_id' => $unit->id,
+                        'renter_id'        => $renter->id,
+                        'start_date'       => Carbon::now()->subMonths(2)->toDateString(),
+                        'end_date'         => Carbon::now()->addMonths(10)->toDateString(),
+                        'is_active'        => true,
+                    ]);
                 }
             }
         }
