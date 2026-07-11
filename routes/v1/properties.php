@@ -13,4 +13,5 @@ Route::prefix('property')
         Route::post('/', 'store')->name('store');
         Route::put('/{property}', 'update')->name('update');
         Route::delete('/{property}', 'destroy')->name('destroy');
+        Route::get('/dashboard', 'dashboard')->name('dashboard');
     });

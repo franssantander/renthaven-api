@@ -18,14 +18,14 @@
 ⚡IN-PROGRESS:
     
     📌 Property:
-        ☐ [BE] implement paginated property listing
+        ✔ [BE] implement paginated property listing @done(26-07-11 19:27)
         ✔ [BE] implement CRUD for property @done(26-07-10 22:17)
+        ✔ [BE] implement dashboard counts for property @done(26-07-11 19:40)
             Property Units:
                 ☐ [BE] implement CRUD for unit
                 ☐ [BE] implement unit availability status
                 ☐ [BE] implement unit pricing and amenities
                 ☐ [BE] implement unit images and media management
-        ☐ [BE] implement dashboard counts for property
 
 
     📌 Renters(Lease):

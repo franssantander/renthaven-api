@@ -4,8 +4,11 @@ namespace App\Http\Requests\Property;
 
 use App\Enum\PropertyType;
 use App\Enum\Role;
+use App\Models\Property;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Rule;
 
 class StorePropertyRequest extends FormRequest
@@ -15,9 +18,17 @@ class StorePropertyRequest extends FormRequest
      */
     public function authorize(): bool
     {
+        $response = Gate::inspect('create', Property::class);
+        if ($response->denied()) {
+            throw new HttpResponseException(response()->json([
+                'data'    => null,
+                'status'  => 403,
+                'message' => $response->message()
+            ], 403));
+        }
+
         return true;
     }
-
     /**
      * Get the validation rules that apply to the request.
      *

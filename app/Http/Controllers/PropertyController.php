@@ -2,28 +2,72 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\Property\PropertyData;
 use App\Enum\AuditAction;
 use App\Enum\AuditModule;
 use App\Http\Requests\Property\StorePropertyRequest;
 use App\Http\Requests\Property\UpdatePropertyRequest;
 use App\Models\Property;
+use App\Models\PropertyUnit;
 use App\Services\AuditLog\AuditLogger;
+use App\Services\DashboardMetricService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Spatie\LaravelData\PaginatedDataCollection;
 
 class PropertyController extends Controller
 {
 
     public function __construct(
-        protected AuditLogger $auditLogger
+        protected AuditLogger $auditLogger,
+        protected DashboardMetricService $metricService
     ) {}
+
+    public function dashboard(Request $request): JsonResponse
+    {
+        $tenantId = $request->user()->tenant_business_id;
+        $propertyQuery = Property::query()->where('tenant_business_id', $tenantId);
+
+        $unitQuery = PropertyUnit::query()->whereHas('property', function ($query) use ($tenantId) {
+            $query->where('tenant_business_id', $tenantId);
+        });
+
+
+        $widgets = [
+            $this->metricService->buildCountMetric(
+                title: 'Total Properties',
+                icon: 'building-office',
+                baseQuery: $propertyQuery
+            ),
+            $this->metricService->buildCountMetric(
+                title: 'Total Units',
+                icon: 'door-open',
+                baseQuery: clone $unitQuery
+            ),
+            $this->metricService->buildCountMetric(
+                title: 'Available Units',
+                icon: 'key',
+                baseQuery: (clone $unitQuery)->where('status', 'available')
+            ),
+        ];
+
+        return $this->success([
+            'metrics' => $widgets
+        ], 'Dashboard metrics retrieved successfully.');
+    }
 
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $tenantBusinessId = $request->user()->tenant_business_id;
+        $properties = Property::query()
+            ->where('tenant_business_id', $tenantBusinessId)
+            ->latest()
+            ->paginate($request->integer('per_page', 15));
+
+        return PropertyData::collect($properties, PaginatedDataCollection::class);
     }
 
     /**
@@ -51,6 +95,7 @@ class PropertyController extends Controller
 
         return $this->success($property, 'Property created successfully.', 201);
     }
+
     /**
      * Display the specified resource.
      */

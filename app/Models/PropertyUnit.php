@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable(['tenant_business_id', 'name', 'address', 'type'])]
@@ -19,5 +20,10 @@ class PropertyUnit extends Model
         return [
             'tenant_business_id' => 'integer',
         ];
+    }
+
+    public function property(): BelongsTo
+    {
+        return $this->belongsTo(Property::class);
     }
 }
