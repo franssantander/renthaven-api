@@ -14,7 +14,7 @@ use App\Services\DashboardMetricService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Spatie\LaravelData\PaginatedDataCollection;
-
+ 
 class PropertyController extends Controller
 {
 
