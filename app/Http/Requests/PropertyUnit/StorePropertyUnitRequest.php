@@ -17,16 +17,17 @@ class StorePropertyUnitRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $response = Gate::inspect('create', PropertyUnit::class);
+        // $response = Gate::inspect('create', PropertyUnit::class);
 
-        if ($response->denied()) {
-            throw new HttpResponseException(response()->json([
-                'data'    => null,
-                'status'  => 403,
-                'message' => $response->message()
-            ], 403));
-        }
+        // if ($response->denied()) {
+        //     throw new HttpResponseException(response()->json([
+        //         'data'    => null,
+        //         'status'  => 403,
+        //         'message' => $response->message()
+        //     ], 403));
+        // }
 
+        // return true;
         return true;
     }
 
@@ -48,10 +49,10 @@ class StorePropertyUnitRequest extends FormRequest
                         ->whereNull('deleted_at');
                 }),
             ],
-            'name'   => ['required', 'string', 'max:255'],
+            'name'   => ['required', 'unique:property_units,name', 'string', 'max:255'],
             'capacity'    => ['required', 'integer', 'min:0'],
             'rent_price' => ['required', 'numeric', 'min:0'],
-            'status' => ['required', 'string', Rule::enum(PropertyUnitStatus::cases())],
+            'status'     => ['nullable', 'string', Rule::enum(PropertyUnitStatus::class)],
         ];
     }
 }

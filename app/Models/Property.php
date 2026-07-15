@@ -21,4 +21,9 @@ class Property extends Model
             'tenant_business_id' => 'integer',
         ];
     }
+
+    public function tenantBusiness()
+    {
+        return $this->belongsTo(TenantBusiness::class);
+    }
 }

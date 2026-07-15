@@ -1,6 +1,8 @@
 
 🪵BACKLOGS:
-        
+    📌 Property Units:
+        ☐ [BE] implement unit images and media management    
+
     📌 Lease Payment (Ledger):
         ☐ [BE] implement updating lease payment status (e.g., paid, pending, overdue)
         ☐ [BE] implement get listing of lease payments (with filters for status, date range, etc.)
@@ -25,7 +27,6 @@
                 ☐ [BE] implement CRUD for unit
                 ☐ [BE] implement unit availability status
                 ☐ [BE] implement unit pricing and amenities
-                ☐ [BE] implement unit images and media management
 
 
     📌 Renters(Lease):

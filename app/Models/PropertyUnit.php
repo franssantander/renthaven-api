@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['tenant_business_id', 'name', 'address', 'type'])]
+#[Fillable(['property_id', 'name', 'capacity', 'rent_price', 'status'])]
 #[Table('property_units')]
 class PropertyUnit extends Model
 {
@@ -18,7 +18,7 @@ class PropertyUnit extends Model
     protected function casts(): array
     {
         return [
-            'tenant_business_id' => 'integer',
+            'property_id' => 'integer',
         ];
     }
 

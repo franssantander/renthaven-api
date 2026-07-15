@@ -21,18 +21,18 @@ class PropertyUnitController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request): JsonResponse
+    public function index(Request $request)
     {
         $tenantId = $request->user()->tenant_business_id;
         $units = PropertyUnit::query()
+            ->with('property.tenantBusiness')
             ->whereHas('property', function ($query) use ($tenantId) {
                 $query->where('tenant_business_id', $tenantId);
             })
             ->latest()
             ->paginate($request->input('per_page', 15));
 
-        // return PropertyUnitData::collect($units, PaginatedDataCollection::class);
-        return PaginatedDataCollection::class(PropertyUnitData::collect($units));
+        return PropertyUnitData::collect($units, PaginatedDataCollection::class);
     }
 
     /**
@@ -58,7 +58,7 @@ class PropertyUnitController extends Controller
             newValues: $unit->getAttributes(),
         );
 
-        return $this->created($unit, 'Unit created successfully.', 201);
+        return $this->success($unit, 'Unit created successfully.', 201);
     }
 
     /**
