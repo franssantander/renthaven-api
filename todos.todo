@@ -25,13 +25,13 @@
         ✔ [BE] implement dashboard counts for property @done(26-07-11 19:40)
             Property Units:
                 ✔ [BE] implement CRUD for unit @done(26-07-16 22:56)
-                ☐ [BE] implement unit availability status
+                ✔ [BE] implement unit availability status @done(26-07-17 00:02)
                 ☐ [BE] implement unit pricing and amenities
 
 
     📌 Renters(Lease):
-        ☐ [BE] implement CRUD for lease (associated with property and unit)
-        ☐ [BE] implement handle validation for lease creation / assining (e.g., unit availability, lease terms)
+        ✔ [BE] implement CRUD for lease (associated with property and unit) @done(26-07-17 00:03)
+        ✔ [BE] implement handle validation for lease creation / assining (e.g., unit availability, lease terms) @done(26-07-17 00:03)
         ☐ [BE] consider lease terms like monthly and fixed leases, and implement accordingly.
     
 
