@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable(['property_unit_id', 'renter_id', 'start_date', 'end_date', 'is_active'])]
@@ -35,5 +36,10 @@ class Lease extends Model
     public function propertyUnit(): BelongsTo
     {
         return $this->belongsTo(PropertyUnit::class, 'property_unit_id');
+    }
+
+    public function histories(): HasMany
+    {
+        return $this->hasMany(LeaseHistory::class, 'lease_id');
     }
 }

@@ -6,3 +6,4 @@ require __DIR__ . '/v1/user_management.php';
 require __DIR__ . '/v1/permission.php';
 require __DIR__ . '/v1/properties.php';
 require __DIR__ . '/v1/property_unit.php';
+require __DIR__ . '/v1/lease.php';

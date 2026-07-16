@@ -17,17 +17,16 @@ class StorePropertyUnitRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // $response = Gate::inspect('create', PropertyUnit::class);
+        $response = Gate::inspect('create', PropertyUnit::class);
 
-        // if ($response->denied()) {
-        //     throw new HttpResponseException(response()->json([
-        //         'data'    => null,
-        //         'status'  => 403,
-        //         'message' => $response->message()
-        //     ], 403));
-        // }
+        if ($response->denied()) {
+            throw new HttpResponseException(response()->json([
+                'data'    => null,
+                'status'  => 403,
+                'message' => $response->message()
+            ], 403));
+        }
 
-        // return true;
         return true;
     }
 
