@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enum\LeaseTermType;
 use App\HasHasPublicUuidTrait;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['property_unit_id', 'renter_id', 'start_date', 'end_date', 'is_active'])]
+#[Fillable(['property_unit_id', 'renter_id', 'term_type', 'start_date', 'end_date', 'is_active'])]
 #[Table('leases')]
 class Lease extends Model
 {
@@ -22,6 +23,7 @@ class Lease extends Model
         return [
             'property_unit_id' => 'integer',
             'renter_id'        => 'integer',
+            'term_type'        => LeaseTermType::class,
             'start_date'       => 'date',
             'end_date'         => 'date',
             'is_active'        => 'boolean',

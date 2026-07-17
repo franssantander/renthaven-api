@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enum\AuditAction;
 use App\Enum\AuditModule;
+use App\Enum\LeaseTermType;
 use App\Http\Requests\Lease\StoreLeaseRequest;
 use App\Http\Requests\Lease\UpdateLeaseRequest;
 use App\Models\Lease;
@@ -54,6 +55,7 @@ class LeaseController extends Controller
         $leases = $this->leaseService->assignTenants(
             $propertyUnit,
             $data['tenants'],
+            LeaseTermType::from($data['term_type']),
             $data['start_date'],
             $data['end_date'] ?? null,
             $tenantBusinessId,

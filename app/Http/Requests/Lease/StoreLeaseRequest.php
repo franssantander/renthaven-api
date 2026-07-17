@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Lease;
 
+use App\Enum\LeaseTermType;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -60,8 +61,13 @@ class StoreLeaseRequest extends FormRequest
                 'uuid',
                 Rule::exists('property_units', 'uuid')->whereNull('deleted_at'),
             ],
+            'term_type'  => ['required', Rule::enum(LeaseTermType::class)],
             'start_date' => ['required', 'date'],
-            'end_date'   => ['nullable', 'date', 'after_or_equal:start_date'],
+            'end_date'   => [
+                'nullable', 'date', 'after_or_equal:start_date',
+                'required_if:term_type,' . LeaseTermType::FIXED_TERM->value,
+                'prohibited_if:term_type,' . LeaseTermType::MONTHLY->value,
+            ],
 
             'tenants'   => ['required', 'array', 'min:1'],
 

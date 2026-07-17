@@ -3,6 +3,7 @@
 namespace App\Services\Lease;
 
 use App\Enum\LeaseHistoryAction;
+use App\Enum\LeaseTermType;
 use App\Enum\PropertyUnitStatus;
 use App\Enum\Role as RoleEnum;
 use App\Models\Lease;
@@ -34,12 +35,13 @@ class LeaseService
     public function assignTenants(
         PropertyUnit $propertyUnit,
         array $tenants,
+        LeaseTermType $termType,
         string $startDate,
         ?string $endDate,
         int $tenantBusinessId,
         ?int $performedBy = null,
     ): array {
-        $leases = DB::transaction(function () use ($propertyUnit, $tenants, $startDate, $endDate, $tenantBusinessId, $performedBy) {
+        $leases = DB::transaction(function () use ($propertyUnit, $tenants, $termType, $startDate, $endDate, $tenantBusinessId, $performedBy) {
             $created = [];
 
             foreach ($tenants as $tenantInput) {
@@ -54,6 +56,7 @@ class LeaseService
                 $lease = Lease::create([
                     'property_unit_id' => $propertyUnit->id,
                     'renter_id'        => $renter->id,
+                    'term_type'        => $termType,
                     'start_date'       => $startDate,
                     'end_date'         => $endDate,
                     'is_active'        => true,
@@ -96,6 +99,7 @@ class LeaseService
 
         $newLease = DB::transaction(function () use ($lease, $newPropertyUnit, $moveDate, $performedBy) {
             $previousPropertyUnit = $lease->propertyUnit;
+            $originalEndDate = $lease->end_date;
 
             $lease->update([
                 'end_date'  => $moveDate,
@@ -105,8 +109,10 @@ class LeaseService
             $newLease = Lease::create([
                 'property_unit_id' => $newPropertyUnit->id,
                 'renter_id'        => $lease->renter_id,
+                'term_type'        => $lease->term_type,
                 'start_date'       => $moveDate,
-                'end_date'         => null,
+                // A fixed-term lease keeps its original end date after a move; a monthly lease has none.
+                'end_date'         => $lease->term_type === LeaseTermType::FIXED_TERM ? $originalEndDate : null,
                 'is_active'        => true,
             ]);
 
