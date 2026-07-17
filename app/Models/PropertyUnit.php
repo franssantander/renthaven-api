@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\HasHasPublicUuidTrait;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable(['property_id', 'name', 'capacity', 'rent_price', 'status'])]
@@ -13,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class PropertyUnit extends Model
 {
 
-    use SoftDeletes;
+    use SoftDeletes, HasHasPublicUuidTrait;
 
     protected function casts(): array
     {
@@ -25,5 +27,10 @@ class PropertyUnit extends Model
     public function property(): BelongsTo
     {
         return $this->belongsTo(Property::class);
+    }
+
+    public function amenities(): BelongsToMany
+    {
+        return $this->belongsToMany(Amenity::class, 'property_unit_amenity');
     }
 }

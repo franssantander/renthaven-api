@@ -13,11 +13,31 @@ use Illuminate\Validation\Rule;
 class StorePropertyUnitRequest extends FormRequest
 {
     /**
+     * Normalize a flat, single-unit request body into a `units` array of one,
+     * so the endpoint accepts both a single unit and multiple units.
+     */
+    protected function prepareForValidation(): void
+    {
+        if (!$this->has('units') && $this->has('name')) {
+            $this->merge([
+                'units' => [
+                    [
+                        'name'       => $this->input('name'),
+                        'capacity'   => $this->input('capacity'),
+                        'rent_price' => $this->input('rent_price'),
+                        'status'     => $this->input('status'),
+                    ],
+                ],
+            ]);
+        }
+    }
+
+    /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        $response = Gate::inspect('create', PropertyUnit::class);
+        $response = Gate::inspect('create', [PropertyUnit::class, count($this->input('units', []))]);
 
         if ($response->denied()) {
             throw new HttpResponseException(response()->json([
@@ -40,18 +60,20 @@ class StorePropertyUnitRequest extends FormRequest
         $tenantId = $this->user()?->tenant_business_id;
 
         return [
-            'property_id' => [
+            'property_uuid' => [
                 'required',
-                'integer',
-                Rule::exists('properties', 'id')->where(function ($query) use ($tenantId) {
+                'uuid',
+                Rule::exists('properties', 'uuid')->where(function ($query) use ($tenantId) {
                     return $query->where('tenant_business_id', $tenantId)
                         ->whereNull('deleted_at');
                 }),
             ],
-            'name'   => ['required', 'unique:property_units,name', 'string', 'max:255'],
-            'capacity'    => ['required', 'integer', 'min:0'],
-            'rent_price' => ['required', 'numeric', 'min:0'],
-            'status'     => ['nullable', 'string', Rule::enum(PropertyUnitStatus::class)],
+
+            'units'                => ['required', 'array', 'min:1'],
+            'units.*.name'         => ['required', 'distinct', 'string', 'max:255', 'unique:property_units,name'],
+            'units.*.capacity'     => ['required', 'integer', 'min:0'],
+            'units.*.rent_price'   => ['required', 'numeric', 'min:0'],
+            'units.*.status'       => ['nullable', 'string', Rule::enum(PropertyUnitStatus::class)],
         ];
     }
 }

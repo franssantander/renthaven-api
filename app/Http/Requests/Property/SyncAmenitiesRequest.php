@@ -2,12 +2,10 @@
 
 namespace App\Http\Requests\Property;
 
-use App\Enum\PropertyType;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
-class UpdatePropertyRequest extends FormRequest
+class SyncAmenitiesRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,9 +23,8 @@ class UpdatePropertyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'    => ['sometimes', 'required', 'string', 'max:255'],
-            'address' => ['sometimes', 'nullable', 'string', 'max:1000'],
-            'type'    => ['sometimes', 'required', Rule::enum(PropertyType::class)],
+            'amenity_uuids'   => ['required', 'array'],
+            'amenity_uuids.*' => ['uuid', 'distinct', 'exists:amenities,uuid'],
         ];
     }
 }

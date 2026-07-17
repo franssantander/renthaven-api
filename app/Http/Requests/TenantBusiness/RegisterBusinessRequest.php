@@ -23,7 +23,7 @@ class RegisterBusinessRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'plan_id' => ['required', 'exists:plans,id'],
+            'plan_uuid' => ['required', 'uuid', 'exists:plans,uuid'],
             'business_name' => ['required', 'string', 'max:255'],
             'business_email' => ['required', 'email', 'unique:tenant_businesses,email'],
             'business_phone' => ['required', 'string', 'unique:tenant_businesses,phone'],

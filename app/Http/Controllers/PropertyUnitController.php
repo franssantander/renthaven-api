@@ -6,9 +6,12 @@ use App\Data\PropertyUnit\PropertyUnitData;
 use App\Enum\AuditAction;
 use App\Enum\AuditModule;
 use App\Http\Requests\PropertyUnit\StorePropertyUnitRequest;
+use App\Http\Requests\PropertyUnit\SyncAmenitiesRequest;
 use App\Http\Requests\PropertyUnit\UpdatePropertyUnitRequest;
 use App\Models\PropertyUnit;
 use App\Services\AuditLog\AuditLogger;
+use App\Services\PropertyUnit\PropertyUnitService;
+use App\Support\UuidResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Spatie\LaravelData\PaginatedDataCollection;
@@ -16,7 +19,10 @@ use Spatie\LaravelData\PaginatedDataCollection;
 class PropertyUnitController extends Controller
 {
 
-    public function __construct(protected AuditLogger $auditLogger) {}
+    public function __construct(
+        protected AuditLogger $auditLogger,
+        protected PropertyUnitService $propertyUnitService,
+    ) {}
 
     /**
      * Display a listing of the resource.
@@ -25,7 +31,7 @@ class PropertyUnitController extends Controller
     {
         $tenantId = $request->user()->tenant_business_id;
         $units = PropertyUnit::query()
-            ->with('property.tenantBusiness')
+            ->with(['property.tenantBusiness', 'property.amenities', 'amenities'])
             ->whereHas('property', function ($query) use ($tenantId) {
                 $query->where('tenant_business_id', $tenantId);
             })
@@ -44,21 +50,29 @@ class PropertyUnitController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created resource in storage. Supports creating a single
+     * unit or multiple units (each with its own price/capacity) in one call.
      */
     public function store(StorePropertyUnitRequest $request): JsonResponse
     {
-        $unit = PropertyUnit::create($request->validated());
+        $data = $request->validated();
+        $propertyId = UuidResolver::id('properties', $data['property_uuid']);
 
-        $this->auditLogger->record(
-            module: AuditModule::PROPERTY_UNIT,
-            action: AuditAction::CREATED,
-            description: "Created unit \"{$unit->name}\" for property ID {$unit->property_id}",
-            auditable: $unit,
-            newValues: $unit->getAttributes(),
-        );
+        $units = $this->propertyUnitService->createMany($propertyId, $data['units']);
 
-        return $this->success($unit, 'Unit created successfully.', 201);
+        foreach ($units as $unit) {
+            $this->auditLogger->record(
+                module: AuditModule::PROPERTY_UNIT,
+                action: AuditAction::CREATED,
+                description: "Created unit \"{$unit->name}\" for property ID {$unit->property_id}",
+                auditable: $unit,
+                newValues: $unit->getAttributes(),
+            );
+        }
+
+        $payload = count($units) === 1 ? $units[0] : $units;
+
+        return $this->success($payload, 'Unit(s) created successfully.', 201);
     }
 
     /**
@@ -98,6 +112,28 @@ class PropertyUnitController extends Controller
         }
 
         return $this->success($propertyUnit, 'Unit updated successfully.');
+    }
+
+    /**
+     * Sync the amenities assigned to this property unit.
+     */
+    public function syncAmenities(SyncAmenitiesRequest $request, PropertyUnit $propertyUnit): JsonResponse
+    {
+        abort_unless($propertyUnit->property?->tenant_business_id === $request->user()->tenant_business_id, 404);
+
+        $amenityIds = UuidResolver::ids('amenities', $request->validated('amenity_uuids'));
+
+        $propertyUnit->amenities()->sync($amenityIds);
+
+        $this->auditLogger->record(
+            module: AuditModule::PROPERTY_UNIT,
+            action: AuditAction::UPDATED,
+            description: "Synced amenities for unit \"{$propertyUnit->name}\"",
+            auditable: $propertyUnit,
+            newValues: ['amenity_ids' => $amenityIds],
+        );
+
+        return $this->success($propertyUnit->load('amenities'), 'Amenities updated successfully.');
     }
 
     /**

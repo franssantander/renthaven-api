@@ -34,11 +34,11 @@ class UpdateUserManagementRequest extends FormRequest
             'phone'     => ['nullable', 'string', 'max:50'],
             'status'    => ['sometimes', Rule::enum(Status::class)],
             'password'  => ['nullable', 'confirmed', Password::defaults()],
-            'role_id'   => ['sometimes', 'exists:roles,id'],
+            'role_uuid' => ['sometimes', 'uuid', 'exists:roles,uuid'],
         ];
 
         if (auth()->user()->role->slug === 'super_admin') {
-            $rules['tenant_business_id'] = ['sometimes', 'exists:tenant_businesses,id'];
+            $rules['tenant_business_uuid'] = ['sometimes', 'uuid', 'exists:tenant_businesses,uuid'];
         }
 
         return $rules;

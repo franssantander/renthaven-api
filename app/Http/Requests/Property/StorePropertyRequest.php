@@ -37,17 +37,17 @@ class StorePropertyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'tenant_business_id' => ['required', 'integer', 'exists:tenant_businesses,id'],
-            'name'                => ['required', 'unique:properties,name', 'string', 'max:255'],
-            'address'             => ['nullable', 'string', 'max:1000'],
-            'type'                => ['required', Rule::enum(PropertyType::class)],
+            'tenant_business_uuid' => ['required', 'uuid', 'exists:tenant_businesses,uuid'],
+            'name'                 => ['required', 'unique:properties,name', 'string', 'max:255'],
+            'address'              => ['nullable', 'string', 'max:1000'],
+            'type'                 => ['required', Rule::enum(PropertyType::class)],
         ];
     }
 
     protected function prepareForValidation(): void
     {
         if ($this->user()?->role?->slug !== Role::SUPER_ADMIN->value) {
-            $this->merge(['tenant_business_id' => $this->user()?->tenant_business_id]);
+            $this->merge(['tenant_business_uuid' => $this->user()?->tenantBusiness?->uuid]);
         }
     }
 }

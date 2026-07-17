@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\HasHasPublicUuidTrait;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Renter extends Model
 {
 
-    use SoftDeletes;
+    use SoftDeletes, HasHasPublicUuidTrait;
 
     protected function casts(): array
     {

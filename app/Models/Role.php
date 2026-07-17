@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\HasHasPublicUuidTrait;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
@@ -10,5 +11,5 @@ use Illuminate\Database\Eloquent\Model;
 #[Fillable('name', 'slug')]
 class Role extends Model
 {
-    //
+    use HasHasPublicUuidTrait;
 }

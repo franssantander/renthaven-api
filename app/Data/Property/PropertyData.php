@@ -2,7 +2,9 @@
 
 namespace App\Data\Property;
 
+use App\Data\Amenity\AmenityData;
 use App\Data\TenantBusinessData;
+use Spatie\LaravelData\Attributes\DataCollectionOf;
 use Spatie\LaravelData\Attributes\MapInputName;
 use Spatie\LaravelData\Data;
 
@@ -15,5 +17,8 @@ class PropertyData extends Data
         public string $address,
         public string $type,
         public ?TenantBusinessData $tenant_business,
+
+        #[DataCollectionOf(AmenityData::class)]
+        public ?array $amenities,
     ) {}
 }

@@ -55,10 +55,10 @@ class StoreLeaseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'property_unit_id' => [
+            'property_unit_uuid' => [
                 'required',
-                'integer',
-                Rule::exists('property_units', 'id')->whereNull('deleted_at'),
+                'uuid',
+                Rule::exists('property_units', 'uuid')->whereNull('deleted_at'),
             ],
             'start_date' => ['required', 'date'],
             'end_date'   => ['nullable', 'date', 'after_or_equal:start_date'],

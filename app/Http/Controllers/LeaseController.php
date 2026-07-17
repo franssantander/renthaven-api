@@ -44,7 +44,7 @@ class LeaseController extends Controller
         $data = $request->validated();
         $tenantBusinessId = $request->user()->tenant_business_id;
 
-        $propertyUnit = $this->findTenantPropertyUnit($data['property_unit_id'], $tenantBusinessId);
+        $propertyUnit = $this->findTenantPropertyUnit($data['property_unit_uuid'], $tenantBusinessId);
 
         $capacityCheck = Gate::inspect('create', [Lease::class, $propertyUnit, count($data['tenants'])]);
         if ($capacityCheck->denied()) {
@@ -102,7 +102,7 @@ class LeaseController extends Controller
         abort_unless($lease->propertyUnit?->property?->tenant_business_id === $tenantBusinessId, 404);
         abort_unless($lease->is_active, 422, 'Only an active lease can be reassigned.');
 
-        $newPropertyUnit = $this->findTenantPropertyUnit($data['property_unit_id'], $tenantBusinessId);
+        $newPropertyUnit = $this->findTenantPropertyUnit($data['property_unit_uuid'], $tenantBusinessId);
 
         if ($newPropertyUnit->id === $lease->property_unit_id) {
             return $this->success($lease, 'Lease is already assigned to this unit.');
@@ -152,12 +152,13 @@ class LeaseController extends Controller
     /**
      * Resolve a property unit that belongs to the given tenant business, or fail with 404.
      */
-    protected function findTenantPropertyUnit(int $propertyUnitId, int $tenantBusinessId): PropertyUnit
+    protected function findTenantPropertyUnit(string $propertyUnitUuid, int $tenantBusinessId): PropertyUnit
     {
         return PropertyUnit::with('property')
+            ->where('uuid', $propertyUnitUuid)
             ->whereHas('property', function ($query) use ($tenantBusinessId) {
                 $query->where('tenant_business_id', $tenantBusinessId);
             })
-            ->findOrFail($propertyUnitId);
+            ->firstOrFail();
     }
 }

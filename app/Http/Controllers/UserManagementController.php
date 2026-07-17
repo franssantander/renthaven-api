@@ -9,6 +9,7 @@ use App\Http\Requests\UserManagement\StoreUserManagementRequest;
 use App\Http\Requests\UserManagement\UpdateUserManagementRequest;
 use App\Models\User;
 use App\Services\AuditLog\AuditLogger;
+use App\Support\UuidResolver;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
@@ -44,8 +45,14 @@ class UserManagementController extends Controller
         $authUser = auth()->user();
         $data = $request->validated();
 
+        $data['role_id'] = UuidResolver::id('roles', $data['role_uuid']);
+        unset($data['role_uuid']);
+
         if ($authUser->role->slug !== 'super_admin') {
             $data['tenant_business_id'] = $authUser->tenant_business_id;
+        } else {
+            $data['tenant_business_id'] = UuidResolver::id('tenant_businesses', $data['tenant_business_uuid']);
+            unset($data['tenant_business_uuid']);
         }
 
         $data['password'] = Hash::make($data['password']);
@@ -99,8 +106,16 @@ class UserManagementController extends Controller
             unset($data['password']);
         }
 
+        if (array_key_exists('role_uuid', $data)) {
+            $data['role_id'] = UuidResolver::id('roles', $data['role_uuid']);
+            unset($data['role_uuid']);
+        }
+
         if ($authUser->role->slug !== 'super_admin') {
-            unset($data['tenant_business_id']);
+            unset($data['tenant_business_uuid']);
+        } elseif (array_key_exists('tenant_business_uuid', $data)) {
+            $data['tenant_business_id'] = UuidResolver::id('tenant_businesses', $data['tenant_business_uuid']);
+            unset($data['tenant_business_uuid']);
         }
         $before = $user->getOriginal();
 

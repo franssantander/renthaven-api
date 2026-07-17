@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             PermissionModuleActionSeeder::class,
             PermissionPerUserSeeder::class,
+            AmenitySeeder::class,
             PropertyManagementSeeder::class
         ]);
 

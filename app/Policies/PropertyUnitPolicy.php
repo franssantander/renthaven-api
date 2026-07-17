@@ -16,7 +16,7 @@ class PropertyUnitPolicy
         //
     }
 
-    public function create(User $user): Response
+    public function create(User $user, int $incomingCount = 1): Response
     {
         $tenant = $user->tenantBusiness;
 
@@ -30,7 +30,7 @@ class PropertyUnitPolicy
             $query->where('tenant_business_id', $tenant->id);
         })->count();
 
-        if ($plan->max_units > 0 && $currentUnitCount >= $plan->max_units) {
+        if ($plan->max_units > 0 && $currentUnitCount + $incomingCount > $plan->max_units) {
             return Response::deny("Plan limit reached. Your current plan allows a maximum of {$plan->max_units} units.");
         }
 

@@ -2,7 +2,9 @@
 
 namespace App\Data\PropertyUnit;
 
+use App\Data\Amenity\AmenityData;
 use App\Data\Property\PropertyData;
+use Spatie\LaravelData\Attributes\DataCollectionOf;
 use Spatie\LaravelData\Data;
 
 class PropertyUnitData extends Data
@@ -15,6 +17,9 @@ class PropertyUnitData extends Data
         public int $capacity,
         public float $rent_price,
         public string $status,
-        public ?PropertyData $property
+        public ?PropertyData $property,
+
+        #[DataCollectionOf(AmenityData::class)]
+        public ?array $amenities,
     ) {}
 }

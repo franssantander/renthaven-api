@@ -11,6 +11,7 @@ use App\Http\Requests\TenantBusiness\RegisterBusinessRequest;
 use App\Models\Role;
 use App\Models\TenantBusiness;
 use App\Models\User;
+use App\Support\UuidResolver;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -46,7 +47,11 @@ class TenantBusinessController extends Controller
         if ($user->role->slug !== 'super_admin') {
             return $this->error(null, 'Unauthorized to create new business profile.', Response::HTTP_FORBIDDEN);
         }
-        $business = TenantBusiness::create($request->validated());
+        $data = $request->validated();
+        $data['plan_id'] = UuidResolver::id('plans', $data['plan_uuid']);
+        unset($data['plan_uuid']);
+
+        $business = TenantBusiness::create($data);
         return $this->success($business, 'Business created successfully.', Response::HTTP_CREATED);
     }
 
@@ -107,7 +112,7 @@ class TenantBusinessController extends Controller
 
         $result = DB::transaction(function () use ($validated) {
             $business = TenantBusiness::create([
-                'plan_id'          => $validated['plan_id'],
+                'plan_id'          => UuidResolver::id('plans', $validated['plan_uuid']),
                 'name'             => $validated['business_name'],
                 'email'            => $validated['business_email'],
                 'phone'            => $validated['business_phone'],

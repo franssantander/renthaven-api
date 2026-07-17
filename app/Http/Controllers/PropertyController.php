@@ -6,11 +6,13 @@ use App\Data\Property\PropertyData;
 use App\Enum\AuditAction;
 use App\Enum\AuditModule;
 use App\Http\Requests\Property\StorePropertyRequest;
+use App\Http\Requests\Property\SyncAmenitiesRequest;
 use App\Http\Requests\Property\UpdatePropertyRequest;
 use App\Models\Property;
 use App\Models\PropertyUnit;
 use App\Services\AuditLog\AuditLogger;
 use App\Services\DashboardMetricService;
+use App\Support\UuidResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Spatie\LaravelData\PaginatedDataCollection;
@@ -63,6 +65,7 @@ class PropertyController extends Controller
     {
         $tenantBusinessId = $request->user()->tenant_business_id;
         $properties = Property::query()
+            ->with('amenities')
             ->where('tenant_business_id', $tenantBusinessId)
             ->latest()
             ->paginate($request->integer('per_page', 15));
@@ -83,7 +86,11 @@ class PropertyController extends Controller
      */
     public function store(StorePropertyRequest $request): JsonResponse
     {
-        $property = Property::create($request->validated());
+        $data = $request->validated();
+        $data['tenant_business_id'] = UuidResolver::id('tenant_businesses', $data['tenant_business_uuid']);
+        unset($data['tenant_business_uuid']);
+
+        $property = Property::create($data);
 
         $this->auditLogger->record(
             module: AuditModule::PROPERTY,
@@ -133,6 +140,28 @@ class PropertyController extends Controller
 
         return $this->success($property, 'Property updated successfully.');
     }
+    /**
+     * Sync the amenities assigned to this property.
+     */
+    public function syncAmenities(SyncAmenitiesRequest $request, Property $property): JsonResponse
+    {
+        abort_unless($property->tenant_business_id === $request->user()->tenant_business_id, 404);
+
+        $amenityIds = UuidResolver::ids('amenities', $request->validated('amenity_uuids'));
+
+        $property->amenities()->sync($amenityIds);
+
+        $this->auditLogger->record(
+            module: AuditModule::PROPERTY,
+            action: AuditAction::UPDATED,
+            description: "Synced amenities for property \"{$property->name}\"",
+            auditable: $property,
+            newValues: ['amenity_ids' => $amenityIds],
+        );
+
+        return $this->success($property->load('amenities'), 'Amenities updated successfully.');
+    }
+
     /**
      * Remove the specified resource from storage.
      */

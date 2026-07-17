@@ -24,7 +24,7 @@ class StoreUserManagementRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'role_id'   => ['required', 'exists:roles,id'],
+            'role_uuid' => ['required', 'uuid', 'exists:roles,uuid'],
             'full_name' => ['required', 'string', 'max:255'],
             'username'  => ['required', 'string', 'max:255', 'unique:users,username'],
             'email'     => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
@@ -34,7 +34,7 @@ class StoreUserManagementRequest extends FormRequest
 
         // Super admins must specify which business the user belongs to
         if (auth()->user()->role->slug === 'super_admin') {
-            $rules['tenant_business_id'] = ['required', 'exists:tenant_businesses,id'];
+            $rules['tenant_business_uuid'] = ['required', 'uuid', 'exists:tenant_businesses,uuid'];
         }
 
         return $rules;
