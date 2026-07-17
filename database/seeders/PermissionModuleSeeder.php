@@ -54,6 +54,11 @@ class PermissionModuleSeeder extends Seeder
                 'slug' => 'tenant_business',
                 'description' => 'Manage business profile, informations, and details.',
             ],
+            [
+                'name' => 'Maintenance',
+                'slug' => 'maintenance',
+                'description' => 'Track and resolve tenant-reported maintenance requests.',
+            ],
         ];
 
         foreach ($modules as $module) {

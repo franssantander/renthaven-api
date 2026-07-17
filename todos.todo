@@ -3,10 +3,6 @@
     📌 Property Units:
         ☐ [BE] implement unit images and media management    
 
-    📌 Lease Payment (Ledger):
-        ☐ [BE] implement updating lease payment status (e.g., paid, pending, overdue)
-        ☐ [BE] implement get listing of lease payments (with filters for status, date range, etc.)
-
     📌 Renters Management:
         ☐ [BE] implement CRUD for renters (associated with lease)
         ☐ [BE] handle validation for renter creation / assigning (e.g., lease association, renter details)
@@ -15,14 +11,12 @@
         ☐ [BE] Build a plan management system (CRUD for plans, plan features, etc.)
 
 📝TODOS:
-
+    📌 Tenant dashboard:
+        ☐ [BE] implement tenant dashboard and its payment transacction history.
     
 ⚡IN-PROGRESS:
-
-    📌 Renters(Lease):
-        ✔ [BE] implement CRUD for lease (associated with property and unit) @done(26-07-17 00:03)
-        ✔ [BE] implement handle validation for lease creation / assining (e.g., unit availability, lease terms) @done(26-07-17 00:03)
-        ☐ [BE] consider lease terms like monthly and fixed leases, and implement accordingly.
+    📌 Property Maintenace:
+        ☐ [BE] implement property maintenance
     
 
 ✅DONE:
@@ -55,3 +49,12 @@
             ✔ [BE] implement CRUD for unit @done(26-07-16 22:56)
             ✔ [BE] implement unit availability status @done(26-07-17 00:02)
             ✔ [BE] implement unit pricing and amenities @done(26-07-17 22:10)
+
+    📌 Renters(Lease):
+    ✔ [BE] implement CRUD for lease (associated with property and unit) @done(26-07-17 00:03)
+    ✔ [BE] implement handle validation for lease creation / assining (e.g., unit availability, lease terms) @done(26-07-17 00:03)
+    ✔ [BE] consider lease terms like monthly and fixed leases, and implement accordingly. @done(26-07-17 22:49)
+
+    📌 Lease Payment (Ledger):
+    ✔ [BE] implement updating lease payment status (e.g., paid, pending, overdue) @done(26-07-18 00:06)
+    ✔ [BE] implement get listing of lease payments (with filters for status, date range, etc.) @done(26-07-18 00:06)

@@ -10,6 +10,7 @@ use App\Http\Requests\PropertyUnit\SyncAmenitiesRequest;
 use App\Http\Requests\PropertyUnit\UpdatePropertyUnitRequest;
 use App\Models\PropertyUnit;
 use App\Services\AuditLog\AuditLogger;
+use App\Services\DashboardMetricService;
 use App\Services\PropertyUnit\PropertyUnitService;
 use App\Support\UuidResolver;
 use Illuminate\Http\JsonResponse;
@@ -22,7 +23,47 @@ class PropertyUnitController extends Controller
     public function __construct(
         protected AuditLogger $auditLogger,
         protected PropertyUnitService $propertyUnitService,
+        protected DashboardMetricService $metricService,
     ) {}
+
+    /**
+     * Display dashboard metrics for the tenant's property units.
+     */
+    public function dashboard(Request $request): JsonResponse
+    {
+        $tenantId = $request->user()->tenant_business_id;
+
+        $unitQuery = PropertyUnit::query()->whereHas('property', function ($query) use ($tenantId) {
+            $query->where('tenant_business_id', $tenantId);
+        });
+
+        $widgets = [
+            $this->metricService->buildCountMetric(
+                title: 'Total Units',
+                icon: 'door-open',
+                baseQuery: clone $unitQuery
+            ),
+            $this->metricService->buildCountMetric(
+                title: 'Available Units',
+                icon: 'key',
+                baseQuery: (clone $unitQuery)->where('status', 'available')
+            ),
+            $this->metricService->buildCountMetric(
+                title: 'Occupied Units',
+                icon: 'home-modern',
+                baseQuery: (clone $unitQuery)->where('status', 'occupied')
+            ),
+            $this->metricService->buildCountMetric(
+                title: 'Under Maintenance',
+                icon: 'wrench',
+                baseQuery: (clone $unitQuery)->where('status', 'maintenance')
+            ),
+        ];
+
+        return $this->success([
+            'metrics' => $widgets
+        ], 'Dashboard metrics retrieved successfully.');
+    }
 
     /**
      * Display a listing of the resource.

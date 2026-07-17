@@ -57,6 +57,54 @@ class DashboardMetricService
     }
 
     /**
+     * Generate a standardized dashboard metric widget summing a numeric/currency column.
+     *
+     * @param string $title The display title (e.g., 'Total Collected')
+     * @param string $icon The frontend icon identifier
+     * @param Builder $baseQuery The scoped Eloquent query
+     * @param string $column The numeric column to sum (e.g. 'amount')
+     * @param int $days The time period to compare (default 30 days)
+     * @param string $dateColumn The timestamp column to filter by
+     * @return array
+     */
+    public function buildSumMetric(
+        string $title,
+        string $icon,
+        Builder $baseQuery,
+        string $column,
+        int $days = 30,
+        string $dateColumn = 'created_at'
+    ): array {
+        $now = Carbon::now();
+        $startOfCurrentPeriod = (clone $now)->subDays($days);
+        $startOfPreviousPeriod = (clone $startOfCurrentPeriod)->subDays($days);
+
+        $totalValue = (float) (clone $baseQuery)->sum($column);
+
+        $currentPeriodSum = (float) (clone $baseQuery)
+            ->where($dateColumn, '>=', $startOfCurrentPeriod)
+            ->sum($column);
+
+        $previousPeriodSum = (float) (clone $baseQuery)
+            ->whereBetween($dateColumn, [$startOfPreviousPeriod, $startOfCurrentPeriod])
+            ->sum($column);
+
+        $trend = $this->calculateTrend($currentPeriodSum, $previousPeriodSum);
+
+        return [
+            'title' => $title,
+            'icon'  => $icon,
+            'value' => $totalValue,
+            'trend' => [
+                'percentage'  => $trend['percentage'],
+                'is_positive' => $trend['is_positive'],
+                'is_neutral'  => $trend['is_neutral'],
+                'label'       => $trend['label'] . " (vs last {$days} days)"
+            ]
+        ];
+    }
+
+    /**
      * Mathematical helper to safely calculate percentage change
      */
     private function calculateTrend(float $current, float $previous): array

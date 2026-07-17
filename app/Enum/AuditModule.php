@@ -13,4 +13,5 @@ enum AuditModule: string
     case PROPERTY_UNIT = 'property_unit';
     case LEASE = 'lease';
     case AMENITY = 'amenity';
+    case MAINTENANCE_REQUEST = 'maintenance_request';
 }

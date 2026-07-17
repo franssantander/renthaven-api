@@ -7,9 +7,13 @@ use App\Enum\AuditAction;
 use App\Enum\AuditModule;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\MagicLinkRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
+use App\Http\Requests\Auth\VerifyMagicLinkRequest;
 use App\Models\User;
 use App\Services\AuditLog\AuditLogger;
+use App\Services\Auth\MagicLinkService;
+use App\Notifications\MagicLinkNotification;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +26,8 @@ class AuthController extends Controller
 {
 
     public function __construct(
-        protected AuditLogger $auditLogger
+        protected AuditLogger $auditLogger,
+        protected MagicLinkService $magicLinkService,
     ) {}
 
     protected string $cookieName = 'auth_token';
@@ -59,7 +64,6 @@ class AuthController extends Controller
         }
 
         $user->load('role', 'tenantBusiness');
-        $token = $user->createToken('auth_token')->accessToken;
 
         $this->auditLogger->record(
             module: AuditModule::AUTH,
@@ -68,7 +72,20 @@ class AuthController extends Controller
             auditable: $user,
         );
 
-        $cookie = cookie(
+        return $this->success(
+            UserData::from($user),
+            'Login successful.'
+        )->withCookie($this->issueAuthCookie($user));
+    }
+
+    /**
+     * Issue a Passport access token for the given user and wrap it in the auth cookie.
+     */
+    protected function issueAuthCookie(User $user)
+    {
+        $token = $user->createToken('auth_token')->accessToken;
+
+        return cookie(
             $this->cookieName,
             $token,
             60 * 24 * 7,   // 7 days, in minutes
@@ -79,11 +96,6 @@ class AuthController extends Controller
             false,         // raw
             'Strict'       // sameSite
         );
-
-        return $this->success(
-            UserData::from($user),
-            'Login successful.'
-        )->withCookie($cookie);
     }
 
     public function logout(Request $request)
@@ -117,6 +129,59 @@ class AuthController extends Controller
         $userData->permissions = $user->getPermissionMatrix();
 
         return $this->success($userData, 'User profile retrieved successfully.');
+    }
+
+    /**
+     * Request a magic sign-in link for a renter account.
+     */
+    public function requestMagicLink(MagicLinkRequest $request)
+    {
+        $user = User::where('email', $request->validated('email'))
+            ->whereHas('renterProfile')
+            ->first();
+
+        if ($user) {
+            $token = $this->magicLinkService->issueFor($user);
+            $user->notify(new MagicLinkNotification($token));
+
+            $this->auditLogger->record(
+                module: AuditModule::AUTH,
+                action: AuditAction::MAGIC_LINK_REQUESTED,
+                description: "Magic link requested for {$user->email}",
+                auditable: $user,
+            );
+        }
+
+        return $this->success(
+            null,
+            'If that email is associated with a renter account, a sign-in link has been sent.'
+        );
+    }
+
+    /**
+     * Consume a magic-link token and sign the renter in.
+     */
+    public function verifyMagicLink(VerifyMagicLinkRequest $request)
+    {
+        $user = $this->magicLinkService->consume($request->validated('token'));
+
+        if (!$user) {
+            return $this->error(null, 'This sign-in link is invalid or has expired.', 422);
+        }
+
+        $user->load('role', 'tenantBusiness');
+
+        $this->auditLogger->record(
+            module: AuditModule::AUTH,
+            action: AuditAction::MAGIC_LINK_LOGIN_SUCCESS,
+            description: "{$user->email} signed in via magic link",
+            auditable: $user,
+        );
+
+        return $this->success(
+            UserData::from($user),
+            'Login successful.'
+        )->withCookie($this->issueAuthCookie($user));
     }
 
     public function forgotPassword(ForgotPasswordRequest $request)

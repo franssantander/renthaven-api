@@ -40,7 +40,8 @@ class User extends Authenticatable implements OAuthenticatable, MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'status' => Status::class
+            'status' => Status::class,
+            'tenant_business_id' => 'integer',
         ];
     }
 

@@ -28,7 +28,10 @@ class DatabaseSeeder extends Seeder
             PermissionModuleActionSeeder::class,
             PermissionPerUserSeeder::class,
             AmenitySeeder::class,
-            PropertyManagementSeeder::class
+            PropertyManagementSeeder::class,
+            LedgerEntrySeeder::class,
+            LedgerProcessDemoSeeder::class,
+            MagicLinkTokenSeeder::class,
         ]);
 
         $this->command->info('Creating personal access client for Passport...');
