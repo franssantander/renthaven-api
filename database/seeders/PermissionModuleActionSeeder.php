@@ -68,6 +68,19 @@ class PermissionModuleActionSeeder extends Seeder
                 'delete',
                 'restore'
             ],
+            'permission_management' => [
+                'view',
+                'create',
+                'update',
+                'delete',
+                'restore'
+            ],
+            'tenant_business' => [
+                'view',
+                'create',
+                'update',
+                'delete'
+            ],
         ];
 
         $insertData = [];

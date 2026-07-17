@@ -26,17 +26,21 @@ class RolePermissionSeeder extends Seeder
                 'payment_approvals' => ['view', 'create'],
                 'properties'        => ['view', 'create', 'update'],
                 'renter_tenants'    => ['view', 'create', 'update'],
-                'user_management'   => []
+                'user_management'   => [],
+                'maintenance'       => ['view', 'create', 'update'],
+                'tenant_business'   => ['view'],
             ],
 
             'admin' => [
-                'dashboard'         => ['view'],
-                'ledger'            => ['view', 'create', 'update', 'delete', 'export', 'restore'],
-                'payment_approvals' => ['view', 'create', 'update', 'delete', 'approve', 'restore'],
-                'properties'        => ['view', 'create', 'update', 'delete', 'restore'],
-                'renter_tenants'    => ['view', 'create', 'update', 'delete', 'export', 'restore'],
-                'user_management'   => ['view', 'create', 'update', 'delete'],
-                'tenant_business'   => ['view', 'create', 'update', 'delete'],
+                'dashboard'             => ['view'],
+                'ledger'                => ['view', 'create', 'update', 'delete', 'export', 'restore'],
+                'payment_approvals'     => ['view', 'create', 'update', 'delete', 'approve', 'restore'],
+                'properties'            => ['view', 'create', 'update', 'delete', 'restore'],
+                'renter_tenants'        => ['view', 'create', 'update', 'delete', 'export', 'restore'],
+                'user_management'       => ['view', 'create', 'update', 'delete'],
+                'tenant_business'       => ['view', 'create', 'update', 'delete'],
+                'maintenance'           => ['view', 'create', 'update', 'delete', 'restore'],
+                'permission_management' => ['view', 'create', 'update'],
             ],
         ];
 

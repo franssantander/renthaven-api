@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
             PermissionPerUserSeeder::class,
             AmenitySeeder::class,
             PropertyManagementSeeder::class,
+            MaintenanceRequestSeeder::class,
             LedgerEntrySeeder::class,
             LedgerProcessDemoSeeder::class,
             MagicLinkTokenSeeder::class,

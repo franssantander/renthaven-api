@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enum\PropertyUnitStatus;
 use App\HasHasPublicUuidTrait;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -21,6 +22,7 @@ class PropertyUnit extends Model
     {
         return [
             'property_id' => 'integer',
+            'status'      => PropertyUnitStatus::class,
         ];
     }
 

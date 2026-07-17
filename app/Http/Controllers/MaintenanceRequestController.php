@@ -12,6 +12,7 @@ use App\Http\Requests\MaintenanceRequest\UpdateMaintenanceRequestStatusRequest;
 use App\Models\Lease;
 use App\Models\MaintenanceRequest;
 use App\Services\AuditLog\AuditLogger;
+use App\Services\DashboardMetricService;
 use App\Services\MaintenanceRequest\MaintenanceRequestService;
 use App\Support\UuidResolver;
 use Illuminate\Http\JsonResponse;
@@ -23,7 +24,52 @@ class MaintenanceRequestController extends Controller
     public function __construct(
         protected AuditLogger $auditLogger,
         protected MaintenanceRequestService $maintenanceRequestService,
+        protected DashboardMetricService $metricService,
     ) {}
+
+    /**
+     * Display dashboard metrics for the tenant's maintenance requests.
+     */
+    public function dashboard(Request $request): JsonResponse
+    {
+        $tenantBusinessId = $request->user()->tenant_business_id;
+
+        $requestQuery = MaintenanceRequest::query()->where('tenant_business_id', $tenantBusinessId);
+
+        $widgets = [
+            $this->metricService->buildCountMetric(
+                title: 'Total Requests',
+                icon: 'wrench-screwdriver',
+                baseQuery: clone $requestQuery
+            ),
+            $this->metricService->buildCountMetric(
+                title: 'Open',
+                icon: 'inbox',
+                baseQuery: (clone $requestQuery)->where('status', 'open')
+            ),
+            $this->metricService->buildCountMetric(
+                title: 'In Progress',
+                icon: 'wrench',
+                baseQuery: (clone $requestQuery)->where('status', 'in_progress')
+            ),
+            $this->metricService->buildCountMetric(
+                title: 'Resolved',
+                icon: 'check-circle',
+                baseQuery: (clone $requestQuery)->where('status', 'resolved')
+            ),
+            $this->metricService->buildCountMetric(
+                title: 'Needs Attention',
+                icon: 'exclamation-triangle',
+                baseQuery: (clone $requestQuery)
+                    ->whereIn('priority', ['high', 'urgent'])
+                    ->whereIn('status', ['open', 'in_progress'])
+            ),
+        ];
+
+        return $this->success([
+            'metrics' => $widgets
+        ], 'Dashboard metrics retrieved successfully.');
+    }
 
     /**
      * Store a newly created maintenance request.

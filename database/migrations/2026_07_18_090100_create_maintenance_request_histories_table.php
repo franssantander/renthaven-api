@@ -26,7 +26,7 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->index(['maintenance_request_id', 'created_at']);
+            $table->index(['maintenance_request_id', 'created_at'], 'maint_req_histories_request_created_index');
         });
     }
 
