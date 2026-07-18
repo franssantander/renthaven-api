@@ -28,8 +28,10 @@ class UpdateUserManagementRequest extends FormRequest
         $user = $this->route('user');
 
         $rules = [
-            'full_name' => ['sometimes', 'string', 'max:255'],
-            'username'  => ['sometimes', 'string', 'max:255', Rule::unique('users', 'username')->ignore($user->id)],
+            'first_name'  => ['sometimes', 'string', 'max:255'],
+            'middle_name' => ['nullable', 'string', 'max:255'],
+            'last_name'   => ['sometimes', 'string', 'max:255'],
+            'username'    => ['sometimes', 'string', 'max:255', Rule::unique('users', 'username')->ignore($user->id)],
             'email'     => ['sometimes', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'phone'     => ['nullable', 'string', 'max:50'],
             'status'    => ['sometimes', Rule::enum(Status::class)],

@@ -17,7 +17,9 @@ return new class extends Migration {
             $table->uuid('uuid')->default(DB::raw('(UUID())'))->unique();
             $table->foreignId('role_id')->constrained('roles');
             $table->foreignId('tenant_business_id')->nullable()->constrained('tenant_businesses')->cascadeOnDelete();
-            $table->string('full_name');
+            $table->string('first_name');
+            $table->string('middle_name')->nullable();
+            $table->string('last_name');
             $table->string('username')->unique();
             $table->string('password');
             $table->string('email')->unique();

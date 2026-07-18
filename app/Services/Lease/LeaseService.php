@@ -181,7 +181,8 @@ class LeaseService
         $user = User::create([
             'role_id'            => $tenantRoleId,
             'tenant_business_id' => $tenantBusinessId,
-            'full_name'          => "{$tenantInput['first_name']} {$tenantInput['last_name']}",
+            'first_name'         => $tenantInput['first_name'],
+            'last_name'          => $tenantInput['last_name'],
             'email'              => $tenantInput['email'],
             'phone'              => $tenantInput['phone'] ?? null,
             'username'           => Str::slug($tenantInput['email']),
@@ -202,8 +203,8 @@ class LeaseService
         return Renter::firstOrCreate(
             ['user_id' => $user->id, 'tenant_business_id' => $tenantBusinessId],
             [
-                'first_name' => Str::before($user->full_name, ' '),
-                'last_name'  => Str::after($user->full_name, ' ') ?: $user->full_name,
+                'first_name' => $user->first_name,
+                'last_name'  => $user->last_name,
                 'email'      => $user->email,
                 'phone'      => $user->phone,
             ]

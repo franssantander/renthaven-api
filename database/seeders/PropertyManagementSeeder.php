@@ -104,7 +104,8 @@ class PropertyManagementSeeder extends Seeder
                         $user = User::create([
                             'role_id'            => $tenantRoleId,
                             'tenant_business_id' => $tenant->id,
-                            'full_name'          => "{$firstName} {$lastName}",
+                            'first_name'         => $firstName,
+                            'last_name'          => $lastName,
                             'username'           => fake()->unique()->userName(),
                             'email'              => $email,
                             'phone'              => $phone,

@@ -29,7 +29,9 @@ class RegisterBusinessRequest extends FormRequest
             'business_phone' => ['required', 'string', 'unique:tenant_businesses,phone'],
             'business_address' => ['nullable', 'string'],
 
-            'full_name' => ['required', 'string', 'max:255'],
+            'first_name' => ['required', 'string', 'max:255'],
+            'middle_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'unique:users,email'],
             'username' => ['required', 'string', 'min:8', 'unique:users,username'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],

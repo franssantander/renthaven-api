@@ -125,7 +125,9 @@ class TenantBusinessController extends Controller
             $user = User::create([
                 'tenant_business_id' => $business->id,
                 'role_id'            => $adminRole->id,
-                'full_name'          => $validated['full_name'],
+                'first_name'         => $validated['first_name'],
+                'middle_name'        => $validated['middle_name'] ?? null,
+                'last_name'          => $validated['last_name'],
                 'email'              => $validated['email'],
                 'phone'              => $validated['phone'] ?? null,
                 'username'           => $validated['username'],

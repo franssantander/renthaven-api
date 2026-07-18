@@ -31,7 +31,8 @@ class UserSeeder extends Seeder
             [
                 'role_id' => $superAdminId,
                 'tenant_business_id' => null,
-                'full_name' => 'SaaS Owner',
+                'first_name' => 'SaaS',
+                'last_name' => 'Owner',
                 'email' => 'superadmin@app.com',
                 'username' => 'superadmin',
                 'password' => $defaultPassword,
@@ -44,7 +45,8 @@ class UserSeeder extends Seeder
             [
                 'role_id' => $adminRoleId,
                 'tenant_business_id' => $businessAId,
-                'full_name' => 'Juan Dela Cruz',
+                'first_name' => 'Juan',
+                'last_name' => 'Dela Cruz',
                 'username' => 'juandelacruz',
                 'email' => 'juan.admin@delacruzrentals.ph',
                 'password' => $defaultPassword,
@@ -55,7 +57,8 @@ class UserSeeder extends Seeder
             [
                 'role_id' => $staffRoleId,
                 'tenant_business_id' => $businessAId,
-                'full_name' => 'Mark Santos (Day Shift)',
+                'first_name' => 'Mark',
+                'last_name' => 'Santos (Day Shift)',
                 'username' => 'marksantos',
                 'email' => 'mark.staff@delacruzrentals.ph',
                 'password' => $defaultPassword,
@@ -66,7 +69,8 @@ class UserSeeder extends Seeder
             [
                 'role_id' => $staffRoleId,
                 'tenant_business_id' => $businessAId,
-                'full_name' => 'Maria Clara (Night Shift)',
+                'first_name' => 'Maria',
+                'last_name' => 'Clara (Night Shift)',
                 'username' => 'mariaclara',
                 'email' => 'maria.staff@delacruzrentals.ph',
                 'password' => $defaultPassword,
@@ -79,7 +83,8 @@ class UserSeeder extends Seeder
             [
                 'role_id' => $adminRoleId,
                 'tenant_business_id' => $businessBId,
-                'full_name' => 'Maria Santos',
+                'first_name' => 'Maria',
+                'last_name' => 'Santos',
                 'username' => 'mariasantos',
                 'email' => 'maria.admin@ubelt-dorms.com',
                 'password' => $defaultPassword,
@@ -90,7 +95,8 @@ class UserSeeder extends Seeder
             [
                 'role_id' => $staffRoleId,
                 'tenant_business_id' => $businessBId,
-                'full_name' => 'Jose Rizal (Dorm Caretaker)',
+                'first_name' => 'Jose',
+                'last_name' => 'Rizal (Dorm Caretaker)',
                 'username' => 'joserizal',
                 'email' => 'jose.staff@ubelt-dorms.com',
                 'password' => $defaultPassword,
@@ -103,7 +109,8 @@ class UserSeeder extends Seeder
             [
                 'role_id' => $adminRoleId,
                 'tenant_business_id' => $businessCId,
-                'full_name' => 'Engr. Renato Luna',
+                'first_name' => 'Renato',
+                'last_name' => 'Luna',
                 'username' => 'renatoluna',
                 'email' => 'renato.admin@metrosharecondos.ph',
                 'password' => $defaultPassword,
@@ -114,7 +121,8 @@ class UserSeeder extends Seeder
             [
                 'role_id' => $staffRoleId,
                 'tenant_business_id' => $businessCId,
-                'full_name' => 'Pedro Penduko (Leasing Officer)',
+                'first_name' => 'Pedro',
+                'last_name' => 'Penduko (Leasing Officer)',
                 'username' => 'pedropenduko',
                 'email' => 'pedro.staff@metrosharecondos.ph',
                 'password' => $defaultPassword,
@@ -127,7 +135,8 @@ class UserSeeder extends Seeder
             [
                 'role_id' => $adminRoleId,
                 'tenant_business_id' => $businessDId,
-                'full_name' => 'Christina Garcia',
+                'first_name' => 'Christina',
+                'last_name' => 'Garcia',
                 'username' => 'christinagarcia',
                 'email' => 'christina.admin@cebuhighlands.com',
                 'password' => $defaultPassword,
@@ -138,7 +147,8 @@ class UserSeeder extends Seeder
             [
                 'role_id' => $staffRoleId,
                 'tenant_business_id' => $businessDId,
-                'full_name' => 'Niño Cebuano (Collector)',
+                'first_name' => 'Niño',
+                'last_name' => 'Cebuano (Collector)',
                 'username' => 'ninocebuano',
                 'email' => 'nino.staff@cebuhighlands.com',
                 'password' => $defaultPassword,
@@ -151,7 +161,8 @@ class UserSeeder extends Seeder
             [
                 'role_id' => $adminRoleId,
                 'tenant_business_id' => $businessEId,
-                'full_name' => 'Director Alejandro Valdez',
+                'first_name' => 'Alejandro',
+                'last_name' => 'Valdez',
                 'username' => 'alejandrovaldez',
                 'email' => 'alejandro.admin@apexproperties.ph',
                 'password' => $defaultPassword,
@@ -162,7 +173,8 @@ class UserSeeder extends Seeder
             [
                 'role_id' => $staffRoleId,
                 'tenant_business_id' => $businessEId,
-                'full_name' => 'Elena Cruz (Desk Staff)',
+                'first_name' => 'Elena',
+                'last_name' => 'Cruz (Desk Staff)',
                 'username' => 'elenacruz',
                 'email' => 'elena.staff@apexproperties.ph',
                 'password' => $defaultPassword,
