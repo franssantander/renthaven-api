@@ -59,6 +59,11 @@ class PermissionModuleSeeder extends Seeder
                 'slug' => 'maintenance',
                 'description' => 'Track and resolve tenant-reported maintenance requests.',
             ],
+            [
+                'name' => 'Audit Logs',
+                'slug' => 'audit_logs',
+                'description' => 'Read-only trail of who did what, where, and when across the system.',
+            ],
         ];
 
         foreach ($modules as $module) {

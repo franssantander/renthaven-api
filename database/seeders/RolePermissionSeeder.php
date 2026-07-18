@@ -41,6 +41,7 @@ class RolePermissionSeeder extends Seeder
                 'tenant_business'       => ['view', 'create', 'update', 'delete'],
                 'maintenance'           => ['view', 'create', 'update', 'delete', 'restore'],
                 'permission_management' => ['view', 'create', 'update'],
+                'audit_logs'            => ['view'],
             ],
         ];
 

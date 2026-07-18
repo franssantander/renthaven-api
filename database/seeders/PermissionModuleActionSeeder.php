@@ -81,6 +81,10 @@ class PermissionModuleActionSeeder extends Seeder
                 'update',
                 'delete'
             ],
+            // Audit trail is intentionally read-only: view is the only action.
+            'audit_logs' => [
+                'view'
+            ],
         ];
 
         $insertData = [];
