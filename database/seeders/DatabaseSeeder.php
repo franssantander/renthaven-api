@@ -34,6 +34,7 @@ class DatabaseSeeder extends Seeder
             LedgerProcessDemoSeeder::class,
             MagicLinkTokenSeeder::class,
             AuditLogSeeder::class,
+            NotificationSeeder::class,
         ]);
 
         $this->command->info('Creating personal access client for Passport...');

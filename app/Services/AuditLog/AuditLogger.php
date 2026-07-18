@@ -5,10 +5,12 @@ namespace App\Services\AuditLog;
 use App\Enum\AuditAction;
 use App\Enum\AuditModule;
 use App\Models\AuditLog;
+use App\Services\Notification\NotificationService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Throwable;
 
 class AuditLogger
 {
@@ -39,8 +41,10 @@ class AuditLogger
         );
     }
 
-    public function __construct(protected Request $request)
-    {
+    public function __construct(
+        protected Request $request,
+        protected NotificationService $notificationService,
+    ) {
         //
     }
 
@@ -70,7 +74,7 @@ class AuditLogger
 
         unset($context['tenant_business_id']);
 
-        return AuditLog::create([
+        $log = AuditLog::create([
             'user_id'            => $user?->id,
             'tenant_business_id' => $tenantBusinessId,
             'actor_email'        => $user?->email,
@@ -85,6 +89,16 @@ class AuditLogger
             'ip_address'         => $this->getIpAddress(),
             'user_agent'         => $this->getUserAgent(),
         ]);
+
+        // Notifications are derived from the audit trail, but best-effort:
+        // a notification failure must never roll back or break the audited action.
+        try {
+            $this->notificationService->dispatchFromAuditLog($log);
+        } catch (Throwable $e) {
+            report($e);
+        }
+
+        return $log;
     }
 
     protected function getIpAddress(): ?string

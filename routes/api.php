@@ -13,3 +13,4 @@ require __DIR__ . '/v1/ledger.php';
 require __DIR__ . '/v1/maintenance_request.php';
 require __DIR__ . '/v1/renter_portal.php';
 require __DIR__ . '/v1/audit_log.php';
+require __DIR__ . '/v1/notifications.php';
