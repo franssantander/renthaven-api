@@ -3,6 +3,7 @@
 namespace App\Data\Property;
 
 use App\Data\Amenity\AmenityData;
+use App\Data\PropertyAttachment\PropertyAttachmentData;
 use App\Data\TenantBusinessData;
 use Spatie\LaravelData\Attributes\DataCollectionOf;
 use Spatie\LaravelData\Attributes\MapInputName;
@@ -20,5 +21,8 @@ class PropertyData extends Data
 
         #[DataCollectionOf(AmenityData::class)]
         public ?array $amenities,
+
+        #[DataCollectionOf(PropertyAttachmentData::class)]
+        public ?array $attachments,
     ) {}
 }

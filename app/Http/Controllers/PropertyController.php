@@ -5,24 +5,28 @@ namespace App\Http\Controllers;
 use App\Data\Property\PropertyData;
 use App\Enum\AuditAction;
 use App\Enum\AuditModule;
+use App\Http\Requests\Property\StorePropertyAttachmentRequest;
 use App\Http\Requests\Property\StorePropertyRequest;
 use App\Http\Requests\Property\SyncAmenitiesRequest;
 use App\Http\Requests\Property\UpdatePropertyRequest;
 use App\Models\Property;
+use App\Models\PropertyAttachment;
 use App\Models\PropertyUnit;
 use App\Services\AuditLog\AuditLogger;
 use App\Services\DashboardMetricService;
+use App\Services\PropertyAttachment\PropertyAttachmentService;
 use App\Support\UuidResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Spatie\LaravelData\PaginatedDataCollection;
- 
+
 class PropertyController extends Controller
 {
 
     public function __construct(
         protected AuditLogger $auditLogger,
-        protected DashboardMetricService $metricService
+        protected DashboardMetricService $metricService,
+        protected PropertyAttachmentService $propertyAttachmentService,
     ) {}
 
     public function dashboard(Request $request): JsonResponse
@@ -65,7 +69,7 @@ class PropertyController extends Controller
     {
         $tenantBusinessId = $request->user()->tenant_business_id;
         $properties = Property::query()
-            ->with('amenities')
+            ->with(['amenities', 'attachments'])
             ->where('tenant_business_id', $tenantBusinessId)
             ->latest()
             ->paginate($request->integer('per_page', 15));
@@ -160,6 +164,50 @@ class PropertyController extends Controller
         );
 
         return $this->success($property->load('amenities'), 'Amenities updated successfully.');
+    }
+
+    /**
+     * Upload one or more images for this property.
+     */
+    public function storeAttachments(StorePropertyAttachmentRequest $request, Property $property): JsonResponse
+    {
+        $attachments = $this->propertyAttachmentService->attach(
+            $property,
+            $request->file('images'),
+            $request->input('captions', []),
+        );
+
+        $this->auditLogger->record(
+            module: AuditModule::PROPERTY,
+            action: AuditAction::UPDATED,
+            description: 'Added ' . count($attachments) . " image(s) to property \"{$property->name}\"",
+            auditable: $property,
+            newValues: ['attachment_ids' => array_map(fn ($attachment) => $attachment->id, $attachments)],
+        );
+
+        return $this->success($attachments, 'Image(s) uploaded successfully.', 201);
+    }
+
+    /**
+     * Remove an uploaded image from this property.
+     */
+    public function destroyAttachment(Property $property, PropertyAttachment $attachment): JsonResponse
+    {
+        abort_unless(
+            $attachment->attachable_type === $property->getMorphClass() && $attachment->attachable_id === $property->id,
+            404
+        );
+
+        $this->propertyAttachmentService->delete($attachment);
+
+        $this->auditLogger->record(
+            module: AuditModule::PROPERTY,
+            action: AuditAction::UPDATED,
+            description: "Removed image from property \"{$property->name}\"",
+            auditable: $property,
+        );
+
+        return $this->success(null, 'Image deleted successfully.');
     }
 
     /**

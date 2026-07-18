@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable(['property_id', 'name', 'capacity', 'rent_price', 'status'])]
@@ -34,5 +35,10 @@ class PropertyUnit extends Model
     public function amenities(): BelongsToMany
     {
         return $this->belongsToMany(Amenity::class, 'property_unit_amenity');
+    }
+
+    public function attachments(): MorphMany
+    {
+        return $this->morphMany(PropertyAttachment::class, 'attachable')->orderBy('sort_order');
     }
 }

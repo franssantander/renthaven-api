@@ -8,6 +8,7 @@ use App\Enum\Role;
 use App\Enum\Status;
 use App\Models\Lease;
 use App\Models\Property;
+use App\Models\PropertyAttachment;
 use App\Models\PropertyUnit;
 use App\Models\Renter;
 use App\Models\TenantBusiness;
@@ -15,7 +16,9 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 class PropertyManagementSeeder extends Seeder
 {
@@ -69,6 +72,8 @@ class PropertyManagementSeeder extends Seeder
                 ]
             ];
 
+            $firstUnit = null;
+
             foreach ($unitScenarios as $scenario) {
                 // Resolve enum values if they exist, otherwise fallback safely to string matches
                 $resolvedStatus = match ($scenario['status']) {
@@ -85,6 +90,7 @@ class PropertyManagementSeeder extends Seeder
                     'status'      => $resolvedStatus,
                 ]);
 
+                $firstUnit ??= $unit;
 
                 for ($slot = 1; $slot <= $scenario['renters_count']; $slot++) {
 
@@ -132,6 +138,61 @@ class PropertyManagementSeeder extends Seeder
                     ]);
                 }
             }
+
+            $this->seedAttachments($property, $firstUnit);
         }
+    }
+
+    /**
+     * Attach a couple of demo images to the property and its first unit so
+     * the attachment endpoints have realistic data to return out of the box.
+     */
+    private function seedAttachments(Property $property, ?PropertyUnit $firstUnit): void
+    {
+        $placeholder = $this->placeholderImageContents();
+
+        $targets = [
+            [$property, ['Front exterior view', 'Lobby entrance']],
+        ];
+
+        if ($firstUnit) {
+            $targets[] = [$firstUnit, ['Living room', 'Kitchen']];
+        }
+
+        foreach ($targets as [$model, $captions]) {
+            foreach (array_values($captions) as $index => $caption) {
+                $path = 'property-attachments/' . Str::uuid() . '.png';
+                Storage::disk('public')->put($path, $placeholder);
+
+                PropertyAttachment::create([
+                    'attachable_type'    => $model->getMorphClass(),
+                    'attachable_id'      => $model->id,
+                    'disk'               => 'public',
+                    'path'               => $path,
+                    'original_filename'  => Str::slug($caption) . '.png',
+                    'mime_type'          => 'image/png',
+                    'size'               => strlen($placeholder),
+                    'caption'            => $caption,
+                    'sort_order'         => $index + 1,
+                ]);
+            }
+        }
+    }
+
+    private function placeholderImageContents(): string
+    {
+        $image = imagecreatetruecolor(800, 600);
+        $background = imagecolorallocate($image, 210, 214, 220);
+        imagefilledrectangle($image, 0, 0, 800, 600, $background);
+
+        $textColor = imagecolorallocate($image, 90, 98, 110);
+        imagestring($image, 5, 330, 290, 'RentHaven', $textColor);
+
+        ob_start();
+        imagepng($image);
+        $contents = ob_get_clean();
+        imagedestroy($image);
+
+        return $contents;
     }
 }

@@ -4,6 +4,7 @@ namespace App\Data\PropertyUnit;
 
 use App\Data\Amenity\AmenityData;
 use App\Data\Property\PropertyData;
+use App\Data\PropertyAttachment\PropertyAttachmentData;
 use Spatie\LaravelData\Attributes\DataCollectionOf;
 use Spatie\LaravelData\Data;
 
@@ -21,5 +22,8 @@ class PropertyUnitData extends Data
 
         #[DataCollectionOf(AmenityData::class)]
         public ?array $amenities,
+
+        #[DataCollectionOf(PropertyAttachmentData::class)]
+        public ?array $attachments,
     ) {}
 }

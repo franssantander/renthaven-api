@@ -5,12 +5,15 @@ namespace App\Http\Controllers;
 use App\Data\PropertyUnit\PropertyUnitData;
 use App\Enum\AuditAction;
 use App\Enum\AuditModule;
+use App\Http\Requests\PropertyUnit\StorePropertyAttachmentRequest;
 use App\Http\Requests\PropertyUnit\StorePropertyUnitRequest;
 use App\Http\Requests\PropertyUnit\SyncAmenitiesRequest;
 use App\Http\Requests\PropertyUnit\UpdatePropertyUnitRequest;
+use App\Models\PropertyAttachment;
 use App\Models\PropertyUnit;
 use App\Services\AuditLog\AuditLogger;
 use App\Services\DashboardMetricService;
+use App\Services\PropertyAttachment\PropertyAttachmentService;
 use App\Services\PropertyUnit\PropertyUnitService;
 use App\Support\UuidResolver;
 use Illuminate\Http\JsonResponse;
@@ -24,6 +27,7 @@ class PropertyUnitController extends Controller
         protected AuditLogger $auditLogger,
         protected PropertyUnitService $propertyUnitService,
         protected DashboardMetricService $metricService,
+        protected PropertyAttachmentService $propertyAttachmentService,
     ) {}
 
     /**
@@ -72,7 +76,7 @@ class PropertyUnitController extends Controller
     {
         $tenantId = $request->user()->tenant_business_id;
         $units = PropertyUnit::query()
-            ->with(['property.tenantBusiness', 'property.amenities', 'amenities'])
+            ->with(['property.tenantBusiness', 'property.amenities', 'property.attachments', 'amenities', 'attachments'])
             ->whereHas('property', function ($query) use ($tenantId) {
                 $query->where('tenant_business_id', $tenantId);
             })
@@ -175,6 +179,50 @@ class PropertyUnitController extends Controller
         );
 
         return $this->success($propertyUnit->load('amenities'), 'Amenities updated successfully.');
+    }
+
+    /**
+     * Upload one or more images for this property unit.
+     */
+    public function storeAttachments(StorePropertyAttachmentRequest $request, PropertyUnit $propertyUnit): JsonResponse
+    {
+        $attachments = $this->propertyAttachmentService->attach(
+            $propertyUnit,
+            $request->file('images'),
+            $request->input('captions', []),
+        );
+
+        $this->auditLogger->record(
+            module: AuditModule::PROPERTY_UNIT,
+            action: AuditAction::UPDATED,
+            description: 'Added ' . count($attachments) . " image(s) to unit \"{$propertyUnit->name}\"",
+            auditable: $propertyUnit,
+            newValues: ['attachment_ids' => array_map(fn ($attachment) => $attachment->id, $attachments)],
+        );
+
+        return $this->success($attachments, 'Image(s) uploaded successfully.', 201);
+    }
+
+    /**
+     * Remove an uploaded image from this property unit.
+     */
+    public function destroyAttachment(PropertyUnit $propertyUnit, PropertyAttachment $attachment): JsonResponse
+    {
+        abort_unless(
+            $attachment->attachable_type === $propertyUnit->getMorphClass() && $attachment->attachable_id === $propertyUnit->id,
+            404
+        );
+
+        $this->propertyAttachmentService->delete($attachment);
+
+        $this->auditLogger->record(
+            module: AuditModule::PROPERTY_UNIT,
+            action: AuditAction::UPDATED,
+            description: "Removed image from unit \"{$propertyUnit->name}\"",
+            auditable: $propertyUnit,
+        );
+
+        return $this->success(null, 'Image deleted successfully.');
     }
 
     /**

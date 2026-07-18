@@ -1,7 +1,5 @@
 
 🪵BACKLOGS:
-    📌 Property Units:
-        ☐ [BE] implement unit images and media management    
 
     📌 Renters Management:
         ☐ [BE] implement CRUD for renters (associated with lease)
@@ -11,12 +9,16 @@
         ☐ [BE] Build a plan management system (CRUD for plans, plan features, etc.)
 
 📝TODOS:
+
+⚡IN-PROGRESS:
+
+    📌 Property Units:
+        ☐ [BE] implement unit images and media management    
+
+
     📌 Tenant dashboard:
         ☐ [BE] implement tenant dashboard and its payment transacction history.
     
-⚡IN-PROGRESS:
-    📌 Property Maintenace:
-        ☐ [BE] implement property maintenance
     
 
 ✅DONE:
@@ -58,3 +60,6 @@
     📌 Lease Payment (Ledger):
     ✔ [BE] implement updating lease payment status (e.g., paid, pending, overdue) @done(26-07-18 00:06)
     ✔ [BE] implement get listing of lease payments (with filters for status, date range, etc.) @done(26-07-18 00:06)
+
+    📌 Property Maintenace:
+    ✔ [BE] implement property maintenance @done(26-07-18 13:30)
