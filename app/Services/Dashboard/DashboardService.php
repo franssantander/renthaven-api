@@ -2,6 +2,7 @@
 
 namespace App\Services\Dashboard;
 
+use App\Data\Ledger\LedgerEntryData;
 use App\Enum\LedgerStatus;
 use App\Enum\Role;
 use App\Models\LedgerEntry;
@@ -9,6 +10,8 @@ use App\Models\Property;
 use App\Models\Renter;
 use App\Models\User;
 use App\Services\DashboardMetricService;
+use Illuminate\Database\Eloquent\Builder;
+use Spatie\LaravelData\PaginatedDataCollection;
 
 class DashboardService
 {
@@ -22,8 +25,7 @@ class DashboardService
      */
     public function getMetrics(User $user): array
     {
-        $isSuperAdmin = $user->role?->slug === Role::SUPER_ADMIN->value;
-        $tenantBusinessId = $user->tenant_business_id;
+        $isSuperAdmin = $this->isSuperAdmin($user);
 
         // Property is auto-scoped to the tenant via the BelongsToTenantBusiness
         // trait (and left unscoped for super admins), so no manual filter here.
@@ -31,10 +33,9 @@ class DashboardService
 
         $renterQuery = Renter::query()
             ->whereHas('activeLease')
-            ->when(!$isSuperAdmin, fn ($query) => $query->where('tenant_business_id', $tenantBusinessId));
+            ->when(!$isSuperAdmin, fn ($query) => $query->where('tenant_business_id', $user->tenant_business_id));
 
-        $ledgerQuery = LedgerEntry::query()
-            ->when(!$isSuperAdmin, fn ($query) => $query->where('tenant_business_id', $tenantBusinessId));
+        $ledgerQuery = $this->scopedLedgerQuery($user);
 
         return [
             $this->metricService->buildCountMetric(
@@ -61,5 +62,45 @@ class DashboardService
                 dateColumn: 'paid_at',
             ),
         ];
+    }
+
+    /**
+     * Renter-submitted payment claims awaiting admin approval, with the
+     * lease, unit, and property details needed to review each one.
+     */
+    public function getPendingApprovals(User $user, int $perPage): PaginatedDataCollection
+    {
+        $entries = $this->scopedLedgerQuery($user)
+            ->where('status', LedgerStatus::SUBMITTED)
+            ->with(['lease', 'renter', 'propertyUnit.property'])
+            ->latest('submitted_at')
+            ->paginate($perPage);
+
+        return LedgerEntryData::collect($entries, PaginatedDataCollection::class);
+    }
+
+    /**
+     * Recent ledger activity across every status (paid, pending, overdue,
+     * submitted), most recently updated first.
+     */
+    public function getRecentActivity(User $user, int $perPage): PaginatedDataCollection
+    {
+        $entries = $this->scopedLedgerQuery($user)
+            ->with(['lease', 'renter', 'propertyUnit.property'])
+            ->latest('updated_at')
+            ->paginate($perPage);
+
+        return LedgerEntryData::collect($entries, PaginatedDataCollection::class);
+    }
+
+    protected function isSuperAdmin(User $user): bool
+    {
+        return $user->role?->slug === Role::SUPER_ADMIN->value;
+    }
+
+    protected function scopedLedgerQuery(User $user): Builder
+    {
+        return LedgerEntry::query()
+            ->when(!$this->isSuperAdmin($user), fn ($query) => $query->where('tenant_business_id', $user->tenant_business_id));
     }
 }

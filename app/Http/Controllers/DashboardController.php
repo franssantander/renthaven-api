@@ -19,4 +19,21 @@ class DashboardController extends Controller
 
         return $this->success(['metrics' => $metrics], 'Dashboard metrics retrieved successfully.');
     }
+
+    /**
+     * Renter-submitted payment claims awaiting approval, with lease, amount,
+     * property, and unit details for each.
+     */
+    public function pendingApprovals(Request $request)
+    {
+        return $this->dashboardService->getPendingApprovals($request->user(), (int) $request->input('per_page', 15));
+    }
+
+    /**
+     * Recent ledger activity across every payment status.
+     */
+    public function recentActivity(Request $request)
+    {
+        return $this->dashboardService->getRecentActivity($request->user(), (int) $request->input('per_page', 15));
+    }
 }
