@@ -3,6 +3,7 @@
 namespace App\Data\Ledger;
 
 use App\Data\Lease\LeaseData;
+use App\Data\PropertyAttachment\PropertyAttachmentData;
 use App\Data\PropertyUnit\PropertyUnitData;
 use App\Data\Renter\RenterData;
 use App\Enum\LedgerStatus;
@@ -27,9 +28,14 @@ class LedgerEntryData extends Data
         public ?int $paid_by,
         public ?Carbon $reminder_sent_at,
         public ?string $notes,
+        public ?Carbon $submitted_at,
+        public ?string $submission_reference,
+        public ?string $submission_notes,
 
         public ?LeaseData $lease,
         public ?RenterData $renter,
         public ?PropertyUnitData $property_unit,
+        /** @var PropertyAttachmentData[]|null */
+        public ?array $attachments,
     ) {}
 }

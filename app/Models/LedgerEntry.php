@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
@@ -24,6 +25,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'paid_by',
     'reminder_sent_at',
     'notes',
+    'submitted_at',
+    'submission_reference',
+    'submission_notes',
 ])]
 #[Table('ledger_entries')]
 class LedgerEntry extends Model
@@ -44,6 +48,7 @@ class LedgerEntry extends Model
             'due_date'           => 'date',
             'paid_at'            => 'datetime',
             'reminder_sent_at'   => 'datetime',
+            'submitted_at'       => 'datetime',
             'status'             => LedgerStatus::class,
         ];
     }
@@ -71,5 +76,10 @@ class LedgerEntry extends Model
     public function paidBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'paid_by');
+    }
+
+    public function attachments(): MorphMany
+    {
+        return $this->morphMany(PropertyAttachment::class, 'attachable')->orderBy('sort_order');
     }
 }

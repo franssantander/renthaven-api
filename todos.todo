@@ -12,10 +12,6 @@
 
 ⚡IN-PROGRESS:
 
-    📌 Property Units:
-        ☐ [BE] implement unit images and media management    
-
-
     📌 Tenant dashboard:
         ☐ [BE] implement tenant dashboard and its payment transacction history.
     
@@ -63,3 +59,6 @@
 
     📌 Property Maintenace:
     ✔ [BE] implement property maintenance @done(26-07-18 13:30)
+
+    📌 Property Units:
+    ✔ [BE] implement unit images and media management @done(26-07-18 14:41)

@@ -55,13 +55,29 @@ class LedgerEntrySeeder extends Seeder
                 'paid_by' => $paidBy?->id,
             ]);
 
-            foreach ($entries->slice(1) as $entry) {
+            $overdueEntries = $entries->slice(1);
+            $submittedClaimEntry = $overdueEntries->first(
+                fn (LedgerEntry $entry) => Carbon::parse($entry->due_date)->lt($today)
+            );
+
+            foreach ($overdueEntries as $entry) {
                 if (Carbon::parse($entry->due_date)->lt($today)) {
                     $entry->update([
                         'status'           => LedgerStatus::OVERDUE,
                         'reminder_sent_at' => Carbon::parse($entry->due_date)->addDays(2),
                     ]);
                 }
+            }
+
+            // Leave one overdue entry as a renter-submitted claim awaiting admin
+            // approval, so the confirm/reject flow has real data to test against.
+            if ($submittedClaimEntry) {
+                $submittedClaimEntry->update([
+                    'status'                => LedgerStatus::SUBMITTED,
+                    'submitted_at'          => Carbon::parse($submittedClaimEntry->due_date)->addDays(4),
+                    'submission_reference'  => 'ZELLE-' . strtoupper(fake()->bothify('##??##')),
+                    'submission_notes'      => 'Paid via Zelle, please confirm.',
+                ]);
             }
 
             // generateUpcomingEntries() never creates a period until it has already

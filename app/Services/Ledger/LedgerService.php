@@ -117,7 +117,8 @@ class LedgerService
     }
 
     /**
-     * Mark a ledger entry as paid.
+     * Mark a ledger entry as paid. Used both when an admin records a payment
+     * directly and when an admin approves a renter's self-reported claim.
      */
     public function markPaid(LedgerEntry $entry, User $staff, ?string $notes = null): LedgerEntry
     {
@@ -126,6 +127,44 @@ class LedgerService
             'paid_at' => now(),
             'paid_by' => $staff->id,
             'notes'   => $notes ?? $entry->notes,
+        ]);
+
+        return $entry;
+    }
+
+    /**
+     * Renter self-reports that they've paid. Moves the entry into a
+     * pending-approval state rather than marking it paid outright — an
+     * admin must confirm it (via markPaid) or reject it.
+     */
+    public function submitPaymentClaim(LedgerEntry $entry, ?string $reference, ?string $notes): LedgerEntry
+    {
+        $entry->update([
+            'status'               => LedgerStatus::SUBMITTED,
+            'submitted_at'         => now(),
+            'submission_reference' => $reference,
+            'submission_notes'     => $notes,
+        ]);
+
+        return $entry;
+    }
+
+    /**
+     * Admin rejects a renter's self-reported payment claim, returning the
+     * entry to its unpaid state so the renter can resubmit or pay another way.
+     */
+    public function rejectPaymentClaim(LedgerEntry $entry, ?string $reason = null): LedgerEntry
+    {
+        $revertedStatus = Carbon::parse($entry->due_date)->lt(Carbon::today())
+            ? LedgerStatus::OVERDUE
+            : LedgerStatus::PENDING;
+
+        $entry->update([
+            'status'               => $revertedStatus,
+            'submitted_at'         => null,
+            'submission_reference' => null,
+            'submission_notes'     => null,
+            'notes'                => $reason ?? $entry->notes,
         ]);
 
         return $entry;

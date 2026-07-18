@@ -33,6 +33,10 @@ return new class extends Migration
             $table->timestamp('reminder_sent_at')->nullable();
             $table->text('notes')->nullable();
 
+            $table->timestamp('submitted_at')->nullable();
+            $table->string('submission_reference')->nullable();
+            $table->text('submission_notes')->nullable();
+
             $table->softDeletes();
             $table->timestamps();
 
