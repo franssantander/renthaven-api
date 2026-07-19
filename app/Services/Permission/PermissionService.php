@@ -1,19 +1,17 @@
 <?php
 
-namespace App\Actions\Permission;
+namespace App\Services\Permission;
 
 use App\Models\User;
+use App\Support\UuidResolver;
 use Illuminate\Support\Facades\DB;
 
-class GetUserPermissionMatrixAction
+class PermissionService
 {
     /**
      * Get only the active assigned permissions for a user.
-     *
-     * @param User $user
-     * @return array
      */
-    public function handle(User $user): array
+    public function getUserPermissionMatrix(User $user): array
     {
         // 1. If the user is a Super Admin, they inherently have access to every module and action
         if ($user->role?->slug === 'super_admin') {
@@ -85,5 +83,88 @@ class GetUserPermissionMatrixAction
                 })->values()->toArray()
             ];
         })->values()->toArray();
+    }
+
+    /**
+     * Synchronize a user's custom permission overrides.
+     */
+    public function syncUserPermissions(string $userUuid, array $permissions): void
+    {
+        $userId = UuidResolver::id('users', $userUuid);
+
+        if (!$userId) {
+            return;
+        }
+
+        $moduleUuids = collect($permissions)->pluck('module_uuid')->unique()->toArray();
+        $actionUuids = collect($permissions)->pluck('action_uuid')->flatten()->unique()->toArray();
+
+        // Map public UUIDs to internal IDs
+        $moduleMap = DB::table('permission_modules')->whereIn('uuid', $moduleUuids)->pluck('id', 'uuid');
+        $actionMap = DB::table('permission_actions')->whereIn('uuid', $actionUuids)->pluck('id', 'uuid');
+
+        $now = now();
+        $upsertData = [];
+
+        foreach ($permissions as $item) {
+            $moduleUuid = $item['module_uuid'] ?? null;
+            $moduleId = $moduleMap[$moduleUuid] ?? null;
+
+            if (!$moduleId || !isset($item['action_uuid'])) {
+                continue;
+            }
+
+            foreach ($item['action_uuid'] as $actionUuid) {
+                $actionId = $actionMap[$actionUuid] ?? null;
+                if (!$actionId) {
+                    continue;
+                }
+
+                $upsertData[] = [
+                    'user_id'              => $userId,
+                    'permission_module_id' => $moduleId,
+                    'permission_action_id' => $actionId,
+                    'is_active'            => true,
+                    'created_at'           => $now,
+                    'updated_at'           => $now,
+                ];
+            }
+        }
+
+        DB::transaction(function () use ($userId, $upsertData) {
+            DB::table('permission_per_user')
+                ->where('user_id', $userId)
+                ->update([
+                    'is_active'  => false,
+                    'updated_at' => now(),
+                ]);
+
+            if (!empty($upsertData)) {
+                DB::table('permission_per_user')->upsert(
+                    $upsertData,
+                    ['user_id', 'permission_module_id', 'permission_action_id'],
+                    ['is_active', 'updated_at']
+                );
+            }
+        });
+    }
+
+    /**
+     * Revoke all custom permission overrides for a user.
+     */
+    public function revokeAllUserPermissions(string $userUuid): void
+    {
+        $userId = UuidResolver::id('users', $userUuid);
+
+        if (!$userId) {
+            return;
+        }
+
+        DB::table('permission_per_user')
+            ->where('user_id', $userId)
+            ->update([
+                'is_active'  => false,
+                'updated_at' => now(),
+            ]);
     }
 }

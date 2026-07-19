@@ -10,22 +10,28 @@ http:
     type: json
     data: |-
       {
-          "user_id": "4f923dd0-7a14-11f1-b22d-6efb8cb8f561",
+          "user_id": "454da258-8342-11f1-9ce4-82ff0b8736fd",
           "permissions": [
               {
-                  "module_uuid": "4f946789-7a14-11f1-b22d-6efb8cb8f561",
+                  "module_uuid": "4550a24e-8342-11f1-9ce4-82ff0b8736fd",
                   "action_uuid": [
-                      "4f96b8af-7a14-11f1-b22d-6efb8cb8f561"
+                      "4553aa93-8342-11f1-9ce4-82ff0b8736fd"
                   ]
               }
               ,
               {
-                  "module_uuid": "4f94b633-7a14-11f1-b22d-6efb8cb8f561",
+                  "module_uuid": "4550ef5f-8342-11f1-9ce4-82ff0b8736fd",
                   "action_uuid": [
-                      "4f9714e8-7a14-11f1-b22d-6efb8cb8f561",
-                      "4f976193-7a14-11f1-b22d-6efb8cb8f561",
-                      "4f97b233-7a14-11f1-b22d-6efb8cb8f561",
-                      "4f98095b-7a14-11f1-b22d-6efb8cb8f561"
+                      "4553aa93-8342-11f1-9ce4-82ff0b8736fd",
+                      "4553f7f7-8342-11f1-9ce4-82ff0b8736fd",
+                      "4554497d-8342-11f1-9ce4-82ff0b8736fd",
+                      "4554a0c8-8342-11f1-9ce4-82ff0b8736fd"
+                  ]
+              },
+                    {
+                  "module_uuid": "4551734d-8342-11f1-9ce4-82ff0b8736fd",
+                  "action_uuid": [
+                      "4554497d-8342-11f1-9ce4-82ff0b8736fd"
                   ]
               }
           ]

@@ -2,9 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Permission\GetUserPermissionMatrixAction;
-use App\Actions\Permission\RevokeAllUserPermissionsAction;
-use App\Actions\Permission\SyncUserPermissionAction;
 use App\Data\Permission\PermissionModuleData;
 use App\Data\Permission\SyncUserPermissionsData;
 use App\Http\Requests\Permission\SyncUserPermissionRequest;
@@ -13,12 +10,17 @@ use App\Models\PermissionAction;
 use App\Models\PermissionModule;
 use App\Models\RolePermission;
 use App\Models\User;
+use App\Services\Permission\PermissionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 
 class PermissionController extends Controller
 {
+    public function __construct(
+        protected PermissionService $permissionService,
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -45,17 +47,15 @@ class PermissionController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(User $user, GetUserPermissionMatrixAction $action)
+    public function show(User $user)
     {
         $authUser = auth()->user();
         if ($authUser->role->slug !== 'super_admin' && $authUser->tenant_business_id !== $user->tenant_business_id) {
             return $this->error(null, 'Unauthorized to view this user\'s permissions.',  Response::HTTP_FORBIDDEN);
         }
 
-        $matrix = $action->handle($user);
-        return response()->json([
-            'data' => $matrix
-        ]);
+        $matrix = $this->permissionService->getUserPermissionMatrix($user);
+        return $this->success($matrix);
     }
 
     /**
@@ -82,15 +82,15 @@ class PermissionController extends Controller
         //
     }
 
-    public function sync(SyncUserPermissionRequest $request, SyncUserPermissionAction $action)
+    public function sync(SyncUserPermissionRequest $request)
     {
-        $action->handle($request->validated('user_id'), $request->input('permissions', []));
+        $this->permissionService->syncUserPermissions($request->validated('user_id'), $request->input('permissions', []));
         return $this->success(null, 'User permissions synchronized successfully.');
     }
 
-    public function revokeAll(RevokeAllPermissionsRequest $request, RevokeAllUserPermissionsAction $action)
+    public function revokeAll(RevokeAllPermissionsRequest $request)
     {
-        $action->handle($request->validated('user_id'));
+        $this->permissionService->revokeAllUserPermissions($request->validated('user_id'));
         return $this->success(null, 'All custom user permissions have been successfully revoked.');
     }
 }

@@ -4,176 +4,96 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**RentHaven** is a rental management system (MVP stage) that handles:
-- Property management
-- Property unit management
-- Leases / Renters
-- Payment ledger
-- Maintenance management
-- Dashboard (reporting/aggregated views)
+**RentHaven** is a multi-tenant rental management API (Laravel 13, PHP 8.4, stateless Passport auth). It covers property/unit management, leases, a payment ledger, maintenance requests, magic-link renter payments, a role/permission system, tenant subscription plans, audit logging, and notifications.
 
-The project is currently in **local development, not yet in production**. This matters for migration strategy (see below).
+The project is in **local development, not yet in production** — this affects the migration strategy (see below).
 
-### Key platform features
+## Commands
 
-- **Magic link payments** — a renter/lease can receive an emailed magic link that lets them view and pay an outstanding charge without logging in. On the admin side, a payment can also be manually marked as paid/updated by an admin. Any work touching payments must account for both paths: the self-serve magic-link flow and the admin-initiated update, and keep the payment ledger consistent between them.
-- **Multi-tenant business** — the app is multi-tenant. Tenancy plans and limits are already implemented (plan structure + usage/resource limits per tenant). New features that create records or allow bulk actions should respect the current tenant's plan limits — check the existing plan/limit enforcement mechanism before adding new resource-creation logic.
-- **Role & permission system** — permissions are defined per role at the application level (not just DB-driven ad hoc checks). This is enforced via middleware, and the authenticated user's permission set is returned as part of their auth/user data (e.g. on login/me endpoints) for frontend gating. New endpoints should be registered under the correct permission check rather than left open or only guarded by auth.
+```bash
+# Full local setup (copies .env, generates key, migrates, installs/builds JS)
+composer run setup
 
-## Tech Stack
+# Run app + queue worker + log tailer (pail) + vite, concurrently
+composer run dev
 
-- **Framework:** Laravel 13
-- **PHP:** 8.4 (via `php:8.4-fpm` Docker image)
-- **Web server:** Nginx
-- **Database:** MySQL / MariaDB
-- **Auth:** Laravel Passport (stateless — API token grants, no session)
-- **Infra:** Docker / docker-compose
+# Run the full test suite
+composer run test
+# equivalent to:
+php artisan config:clear && php artisan test
 
-## Architecture & Conventions
+# Run a single test file / filter by name
+php artisan test tests/Feature/SomeTest.php
+php artisan test --filter=test_method_name
+
+# Lint / format (Laravel Pint)
+vendor/bin/pint
+vendor/bin/pint --test   # check only, no writes
+
+# Migrate fresh with all seeders (primary way to get a testable dataset)
+php artisan migrate:fresh --seed
+
+# Scaffold a new Action class under app/Actions (custom artisan command)
+php artisan make:action Permission/SomeAction
+```
+
+Tests run against an in-memory SQLite DB (`phpunit.xml`), independent of the MySQL dev DB in `.env`.
+
+## Architecture
 
 ### Layered structure
-- **Controllers are thin.** No business logic in controllers. A controller method should: validate (via Form Request), call a Service method, return a success/error response.
-- **Service layer** holds all business logic. One service class per domain/feature (e.g. `PropertyService`, `LeaseService`, `PaymentLedgerService`, `MaintenanceRequestService`, `PropertyUnitService`).
-- Controllers depend on services via constructor injection, not facades or static calls.
+- **Controllers** (`app/Http/Controllers`) are thin: validate via Form Request → call a Service (or Action) → return via `success()`/`error()` helpers from the base `Controller` (`app/Http/Controllers/Controller.php`, note: under `Controllers/`, not directly in `Http/`).
+- **Services** (`app/Services/{Domain}/{Domain}Service.php`) hold business logic, one class per domain (`Property`, `PropertyUnit`, `Lease`, `Ledger`, `MaintenanceRequest`, `Amenity`, `AuditLog`, `Auth`, `Dashboard`, `Notification`, `PropertyAttachment`, `RenterPortal`).
+- Controllers depend on Services/Actions via constructor injection.
 
 ### Request validation
-- Every create/update endpoint gets its own `StoreXRequest` / `UpdateXRequest` (`app/Http/Requests/...`).
-- Form Requests must define clear, specific validation messages (`messages()` method) — no relying on default Laravel wording for user-facing errors.
-- Authorization checks (`authorize()`) belong in the Form Request when tied to input, otherwise in policies.
+- Every create/update endpoint has its own `Store{X}Request` / `Update{X}Request` under `app/Http/Requests/{Domain}/`, each with a `messages()` method for user-facing validation text — don't rely on Laravel's default wording.
+- `authorize()` on the Form Request is used for input-tied checks; broader authorization goes through Policies (`app/Policies`) or the `permission` route middleware.
 
 ### Data layer (Spatie Laravel Data)
-- Use `spatie/laravel-data` Data classes for all request/response payload shaping. Do not return raw Eloquent models from controllers.
-- Use Spatie's **Paginated Data** classes for any list/index endpoint response — do not hand-roll pagination meta.
-- Naming convention: `{Entity}Data`, `{Entity}PaginatedData` (or the project's existing convention — check `app/Data` before creating new ones).
+- `app/Data/{Domain}/{Entity}Data.php` classes shape all request/response payloads — controllers do not return raw Eloquent models.
+- Use Spatie's Paginated Data classes for list/index endpoints rather than hand-rolling pagination meta.
 
 ### Enums
-- Use PHP enums for any fixed set of values: statuses, types, categories, etc. (e.g. `PropertyType`, `PropertyUnitStatus`, `LeaseStatus`, `PaymentStatus`, `MaintenanceRequestStatus`, `MaintenanceRequestPriority`). Place them in `app/Enum` (singular — matches the existing folder, don't create `app/Enums`).
-- Prefer backed enums (`: string` or `: int`) so they serialize cleanly through Spatie Data classes.
-- Avoid loose strings/constants for these values anywhere in the codebase.
+- All fixed value sets live in `app/Enum` (singular — don't create `app/Enums`), as backed enums (e.g. `PropertyType`, `PropertyUnitStatus`, `LedgerStatus`, `MaintenanceRequestStatus`, `MaintenancePriority`, `Role`, `AuditAction`).
 
 ### Identifiers
-- **UUIDs** are used only for identifiers passed in **payloads** — i.e. request params for create, update, and delete operations (route params / body params referencing a resource from the outside). Resolve UUID ↔ internal ID via `app/Support/UuidResolver.php` rather than ad hoc lookups.
-- **Foreign keys / internal relations** stay as standard auto-increment DB IDs (`id`, `*_id` FKs). Do not convert relational foreign keys to UUIDs.
-- Models exposed via API should have a `uuid` column used for public-facing lookups, resolved internally to the numeric `id` for relations/queries.
+- UUIDs are used only in **payloads** (route/body params referencing a resource from outside). Every API-exposed model has a `uuid` column; resolution to the internal `id` goes through `app/Support/UuidResolver.php::id()`/`::ids()` rather than ad hoc lookups.
+- Models get UUID support via the `HasHasPublicUuidTrait` trait (`app/HasHasPublicUuidTrait.php` — note: lives directly under `app/`, not `app/Traits`, and keep the existing (misspelled) name rather than "fixing" it, since it's referenced across models).
+- Foreign keys / internal relations stay standard auto-increment `id`/`*_id` — never convert these to UUIDs.
 
 ### Multi-tenancy
-- Tenant-owned models use the `BelongsToTenantBusiness` trait (`app/Traits/BelongsToTenantBusiness.php`) for scoping — apply this trait to new tenant-owned models rather than writing a new global scope from scratch.
-- Respect the existing tenant plan/limit enforcement when adding resource-creation logic (check the relevant plan/limit service before allowing creation of a new record type).
+- Tenant-owned models use the `BelongsToTenantBusiness` trait (`app/Traits/BelongsToTenantBusiness.php`). It auto-fills `tenant_business_id` on create and adds a global scope filtering every query to the authenticated user's tenant — except for `Role::SUPER_ADMIN`, who sees everything unscoped. No user (console/queue context) means no scoping is applied.
+- **Plan limits are enforced in Policies, not a dedicated service.** E.g. `PropertyPolicy::create()` loads `$user->tenantBusiness->plan` and compares current usage against columns like `plan->max_properties` (see `app/Models/Plan.php` for the fillable limit columns: `max_properties`, `max_units`). Follow this same pattern (Policy `create()` method checking tenant's plan) when adding new resource-creation logic that should respect plan limits — there is no separate `PlanLimitService`.
+
+### Permissions
+- Permission model: `PermissionModule` × `PermissionAction` (many-to-many via `permission_module_action`), granted to a `Role` via `RolePermission`, with optional per-user overrides via `PermissionPerUser`.
+- `User::hasPermission(string $moduleSlug, string $actionCode): bool` is the check used everywhere.
+- Route-level enforcement uses the `permission` middleware (`app/Http/Middleware/CheckPermission.php`), applied per-route as `->middleware('permission:{module},{action}')` (see `routes/v1/properties.php` for examples). New endpoints should be registered under the correct permission rather than left open or only behind `auth:api`.
 
 ### Routing
-- Do not add routes directly into `routes/api.php`.
-- Each domain gets its own route file under `routes/v1/` (e.g. `routes/v1/properties.php`, `routes/v1/property_unit.php`, `routes/v1/leases.php`, `routes/v1/payments.php`, `routes/v1/maintenance.php`), and `routes/api.php` only imports them.
+- No route definitions in `routes/api.php` — it only `require`s files under `routes/v1/` (one per domain: `properties.php`, `property_unit.php`, `lease.php`, `ledger.php`, `maintenance_request.php`, `amenities.php`, `permission.php`, `tenant_business.php`, `user_management.php`, `dashboard.php`, `renter_portal.php`, `audit_log.php`, `notifications.php`, `auth.php`).
+- Route files group by prefix/name/`auth:api` middleware and a `->controller(...)` group, adding `permission:...` middleware per action as needed.
 
 ### Responses
-- All controllers extend `app/Http/Controller.php` and use the shared `app/Support/ApiResponder.php` `success()` and `error()` methods for responses. Do not manually build `response()->json()` ad hoc in a controller.
-- Use Laravel's built-in `Illuminate\Http\Response` / `Symfony\Component\HttpFoundation\Response` HTTP status constants (e.g. `Response::HTTP_UNPROCESSABLE_ENTITY`, `Response::HTTP_UNAUTHORIZED`) — never hardcode magic numbers like `422` or `401` directly.
-- Use Laravel's built-in HTTP status text/messages where applicable instead of custom strings.
+- All controllers use `success()`/`error()` (from the base `Controller`, backed by `app/Support/ApiResponder.php`) — never build `response()->json()` ad hoc.
+- `ApiResponder::error()` already maps common exception types (`ValidationException`, `AuthenticationException`, `AuthorizationException`, `ModelNotFoundException`/`NotFoundHttpException`, `QueryException`, `HttpException`) to the right status code and a safe default message, and appends a `debug` block outside production. Pass the caught exception through rather than re-deriving status codes/messages by hand.
+- Use `Symfony\Component\HttpFoundation\Response` HTTP status constants, never magic numbers.
 
 ### Database migrations
-- **Do not create new migrations that append/alter existing tables.** The schema is still fluid in local development (pre-production) — edit the original migration file for the table directly instead of stacking a new migration on top of it.
-- This applies until the project ships to production, at which point this rule will change to standard additive migrations.
+- **Do not append/alter via new migrations while pre-production.** Edit the original migration file for the table directly. This will change to standard additive migrations once the project ships.
 
-### Authentication
-- Laravel Passport, **stateless**.
-- Login endpoint does **not** return a token in the response body/flow the usual Passport way — follow the project's existing stateless auth handling (do not assume standard `access_token` response shape without checking current implementation first).
-
-## Domain Modules (MVP scope)
-
-| Module | Notes |
-|---|---|
-| Property Management | Parent property records |
-| Property Unit Management | Units belonging to a Property (1-to-many) |
-| Leases / Renters | Lease agreements tied to a Renter and a Property Unit |
-| Payment Ledger | Tracks rent payments/charges against a Lease |
-| Maintenance Management | Maintenance requests tied to a Property Unit / Lease |
-| Dashboard | Aggregated/reporting views across the above |
-
-## Directory Structure
-
-This reflects the **actual current codebase** (early/initial state — will grow as features are added, but the shape below is the convention to follow):
-
-```
-app/
-├── Data/                       # Spatie Data classes, grouped per domain
-│   └── Property/
-│       ├── PropertyData.php
-│       └── ...                 # e.g. PropertyPaginatedData.php
-├── Enum/                       # NOTE: singular "Enum", not "Enums"
-│   ├── PropertyType.php
-│   ├── PropertyUnitStatus.php
-│   └── ...
-├── Http/
-│   ├── Controller.php           # base controller (other controllers extend this)
-│   ├── PropertyController.php
-│   ├── PropertyUnitController.php
-│   ├── Requests/                 # StoreXRequest / UpdateXRequest per domain (add as needed)
-│   │   └── Property/
-│   │       ├── StorePropertyRequest.php
-│   │       └── UpdatePropertyRequest.php
-│   ├── Middleware/                # add PermissionMiddleware, tenant resolution middleware here
-│   └── ...
-├── Models/
-│   ├── Property.php
-│   └── ...
-├── Notifications/
-│   ├── MagicLinkNotification.php  # emailed payment magic link
-│   └── ...
-├── Policies/
-│   ├── PropertyPolicy.php
-│   └── ...
-├── Services/                    # grouped per domain, NOT flat
-│   └── Ledger/
-│       ├── LedgerService.php
-│       └── ...
-│   # follow this same "Services/{Domain}/{Domain}Service.php" pattern for
-│   # Property, PropertyUnit, Lease, MagicLinkPayment, Maintenance, Dashboard,
-│   # TenantPlan, Permission, etc.
-├── Support/                      # shared low-level helpers (not domain services)
-│   ├── ApiResponder.php          # success()/error() response helper — used in place of an abstract controller
-│   ├── UuidResolver.php          # resolves public UUIDs <-> internal DB ids for payloads
-│   └── ...
-└── Traits/
-    ├── BelongsToTenantBusiness.php   # multi-tenant scoping trait, used on tenant-owned models
-    └── ...
-
-database/
-├── factories/
-│   ├── TenantBusinessFactory.php
-│   └── ...
-├── migrations/
-│   └── ...                      # edit existing migration files in place (see rule above)
-└── seeders/
-    └── ...                      # one seeder per feature (see Seeder Requirement below)
-
-routes/
-├── v1/
-│   ├── properties.php
-│   ├── property_unit.php
-│   └── ...                      # one file per domain: leases.php, payments.php, maintenance.php, dashboard.php, etc.
-└── api.php                      # imports routes/v1/*.php only, no route definitions itself
-```
-
-**Notes on conventions to follow, based on this structure:**
-- Enums live in `app/Enum` (singular) — match this, don't create `app/Enums`.
-- Services are grouped per domain in subfolders (`Services/{Domain}/{Domain}Service.php`), not flat files directly in `Services/`.
-- There's no abstract base controller for responses — `app/Support/ApiResponder.php` is the shared success/error responder. `app/Http/Controller.php` is the base controller other controllers extend. Use these existing files rather than introducing a new abstract class.
-- UUID ↔ internal ID resolution for payloads goes through `app/Support/UuidResolver.php`.
-- Multi-tenant scoping is applied via the `BelongsToTenantBusiness` trait on tenant-owned models, not through a query scope defined ad hoc per model.
-- `Http/Requests/` and `Http/Middleware/` aren't populated yet in the initial files shown, but should be created following this same domain-grouped structure as Store/Update requests and permission/tenant middleware are added.
-
-## Before Writing Code
-
-- Check `app/Services`, `app/Data`, `app/Enum`, `app/Http/Requests`, and the relevant `routes/v1/*.php` file for existing patterns before creating new classes — match existing naming and structure rather than introducing a new style.
-- Check whether a migration for the target table already exists before creating one; modify it in place if it does (see Database Migrations rule above).
-- Reuse `app/Support/ApiResponder.php`, `app/Http/Controller.php`, `app/Support/UuidResolver.php`, and `app/Traits/BelongsToTenantBusiness.php` rather than reinventing equivalents.
-- Check current tenant plan/limit enforcement before adding creation logic that could be affected by plan limits.
-- Check the permission/role setup before adding a new endpoint, and register it under the correct permission rather than leaving it open.
+### Key platform features to keep in mind
+- **Magic link payments**: a renter can pay an outstanding ledger charge via an emailed magic link (`MagicLinkService`, `MagicLinkToken` model, `MagicLinkNotification`) without logging in; admins can also mark a payment as paid manually. Anything touching payments must handle both paths and keep the ledger consistent.
+- **Audit logging**: significant actions are recorded via `AuditLog`/`AuditLogService` with `AuditAction`/`AuditModule` enums — check existing usages before adding new mutation endpoints so they're captured consistently.
 
 ## Seeder Requirement
 
-**Every feature built must ship with a corresponding database seeder** so it can be tested immediately with realistic data.
+**Every feature must ship with a corresponding seeder** so `php artisan migrate:fresh --seed` produces a fully testable dataset in one command (see `database/seeders/DatabaseSeeder.php` for registration order — permissions/roles/plans/tenants before domain data). Seeders should cover multiple tenants/plans and multiple roles so permission-gated and plan-limited behavior can be exercised. Prefer factories (`database/factories`) + seeders together over hardcoded arrays, except for inherently fixed data (permission names, plan definitions).
 
-- Add or update a seeder under `database/seeders/` for any new table, status/enum set, or feature-specific data (e.g. a new `MaintenanceRequestSeeder` when adding maintenance management, updated `PaymentLedgerSeeder` when adding a new payment state).
-- Seeders should cover realistic multi-tenant scenarios (more than one tenant, more than one plan) and, where relevant, multiple roles/permissions so permission-gated behavior can be tested.
-- Register new seeders in `DatabaseSeeder.php` so `php artisan migrate:fresh --seed` produces a fully testable dataset in one command.
-- Prefer factories + seeders together (factory for shape, seeder for orchestration/scenario data) over hardcoded arrays, unless the data is inherently fixed (e.g. permission names, plan definitions).
+## Before Writing Code
+
+- Check `app/Services`, `app/Data`, `app/Enum`, `app/Http/Requests`, and the relevant `routes/v1/*.php` file for existing patterns before creating new classes.
+- Check whether a migration for the target table already exists before creating one; modify it in place if so.
+- Check the relevant Policy for existing plan-limit enforcement before adding creation logic for a new resource type.
+- Check `PermissionModuleSeeder`/`PermissionActionSeeder` and the target route file before adding a new endpoint, and gate it with `permission:{module},{action}`.

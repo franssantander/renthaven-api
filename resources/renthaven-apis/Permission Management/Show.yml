@@ -8,7 +8,7 @@ http:
   url: "{{base_url}}/permission/:id"
   params:
     - name: id
-      value: de93557b-7a22-11f1-b22d-6efb8cb8f561
+      value: 454da258-8342-11f1-9ce4-82ff0b8736fd
       type: path
   auth: inherit
 
