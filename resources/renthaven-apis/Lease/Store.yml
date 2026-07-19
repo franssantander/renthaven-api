@@ -1,0 +1,38 @@
+info:
+  name: Store
+  type: http
+  seq: 9
+
+http:
+  method: POST
+  url: "{{base_url}}/lease"
+  body:
+    type: json
+    data: |-
+      // {
+      //      "property_unit_uuid": "410ed0c6-8208-11f1-b73c-1684cbbaf442",
+      //      "term_type": "monthly",
+      //      "start_date": "2026-07-16",
+      //      "tenants": ["f2d7a83b-8207-11f1-b73c-1684cbbaf442"]
+      // }
+
+      {
+           "property_unit_uuid": "1e1b706e-82c3-11f1-9ffb-bac195ec8e09",
+           "term_type": "monthly",
+           "start_date": "2026-07-18",
+           "tenants": [
+              {
+              "first_name": "Ben",
+              "last_name": "Sassy",
+              "username": "bensassy",
+              "email": "test123@test.com"
+              }
+           ]
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

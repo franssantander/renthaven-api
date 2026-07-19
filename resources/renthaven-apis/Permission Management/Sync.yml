@@ -1,0 +1,39 @@
+info:
+  name: Sync
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{base_url}}/permission/sync"
+  body:
+    type: json
+    data: |-
+      {
+          "user_id": "4f923dd0-7a14-11f1-b22d-6efb8cb8f561",
+          "permissions": [
+              {
+                  "module_uuid": "4f946789-7a14-11f1-b22d-6efb8cb8f561",
+                  "action_uuid": [
+                      "4f96b8af-7a14-11f1-b22d-6efb8cb8f561"
+                  ]
+              }
+              ,
+              {
+                  "module_uuid": "4f94b633-7a14-11f1-b22d-6efb8cb8f561",
+                  "action_uuid": [
+                      "4f9714e8-7a14-11f1-b22d-6efb8cb8f561",
+                      "4f976193-7a14-11f1-b22d-6efb8cb8f561",
+                      "4f97b233-7a14-11f1-b22d-6efb8cb8f561",
+                      "4f98095b-7a14-11f1-b22d-6efb8cb8f561"
+                  ]
+              }
+          ]
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

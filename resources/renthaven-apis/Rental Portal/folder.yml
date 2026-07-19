@@ -1,0 +1,7 @@
+info:
+  name: Rental Portal
+  type: folder
+  seq: 13
+
+request:
+  auth: inherit

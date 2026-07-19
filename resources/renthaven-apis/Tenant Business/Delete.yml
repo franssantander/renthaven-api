@@ -1,0 +1,24 @@
+info:
+  name: Delete
+  type: http
+  seq: 5
+
+http:
+  method: DELETE
+  url: "{{base_url}}/tenant-business/:uuid"
+  params:
+    - name: uuid
+      value: 0b8c7750-7818-11f1-a3ec-7e1512ce8234
+      type: path
+  auth: inherit
+
+runtime:
+  variables:
+    - name: TenantBusiness
+      value: 8a3af4a6-7823-11f1-a3ec-7e1512ce8234
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

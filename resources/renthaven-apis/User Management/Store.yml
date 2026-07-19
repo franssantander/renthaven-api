@@ -1,0 +1,29 @@
+info:
+  name: Store
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{base_url}}/user-management"
+  body:
+    type: json
+    data: |-
+      {
+          "role_id": 3,
+          // "tenant_business_id": 1, //for super admin only
+          "first_name": "Test",
+          "last_name": "User",
+          "username": "testuser6",
+          "email": "test@test6.com",
+          "phone": "12345678994",
+          "password": "password",
+          "password_confirmation": "password"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

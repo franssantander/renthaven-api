@@ -1,0 +1,36 @@
+info:
+  name: Store
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{base_url}}/permission"
+  body:
+    type: json
+    data: |-
+      {
+          "role_id": 3,
+          "permissions": [
+              {
+                  "module_uuid": "e4b10852-0c9f-11ed-861d-0242ac120002",
+                  "action_uuids": [
+                      "a1f681a2-0c9f-11ed-861d-0242ac120002",
+                      "b5e942c4-0c9f-11ed-861d-0242ac120002"
+                  ]
+              },
+              {
+                  "module_uuid": "f9c31964-0c9f-11ed-861d-0242ac120002",
+                  "action_uuids": [
+                      "a1f681a2-0c9f-11ed-861d-0242ac120002"
+                  ]
+              }
+          ]
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

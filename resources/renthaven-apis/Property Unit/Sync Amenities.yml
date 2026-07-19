@@ -1,0 +1,25 @@
+info:
+  name: Sync Amenities
+  type: http
+  seq: 8
+
+http:
+  method: PUT
+  url: "{{base_url}}/property-unit/:property_unit/amenities"
+  params:
+    - name: property_unit
+      value: 3b694e6c-81e9-11f1-b73c-1684cbbaf442
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+          "amenity_uuids": ["3b47c2db-81e9-11f1-b73c-1684cbbaf442","3b477dbc-81e9-11f1-b73c-1684cbbaf442"]
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

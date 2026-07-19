@@ -1,0 +1,34 @@
+info:
+  name: Submit Payment
+  type: http
+  seq: 4
+
+http:
+  method: PUT
+  url: "{{base_url}}/ledger/mine/:ledger-entry/submit-payment"
+  params:
+    - name: ledger-entry
+      value: ""
+      type: path
+  body:
+    type: multipart-form
+    data:
+      - name: reference
+        type: text
+        value: REF-123
+      - name: notes
+        type: text
+        value: lorem ipsum dolor
+      - name: proof[0]
+        type: text
+        value: ""
+      - name: proof[1]
+        type: text
+        value: ""
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

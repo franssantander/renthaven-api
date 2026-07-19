@@ -1,0 +1,24 @@
+info:
+  name: Store
+  type: http
+  seq: 10
+
+http:
+  method: POST
+  url: "{{base_url}}/amenity"
+  body:
+    type: json
+    data: |-
+      {
+          "name": "Test amenity",
+          "slug": "test_amenity",
+          "category": "general",
+          "icon": ""
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,25 @@
+info:
+  name: Update
+  type: http
+  seq: 9
+
+http:
+  method: PUT
+  url: "{{base_url}}/lease/:uuid"
+  params:
+    - name: uuid
+      value: ""
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+          "property_unit_id": 1
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

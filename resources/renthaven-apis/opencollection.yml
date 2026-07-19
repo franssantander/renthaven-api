@@ -1,0 +1,37 @@
+opencollection: 1.0.0
+
+info:
+  name: Renthaven APIs
+config:
+  proxy:
+    inherit: true
+    config:
+      protocol: http
+      hostname: ""
+      port: ""
+      auth:
+        username: ""
+        password: ""
+      bypassProxy: ""
+
+request:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.status === 200 || res.status === 201) {
+          const token = bru.cookies.get("auth_token");
+
+          if (token) {
+            bru.setEnvVar("auth_token", token, { persist: true });
+
+            console.log("Token extracted and saved to {{auth_token}}!");
+          } else {
+            console.log("No auth_token cookie found.");
+          }
+        }
+bundled: false
+extensions:
+  bruno:
+    ignore:
+      - node_modules
+      - .git

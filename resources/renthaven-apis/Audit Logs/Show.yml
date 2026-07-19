@@ -1,0 +1,19 @@
+info:
+  name: Show
+  type: http
+  seq: 15
+
+http:
+  method: GET
+  url: "{{base_url}}/audit-logs/:log_id"
+  params:
+    - name: log_id
+      value: ""
+      type: path
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

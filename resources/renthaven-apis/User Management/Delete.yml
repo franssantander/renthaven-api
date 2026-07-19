@@ -1,0 +1,19 @@
+info:
+  name: Delete
+  type: http
+  seq: 4
+
+http:
+  method: DELETE
+  url: "{{base_url}}/user-management/:id"
+  params:
+    - name: id
+      value: c3226b97-7856-11f1-9f6d-0675e139a7c8
+      type: path
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,25 @@
+info:
+  name: Store
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{base_url}}/maintenance-request"
+  body:
+    type: json
+    data: |-
+      {
+          "lease_uuid": "913a081d-820b-11f1-b73c-1684cbbaf442",
+          "title": "test maintenance",
+          "description": "lorem ipsum dolor",
+          "category": "plumbing",
+          "priority": "low"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

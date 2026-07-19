@@ -1,0 +1,33 @@
+info:
+  name: Store
+  type: http
+  seq: 8
+
+http:
+  method: POST
+  url: "{{base_url}}/property-unit"
+  body:
+    type: json
+    data: |-
+      {
+          "property_uuid": "b507bf19-8339-11f1-9ce4-82ff0b8736fd",
+          "units": [
+              {
+                  "name": "Unit 101",
+                  "capacity": 2,
+                  "rent_price": 5500
+              },
+              {
+                  "name": "Unit 102",
+                  "capacity": 2,
+                  "rent_price": 4500
+              }
+          ]
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

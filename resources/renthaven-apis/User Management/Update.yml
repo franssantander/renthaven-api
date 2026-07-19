@@ -1,0 +1,25 @@
+info:
+  name: Update
+  type: http
+  seq: 5
+
+http:
+  method: PUT
+  url: "{{base_url}}/user-management/:user_id"
+  params:
+    - name: user_id
+      value: 2f5e07bb-7acb-11f1-8db7-0652c9821aa5
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+          "first_name": "Test update"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

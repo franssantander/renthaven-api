@@ -1,0 +1,27 @@
+info:
+  name: Update
+  type: http
+  seq: 5
+
+http:
+  method: PUT
+  url: "{{base_url}}/maintenance-request/:maintenance_id/status"
+  params:
+    - name: maintenance_id
+      value: ""
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+          // "lease_uuid": "f3fb868d-8206-11f1-b73c-1684cbbaf442",
+          "status": "resolved",
+          "notes": "lorem ipsum dolor"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

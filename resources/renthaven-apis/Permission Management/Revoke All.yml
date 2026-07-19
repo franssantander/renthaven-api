@@ -1,0 +1,21 @@
+info:
+  name: Revoke All
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{base_url}}/permission/revoke-all"
+  body:
+    type: json
+    data: |-
+      {
+          "user_id": "4f923dd0-7a14-11f1-b22d-6efb8cb8f561"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

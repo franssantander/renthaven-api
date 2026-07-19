@@ -1,0 +1,31 @@
+info:
+  name: Register
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{base_url}}/tenant-business/register"
+  body:
+    type: json
+    data: |-
+      {
+          "plan_id": 1,
+          "business_name": "Test Business A",
+          "business_email": "testbusiness@test.com",
+          "business_phone": "09123456789",
+          "business_address": "BLK 101, Metro Manila St. Espasyo",
+          "first_name": "John",
+          "last_name": "Doe",
+          "email": "jd@test.com",
+          "username": "johndoe001",
+          "password": "password",
+          "password_confirmation": "password"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

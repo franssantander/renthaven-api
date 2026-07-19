@@ -1,0 +1,19 @@
+info:
+  name: Update
+  type: http
+  seq: 8
+
+http:
+  method: PUT
+  url: "{{base_url}}/property/:uuid"
+  params:
+    - name: uuid
+      value: e9c717e8-7d13-11f1-9678-62ec1b11f509
+      type: path
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -12,8 +12,8 @@
 
 ⚡IN-PROGRESS:
 
-    📌 Tenant dashboard:
-        ☐ [BE] implement tenant dashboard and its payment transacction history.
+    📌 Store Property Unit Validation:
+        ☐ [BE] adjust the validation on store property unit, since Property A and Property B is identical, so it must should use the correct name like Unit 101, Unit 102
     
     
 
@@ -62,3 +62,6 @@
 
     📌 Property Units:
     ✔ [BE] implement unit images and media management @done(26-07-18 14:41)
+
+    📌 Tenant dashboard:
+    ✔ [BE] implement tenant dashboard and its payment transacction history. @done(26-07-19 14:08)

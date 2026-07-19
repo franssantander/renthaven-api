@@ -1,0 +1,22 @@
+info:
+  name: Verify Email
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{base_url}}/auth/email/verify/18/47974ee44ffa6366794c2790b0c83228e20de0a5?expires=1783171766&signature=429631b931697627ea16a8903759cb8269767b876fe1d6780219dbeb46d1f601"
+  params:
+    - name: expires
+      value: "1783171766"
+      type: query
+    - name: signature
+      value: 429631b931697627ea16a8903759cb8269767b876fe1d6780219dbeb46d1f601
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

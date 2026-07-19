@@ -1,0 +1,19 @@
+info:
+  name: Show
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{base_url}}/tenant-business/:uuid"
+  params:
+    - name: uuid
+      value: d24b25da-7a1e-11f1-b22d-6efb8cb8f561
+      type: path
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

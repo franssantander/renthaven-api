@@ -1,0 +1,15 @@
+info:
+  name: Read All
+  type: http
+  seq: 4
+
+http:
+  method: PUT
+  url: notifications/read-all
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

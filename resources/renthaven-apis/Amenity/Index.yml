@@ -1,0 +1,15 @@
+info:
+  name: Index
+  type: http
+  seq: 10
+
+http:
+  method: GET
+  url: "{{base_url}}/amenity"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

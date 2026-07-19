@@ -1,0 +1,27 @@
+info:
+  name: Store
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{base_url}}/tenant-business"
+  body:
+    type: json
+    data: |-
+      {
+          "plan_id": 1,
+          "name": "Test Business A",
+          "email": "testbusiness@testa.com",
+          "phone": "091234567821",
+          "address": "BLK 101, Metro Manila St. Espasyo",
+          "contact_person": "",
+          "tin": "111-222-333-441"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
