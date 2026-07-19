@@ -17,6 +17,14 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
 
+        $this->command->info('Creating personal access client for Passport...');
+
+        Artisan::call('passport:client', [
+            '--personal' => true,
+            '--name' => 'Rental Client',
+            '--no-interaction' => true,
+        ]);
+
         DatabaseSeeder::call([
             PlanSeeder::class,
             TenantBusinessSeeder::class,
@@ -33,16 +41,9 @@ class DatabaseSeeder extends Seeder
             LedgerEntrySeeder::class,
             LedgerProcessDemoSeeder::class,
             MagicLinkTokenSeeder::class,
+            RefreshTokenSeeder::class,
             AuditLogSeeder::class,
             NotificationSeeder::class,
-        ]);
-
-        $this->command->info('Creating personal access client for Passport...');
-
-        Artisan::call('passport:client', [
-            '--personal' => true,
-            '--name' => 'Rental Client',
-            '--no-interaction' => true,
         ]);
     }
 }

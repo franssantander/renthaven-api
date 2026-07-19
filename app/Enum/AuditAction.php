@@ -10,6 +10,8 @@ enum AuditAction: string
     case LOGOUT = 'logout';
     case MAGIC_LINK_REQUESTED = 'magic_link_requested';
     case MAGIC_LINK_LOGIN_SUCCESS = 'magic_link_login_success';
+    case TOKEN_REFRESHED = 'token_refreshed';
+    case TOKEN_REFRESH_FAILED = 'token_refresh_failed';
 
     case CREATED = 'created';
     case UPDATED = 'updated';

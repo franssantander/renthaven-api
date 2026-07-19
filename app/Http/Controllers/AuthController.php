@@ -11,32 +11,31 @@ use App\Http\Requests\Auth\MagicLinkRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Requests\Auth\VerifyMagicLinkRequest;
 use App\Models\User;
+use App\Notifications\MagicLinkNotification;
 use App\Services\AuditLog\AuditLogger;
 use App\Services\Auth\MagicLinkService;
-use App\Notifications\MagicLinkNotification;
+use App\Services\Auth\TokenService;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends Controller
 {
-
     public function __construct(
         protected AuditLogger $auditLogger,
         protected MagicLinkService $magicLinkService,
+        protected TokenService $tokenService,
     ) {}
-
-    protected string $cookieName = 'auth_token';
 
     public function login(LoginRequest $request)
     {
         $credentials = $request->validated();
 
-        if (!Auth::attempt($credentials)) {
+        if (! Auth::attempt($credentials)) {
             $this->auditLogger->record(
                 module: AuditModule::AUTH,
                 action: AuditAction::LOGIN_FAILED,
@@ -50,7 +49,7 @@ class AuthController extends Controller
 
         $user = Auth::user();
 
-        if (!$user->hasVerifiedEmail()) {
+        if (! $user->hasVerifiedEmail()) {
             Auth::logout();
             $this->auditLogger->record(
                 module: AuditModule::AUTH,
@@ -72,30 +71,12 @@ class AuthController extends Controller
             auditable: $user,
         );
 
+        [$accessCookie, $refreshCookie] = $this->tokenService->issue($user);
+
         return $this->success(
             UserData::from($user),
             'Login successful.'
-        )->withCookie($this->issueAuthCookie($user));
-    }
-
-    /**
-     * Issue a Passport access token for the given user and wrap it in the auth cookie.
-     */
-    protected function issueAuthCookie(User $user)
-    {
-        $token = $user->createToken('auth_token')->accessToken;
-
-        return cookie(
-            $this->cookieName,
-            $token,
-            60 * 24 * 7,   // 7 days, in minutes
-            '/',           // path
-            null,          // domain
-            app()->environment('production'), // secure — HTTPS only in prod
-            true,          // httpOnly
-            false,         // raw
-            'Strict'       // sameSite
-        );
+        )->withCookie($accessCookie)->withCookie($refreshCookie);
     }
 
     public function logout(Request $request)
@@ -104,9 +85,12 @@ class AuthController extends Controller
 
         if ($user) {
             $token = $user->token();
-            $token?->revoke();
-        }
 
+            if ($token) {
+                $this->tokenService->revokeForAccessToken($token->id);
+                $token->revoke();
+            }
+        }
 
         $this->auditLogger->record(
             module: AuditModule::AUTH,
@@ -115,11 +99,48 @@ class AuthController extends Controller
             auditable: $user,
         );
 
-
-        $forgetCookie = Cookie::forget($this->cookieName);
+        [$forgetAccessCookie, $forgetRefreshCookie] = $this->tokenService->forgetCookies();
 
         return $this->success(null, 'Logout successful.')
-            ->withCookie($forgetCookie);
+            ->withCookie($forgetAccessCookie)
+            ->withCookie($forgetRefreshCookie);
+    }
+
+    /**
+     * Exchange a valid refresh token cookie for a new access/refresh token pair.
+     */
+    public function refresh(Request $request)
+    {
+        $plainRefreshToken = $request->cookie('refresh_token');
+
+        if (! $plainRefreshToken) {
+            return $this->error(null, 'Refresh token missing.', Response::HTTP_UNAUTHORIZED);
+        }
+
+        $result = $this->tokenService->rotate($plainRefreshToken);
+
+        if (! $result) {
+            $this->auditLogger->record(
+                module: AuditModule::AUTH,
+                action: AuditAction::TOKEN_REFRESH_FAILED,
+                description: 'Refresh token rejected: invalid, expired, or already used',
+            );
+
+            return $this->error(null, 'Refresh token is invalid or has expired.', Response::HTTP_UNAUTHORIZED);
+        }
+
+        [$user, $accessCookie, $refreshCookie] = $result;
+
+        $this->auditLogger->record(
+            module: AuditModule::AUTH,
+            action: AuditAction::TOKEN_REFRESHED,
+            description: "{$user->email} refreshed their access token",
+            auditable: $user,
+        );
+
+        return $this->success(null, 'Token refreshed successfully.')
+            ->withCookie($accessCookie)
+            ->withCookie($refreshCookie);
     }
 
     public function me(Request $request)
@@ -165,7 +186,7 @@ class AuthController extends Controller
     {
         $user = $this->magicLinkService->consume($request->validated('token'));
 
-        if (!$user) {
+        if (! $user) {
             return $this->error(null, 'This sign-in link is invalid or has expired.', 422);
         }
 
@@ -178,10 +199,12 @@ class AuthController extends Controller
             auditable: $user,
         );
 
+        [$accessCookie, $refreshCookie] = $this->tokenService->issue($user);
+
         return $this->success(
             UserData::from($user),
             'Login successful.'
-        )->withCookie($this->issueAuthCookie($user));
+        )->withCookie($accessCookie)->withCookie($refreshCookie);
     }
 
     public function forgotPassword(ForgotPasswordRequest $request)
@@ -208,8 +231,9 @@ class AuthController extends Controller
                     'password' => Hash::make($password),
                 ])->save();
 
-                // Revoke all existing Passport tokens on password change.
+                // Revoke all existing Passport tokens and refresh tokens on password change.
                 $user->tokens()->delete();
+                $this->tokenService->revokeAllForUser($user);
             }
         );
 
@@ -245,7 +269,7 @@ class AuthController extends Controller
     {
         $user = User::findOrFail($id);
 
-        if (!hash_equals($hash, sha1($user->getEmailForVerification()))) {
+        if (! hash_equals($hash, sha1($user->getEmailForVerification()))) {
             return $this->error(null, 'Invalid verification link.', 403);
         }
 
@@ -257,6 +281,6 @@ class AuthController extends Controller
             event(new Verified($user));
         }
 
-        return redirect(config('app.frontend_url') . '/dashboard?verified=true');
+        return redirect(config('app.frontend_url').'/dashboard?verified=true');
     }
 }

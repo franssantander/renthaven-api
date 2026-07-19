@@ -9,9 +9,9 @@ Route::prefix('auth')->group(function () {
         ->middleware('signed');
 });
 
-
 Route::prefix('auth')->name('auth.')->group(function () {
     Route::post('login', [AuthController::class, 'login'])->name('login');
+    Route::post('refresh', [AuthController::class, 'refresh'])->name('refresh');
     Route::post('forgot-password', [AuthController::class, 'forgotPassword'])->name('forgot-password');
     Route::post('reset-password', [AuthController::class, 'resetPassword'])->name('reset-password');
     Route::post('magic-link', [AuthController::class, 'requestMagicLink'])->name('magic-link');
