@@ -21,7 +21,7 @@ return new class extends Migration
             $table->foreignId('previous_lease_id')->nullable()->constrained('leases')->nullOnDelete();
             $table->foreignId('renter_id')->constrained('renters')->cascadeOnDelete();
             $table->foreignId('from_property_unit_id')->nullable()->constrained('property_units')->nullOnDelete();
-            $table->foreignId('to_property_unit_id')->constrained('property_units')->cascadeOnDelete();
+            $table->foreignId('to_property_unit_id')->nullable()->constrained('property_units')->nullOnDelete();
 
             $table->enum('action', array_column(LeaseHistoryAction::cases(), 'value'));
             $table->date('effective_date');

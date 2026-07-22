@@ -5,13 +5,16 @@ namespace App\Http\Controllers;
 use App\Enum\AuditAction;
 use App\Enum\AuditModule;
 use App\Enum\LeaseTermType;
+use App\Http\Requests\Lease\RenewLeaseRequest;
 use App\Http\Requests\Lease\StoreLeaseRequest;
+use App\Http\Requests\Lease\TerminateLeaseRequest;
 use App\Http\Requests\Lease\UpdateLeaseRequest;
 use App\Models\Lease;
 use App\Models\PropertyUnit;
 use App\Services\AuditLog\AuditLogger;
 use App\Services\Lease\LeaseService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
 
 class LeaseController extends Controller
@@ -144,11 +147,68 @@ class LeaseController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Renew a fixed-term lease by extending its end date.
      */
-    public function destroy(string $id)
+    public function renew(RenewLeaseRequest $request, Lease $lease): JsonResponse
     {
-        //
+        $data = $request->validated();
+        $tenantBusinessId = $request->user()->tenant_business_id;
+
+        abort_unless($lease->propertyUnit?->property?->tenant_business_id === $tenantBusinessId, 404);
+        abort_unless($lease->is_active, 422, 'Only an active lease can be renewed.');
+        abort_if($lease->term_type === LeaseTermType::MONTHLY, 422, 'Monthly leases do not require renewal.');
+        abort_unless(
+            ! $lease->end_date || Carbon::parse($data['end_date'])->gt($lease->end_date),
+            422,
+            'The new end date must be after the lease\'s current end date.'
+        );
+
+        $originalValues = $lease->getOriginal();
+
+        $renewedLease = $this->leaseService->renewLease($lease, $data['end_date'], $request->user()->id);
+
+        $this->auditLogger->record(
+            module: AuditModule::LEASE,
+            action: AuditAction::UPDATED,
+            description: "Renewed lease ID {$lease->id} to end on {$data['end_date']}",
+            auditable: $renewedLease,
+            oldValues: $originalValues,
+        );
+
+        return $this->success($renewedLease, 'Lease renewed successfully.');
+    }
+
+    /**
+     * Remove the specified resource from storage: terminate a lease
+     * permanently (the tenant is moving out, not being reassigned).
+     */
+    public function destroy(TerminateLeaseRequest $request, Lease $lease): JsonResponse
+    {
+        $data = $request->validated();
+        $tenantBusinessId = $request->user()->tenant_business_id;
+
+        abort_unless($lease->propertyUnit?->property?->tenant_business_id === $tenantBusinessId, 404);
+        abort_unless($lease->is_active, 422, 'Only an active lease can be terminated.');
+
+        $originalValues = $lease->getOriginal();
+
+        $terminatedLease = $this->leaseService->terminateLease(
+            $lease,
+            $data['move_out_date'],
+            $data['deductions'] ?? [],
+            $data['notes'] ?? null,
+            $request->user()->id,
+        );
+
+        $this->auditLogger->record(
+            module: AuditModule::LEASE,
+            action: AuditAction::UPDATED,
+            description: "Terminated lease ID {$lease->id} (tenant moved out)",
+            auditable: $terminatedLease,
+            oldValues: $originalValues,
+        );
+
+        return $this->success($terminatedLease, 'Lease terminated successfully.');
     }
 
     /**

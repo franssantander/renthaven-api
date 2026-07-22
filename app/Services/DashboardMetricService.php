@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Contracts\Database\Query\Expression;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 
@@ -10,12 +11,11 @@ class DashboardMetricService
     /**
      * Generate a standardized dashboard metric widget.
      *
-     * @param string $title The display title (e.g., 'Total Properties')
-     * @param string $icon The frontend icon identifier (e.g., 'heroicons:home')
-     * @param Builder $baseQuery The scoped Eloquent query (e.g., Property::where('tenant_id', $id))
-     * @param int $days The time period to compare (default 30 days)
-     * @param string $dateColumn The timestamp column to filter by
-     * @return array
+     * @param  string  $title  The display title (e.g., 'Total Properties')
+     * @param  string  $icon  The frontend icon identifier (e.g., 'heroicons:home')
+     * @param  Builder  $baseQuery  The scoped Eloquent query (e.g., Property::where('tenant_id', $id))
+     * @param  int  $days  The time period to compare (default 30 days)
+     * @param  string  $dateColumn  The timestamp column to filter by
      */
     public function buildCountMetric(
         string $title,
@@ -45,33 +45,32 @@ class DashboardMetricService
 
         return [
             'title' => $title,
-            'icon'  => $icon,
-            'value' => $totalValue, 
+            'icon' => $icon,
+            'value' => $totalValue,
             'trend' => [
-                'percentage'  => $trend['percentage'],
+                'percentage' => $trend['percentage'],
                 'is_positive' => $trend['is_positive'],
-                'is_neutral'  => $trend['is_neutral'],
-                'label'       => $trend['label'] . " (vs last {$days} days)"
-            ]
+                'is_neutral' => $trend['is_neutral'],
+                'label' => $trend['label']." (vs last {$days} days)",
+            ],
         ];
     }
 
     /**
      * Generate a standardized dashboard metric widget summing a numeric/currency column.
      *
-     * @param string $title The display title (e.g., 'Total Collected')
-     * @param string $icon The frontend icon identifier
-     * @param Builder $baseQuery The scoped Eloquent query
-     * @param string $column The numeric column to sum (e.g. 'amount')
-     * @param int $days The time period to compare (default 30 days)
-     * @param string $dateColumn The timestamp column to filter by
-     * @return array
+     * @param  string  $title  The display title (e.g., 'Total Collected')
+     * @param  string  $icon  The frontend icon identifier
+     * @param  Builder  $baseQuery  The scoped Eloquent query
+     * @param  string|Expression  $column  The numeric column to sum (e.g. 'amount', or DB::raw('amount - amount_paid'))
+     * @param  int  $days  The time period to compare (default 30 days)
+     * @param  string  $dateColumn  The timestamp column to filter by
      */
     public function buildSumMetric(
         string $title,
         string $icon,
         Builder $baseQuery,
-        string $column,
+        string|Expression $column,
         int $days = 30,
         string $dateColumn = 'created_at'
     ): array {
@@ -93,14 +92,14 @@ class DashboardMetricService
 
         return [
             'title' => $title,
-            'icon'  => $icon,
+            'icon' => $icon,
             'value' => $totalValue,
             'trend' => [
-                'percentage'  => $trend['percentage'],
+                'percentage' => $trend['percentage'],
                 'is_positive' => $trend['is_positive'],
-                'is_neutral'  => $trend['is_neutral'],
-                'label'       => $trend['label'] . " (vs last {$days} days)"
-            ]
+                'is_neutral' => $trend['is_neutral'],
+                'label' => $trend['label']." (vs last {$days} days)",
+            ],
         ];
     }
 
@@ -109,12 +108,11 @@ class DashboardMetricService
      * column for the current calendar month, compared against the previous
      * calendar month (e.g. "Monthly Revenue").
      *
-     * @param string $title The display title (e.g., 'Monthly Revenue')
-     * @param string $icon The frontend icon identifier
-     * @param Builder $baseQuery The scoped Eloquent query
-     * @param string $column The numeric column to sum (e.g. 'amount')
-     * @param string $dateColumn The timestamp column to filter by
-     * @return array
+     * @param  string  $title  The display title (e.g., 'Monthly Revenue')
+     * @param  string  $icon  The frontend icon identifier
+     * @param  Builder  $baseQuery  The scoped Eloquent query
+     * @param  string  $column  The numeric column to sum (e.g. 'amount')
+     * @param  string  $dateColumn  The timestamp column to filter by
      */
     public function buildMonthlySumMetric(
         string $title,
@@ -140,13 +138,13 @@ class DashboardMetricService
 
         return [
             'title' => $title,
-            'icon'  => $icon,
+            'icon' => $icon,
             'value' => $currentMonthSum,
             'trend' => [
-                'percentage'  => $trend['percentage'],
+                'percentage' => $trend['percentage'],
                 'is_positive' => $trend['is_positive'],
-                'is_neutral'  => $trend['is_neutral'],
-                'label'       => $trend['label'] . ' (vs last month)',
+                'is_neutral' => $trend['is_neutral'],
+                'label' => $trend['label'].' (vs last month)',
             ],
         ];
     }
@@ -165,10 +163,10 @@ class DashboardMetricService
         $percentage = round($percentage, 1);
 
         return [
-            'percentage'  => abs($percentage),
+            'percentage' => abs($percentage),
             'is_positive' => $percentage > 0,
-            'is_neutral'  => $percentage === 0.0,
-            'label'       => $percentage > 0 ? "+{$percentage}%" : "{$percentage}%",
+            'is_neutral' => $percentage === 0.0,
+            'label' => $percentage > 0 ? "+{$percentage}%" : "{$percentage}%",
         ];
     }
 }

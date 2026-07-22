@@ -23,6 +23,9 @@ return new class extends Migration
             $table->foreignId('tenant_business_id')->constrained('tenant_businesses')->cascadeOnDelete();
 
             $table->decimal('amount', 10, 2);
+            $table->decimal('amount_paid', 10, 2)->default(0);
+            $table->decimal('penalty_amount', 10, 2)->default(0);
+            $table->timestamp('penalty_applied_at')->nullable();
             $table->date('period_start');
             $table->date('period_end');
             $table->date('due_date');
@@ -32,8 +35,10 @@ return new class extends Migration
             $table->foreignId('paid_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('reminder_sent_at')->nullable();
             $table->text('notes')->nullable();
+            $table->string('or_number')->nullable()->unique();
 
             $table->timestamp('submitted_at')->nullable();
+            $table->decimal('submitted_amount', 10, 2)->nullable();
             $table->string('submission_reference')->nullable();
             $table->text('submission_notes')->nullable();
 

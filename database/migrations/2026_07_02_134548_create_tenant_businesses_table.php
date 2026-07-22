@@ -26,6 +26,12 @@ return new class extends Migration {
             $table->string('logo_url')->nullable();
 
             $table->enum('status', array_column(Status::cases(), 'value'))->default(Status::ACTIVE->value);
+
+            $table->unsignedTinyInteger('grace_period_days')->default(5);
+            $table->decimal('late_fee_percentage', 5, 2)->default(0);
+            $table->string('or_prefix')->nullable();
+            $table->unsignedInteger('next_or_number')->default(1);
+
             $table->softDeletes();
             $table->timestamps();
         });

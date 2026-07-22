@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use Carbon\Carbon;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -29,6 +28,9 @@ class TenantBusinessSeeder extends Seeder
                 'tin' => '123-456-789-000',
                 'business_address' => '123 Multi-Family St., Brgy. San Antonio, Makati City',
                 'status' => 'active',
+                'grace_period_days' => 5,
+                'late_fee_percentage' => 2.00,
+                'or_prefix' => 'DCA',
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
@@ -41,6 +43,9 @@ class TenantBusinessSeeder extends Seeder
                 'tin' => '987-654-321-000',
                 'business_address' => '888 España Blvd, Sampaloc, Manila',
                 'status' => 'active',
+                'grace_period_days' => 3,
+                'late_fee_percentage' => 5.00,
+                'or_prefix' => 'UBD',
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
@@ -53,6 +58,9 @@ class TenantBusinessSeeder extends Seeder
                 'tin' => '456-123-789-001',
                 'business_address' => 'Tower 2, Bonifacio Global City, Taguig City',
                 'status' => 'active',
+                'grace_period_days' => 5,
+                'late_fee_percentage' => 0,
+                'or_prefix' => 'MSC',
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
@@ -65,6 +73,9 @@ class TenantBusinessSeeder extends Seeder
                 'tin' => '321-789-456-000',
                 'business_address' => 'Lahug Heights, Cebu City, Cebu',
                 'status' => 'active',
+                'grace_period_days' => 7,
+                'late_fee_percentage' => 3.00,
+                'or_prefix' => 'CHH',
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
@@ -77,9 +88,12 @@ class TenantBusinessSeeder extends Seeder
                 'tin' => '555-666-777-000',
                 'business_address' => 'Penthouse, Apex Tower, Ortigas Center, Pasig City',
                 'status' => 'active',
+                'grace_period_days' => 5,
+                'late_fee_percentage' => 2.50,
+                'or_prefix' => 'APX',
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
-            ]
+            ],
         ];
 
         foreach ($businesses as $business) {

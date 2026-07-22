@@ -16,6 +16,7 @@ use App\Services\Ledger\LedgerService;
 use App\Services\PropertyAttachment\PropertyAttachmentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Spatie\LaravelData\PaginatedDataCollection;
 
 class LedgerController extends Controller
@@ -40,22 +41,22 @@ class LedgerController extends Controller
             $this->metricService->buildSumMetric(
                 title: 'Total Collected',
                 icon: 'banknotes',
-                baseQuery: (clone $entryQuery)->where('status', 'paid'),
-                column: 'amount',
+                baseQuery: (clone $entryQuery)->whereIn('status', ['paid', 'partially_paid']),
+                column: 'amount_paid',
                 dateColumn: 'paid_at',
             ),
             $this->metricService->buildSumMetric(
                 title: 'Total Pending',
                 icon: 'clock',
                 baseQuery: (clone $entryQuery)->where('status', 'pending'),
-                column: 'amount',
+                column: DB::raw('amount - amount_paid'),
                 dateColumn: 'due_date',
             ),
             $this->metricService->buildSumMetric(
                 title: 'Total Overdue',
                 icon: 'exclamation-triangle',
                 baseQuery: (clone $entryQuery)->where('status', 'overdue'),
-                column: 'amount',
+                column: DB::raw('amount + penalty_amount - amount_paid'),
                 dateColumn: 'due_date',
             ),
             $this->metricService->buildCountMetric(
@@ -73,7 +74,7 @@ class LedgerController extends Controller
         ];
 
         return $this->success([
-            'metrics' => $widgets
+            'metrics' => $widgets,
         ], 'Dashboard metrics retrieved successfully.');
     }
 
@@ -108,7 +109,7 @@ class LedgerController extends Controller
     {
         $renter = $request->user()->renterProfile;
 
-        if (!$renter) {
+        if (! $renter) {
             return $this->success([], 'No ledger entries found.');
         }
 
@@ -134,7 +135,15 @@ class LedgerController extends Controller
 
         $originalValues = $ledgerEntry->getOriginal();
 
-        $this->ledgerService->markPaid($ledgerEntry, $request->user(), $request->validated('notes'));
+        // An explicit `amount` always wins; otherwise, approving a renter's
+        // submitted claim settles exactly what they claimed to have paid.
+        $amount = $request->validated('amount') !== null
+            ? (float) $request->validated('amount')
+            : ($ledgerEntry->status === LedgerStatus::SUBMITTED && $ledgerEntry->submitted_amount !== null
+                ? (float) $ledgerEntry->submitted_amount
+                : null);
+
+        $this->ledgerService->markPaid($ledgerEntry, $request->user(), $request->validated('notes'), $amount);
 
         $this->auditLogger->record(
             module: AuditModule::BILLING,
@@ -157,7 +166,7 @@ class LedgerController extends Controller
 
         abort_unless($renter && $ledgerEntry->renter_id === $renter->id, 404);
 
-        if (!in_array($ledgerEntry->status, [LedgerStatus::PENDING, LedgerStatus::OVERDUE], true)) {
+        if (! in_array($ledgerEntry->status, [LedgerStatus::PENDING, LedgerStatus::OVERDUE, LedgerStatus::PARTIALLY_PAID], true)) {
             return $this->error(null, 'This ledger entry cannot be submitted for payment in its current state.', 422);
         }
 
@@ -167,6 +176,7 @@ class LedgerController extends Controller
             $ledgerEntry,
             $request->validated('reference'),
             $request->validated('notes'),
+            $request->validated('amount') !== null ? (float) $request->validated('amount') : null,
         );
 
         $this->attachmentService->attach($ledgerEntry, [$request->file('proof')], ['Proof of payment']);

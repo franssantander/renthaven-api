@@ -12,7 +12,21 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Table('tenant_businesses')]
-#[Fillable(['plan_id', 'name', 'email', 'phone', 'contact_person', 'tin', 'business_address', 'logo', 'status'])]
+#[Fillable([
+    'plan_id',
+    'name',
+    'email',
+    'phone',
+    'contact_person',
+    'tin',
+    'business_address',
+    'logo',
+    'status',
+    'grace_period_days',
+    'late_fee_percentage',
+    'or_prefix',
+    'next_or_number',
+])]
 class TenantBusiness extends Model
 {
     use HasHasPublicUuidTrait, SoftDeletes;
@@ -20,7 +34,10 @@ class TenantBusiness extends Model
     protected function casts(): array
     {
         return [
-            'status' => Status::class
+            'status' => Status::class,
+            'grace_period_days' => 'integer',
+            'late_fee_percentage' => 'decimal:2',
+            'next_or_number' => 'integer',
         ];
     }
 

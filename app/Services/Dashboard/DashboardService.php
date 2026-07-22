@@ -33,7 +33,7 @@ class DashboardService
 
         $renterQuery = Renter::query()
             ->whereHas('activeLease')
-            ->when(!$isSuperAdmin, fn ($query) => $query->where('tenant_business_id', $user->tenant_business_id));
+            ->when(! $isSuperAdmin, fn ($query) => $query->where('tenant_business_id', $user->tenant_business_id));
 
         $ledgerQuery = $this->scopedLedgerQuery($user);
 
@@ -58,7 +58,7 @@ class DashboardService
                 title: 'Monthly Revenue',
                 icon: 'banknotes',
                 baseQuery: (clone $ledgerQuery)->where('status', LedgerStatus::PAID),
-                column: 'amount',
+                column: 'amount_paid',
                 dateColumn: 'paid_at',
             ),
         ];
@@ -101,6 +101,6 @@ class DashboardService
     protected function scopedLedgerQuery(User $user): Builder
     {
         return LedgerEntry::query()
-            ->when(!$this->isSuperAdmin($user), fn ($query) => $query->where('tenant_business_id', $user->tenant_business_id));
+            ->when(! $this->isSuperAdmin($user), fn ($query) => $query->where('tenant_business_id', $user->tenant_business_id));
     }
 }

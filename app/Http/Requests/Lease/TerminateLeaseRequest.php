@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Requests\Ledger;
+namespace App\Http\Requests\Lease;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class SubmitPaymentRequest extends FormRequest
+class TerminateLeaseRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,10 +23,11 @@ class SubmitPaymentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'reference' => ['nullable', 'string', 'max:255'],
+            'move_out_date' => ['required', 'date'],
             'notes' => ['nullable', 'string', 'max:1000'],
-            'amount' => ['nullable', 'numeric', 'min:0.01'],
-            'proof' => ['required', 'image', 'max:5120'],
+            'deductions' => ['nullable', 'array'],
+            'deductions.*.description' => ['required_with:deductions', 'string', 'max:255'],
+            'deductions.*.amount' => ['required_with:deductions', 'numeric', 'min:0'],
         ];
     }
 
@@ -38,11 +39,9 @@ class SubmitPaymentRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'reference.max' => 'The payment reference may not be longer than 255 characters.',
-            'notes.max' => 'Your note may not be longer than 1000 characters.',
-            'proof.required' => 'Please attach a screenshot or photo of your payment as proof.',
-            'proof.image' => 'The payment proof must be an image.',
-            'proof.max' => 'The payment proof image may not be larger than 5MB.',
+            'move_out_date.required' => 'Please provide the tenant\'s move-out date.',
+            'deductions.*.description.required_with' => 'Each deduction needs a short description.',
+            'deductions.*.amount.required_with' => 'Each deduction needs an amount.',
         ];
     }
 }

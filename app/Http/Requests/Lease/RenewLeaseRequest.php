@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Requests\Ledger;
+namespace App\Http\Requests\Lease;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class MarkPaidRequest extends FormRequest
+class RenewLeaseRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,8 +23,19 @@ class MarkPaidRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'notes' => ['nullable', 'string', 'max:1000'],
-            'amount' => ['nullable', 'numeric', 'min:0.01'],
+            'end_date' => ['required', 'date'],
+        ];
+    }
+
+    /**
+     * Get the error messages for the defined validation rules.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'end_date.required' => 'Please provide the new lease end date.',
         ];
     }
 }

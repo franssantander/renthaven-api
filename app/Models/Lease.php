@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enum\DepositStatus;
 use App\Enum\LeaseTermType;
 use App\HasHasPublicUuidTrait;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -11,22 +12,42 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['property_unit_id', 'renter_id', 'term_type', 'start_date', 'end_date', 'is_active'])]
+#[Fillable([
+    'property_unit_id',
+    'renter_id',
+    'term_type',
+    'start_date',
+    'end_date',
+    'is_active',
+    'security_deposit',
+    'advance_rent',
+    'advance_rent_applied_at',
+    'deposit_status',
+    'deposit_deductions',
+    'deposit_refunded_amount',
+    'deposit_refunded_at',
+])]
 #[Table('leases')]
 class Lease extends Model
 {
-
-    use SoftDeletes, HasHasPublicUuidTrait;
+    use HasHasPublicUuidTrait, SoftDeletes;
 
     protected function casts(): array
     {
         return [
             'property_unit_id' => 'integer',
-            'renter_id'        => 'integer',
-            'term_type'        => LeaseTermType::class,
-            'start_date'       => 'date',
-            'end_date'         => 'date',
-            'is_active'        => 'boolean',
+            'renter_id' => 'integer',
+            'term_type' => LeaseTermType::class,
+            'start_date' => 'date',
+            'end_date' => 'date',
+            'is_active' => 'boolean',
+            'security_deposit' => 'decimal:2',
+            'advance_rent' => 'decimal:2',
+            'advance_rent_applied_at' => 'datetime',
+            'deposit_status' => DepositStatus::class,
+            'deposit_deductions' => 'array',
+            'deposit_refunded_amount' => 'decimal:2',
+            'deposit_refunded_at' => 'datetime',
         ];
     }
 
@@ -34,7 +55,6 @@ class Lease extends Model
     {
         return $this->belongsTo(Renter::class, 'renter_id');
     }
-
 
     public function propertyUnit(): BelongsTo
     {

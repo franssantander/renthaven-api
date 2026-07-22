@@ -2,6 +2,7 @@
 
 namespace App\Services\Lease;
 
+use App\Enum\DepositStatus;
 use App\Enum\LeaseHistoryAction;
 use App\Enum\LeaseTermType;
 use App\Enum\PropertyUnitStatus;
@@ -45,7 +46,7 @@ class LeaseService
             $created = [];
 
             foreach ($tenants as $tenantInput) {
-                $user = !empty($tenantInput['uuid'])
+                $user = ! empty($tenantInput['uuid'])
                     ? User::where('uuid', $tenantInput['uuid'])
                         ->where('tenant_business_id', $tenantBusinessId)
                         ->firstOrFail()
@@ -55,22 +56,24 @@ class LeaseService
 
                 $lease = Lease::create([
                     'property_unit_id' => $propertyUnit->id,
-                    'renter_id'        => $renter->id,
-                    'term_type'        => $termType,
-                    'start_date'       => $startDate,
-                    'end_date'         => $endDate,
-                    'is_active'        => true,
+                    'renter_id' => $renter->id,
+                    'term_type' => $termType,
+                    'start_date' => $startDate,
+                    'end_date' => $endDate,
+                    'is_active' => true,
+                    'security_deposit' => $tenantInput['security_deposit'] ?? 0,
+                    'advance_rent' => $tenantInput['advance_rent'] ?? 0,
                 ]);
 
                 LeaseHistory::create([
-                    'lease_id'              => $lease->id,
-                    'previous_lease_id'     => null,
-                    'renter_id'             => $renter->id,
+                    'lease_id' => $lease->id,
+                    'previous_lease_id' => null,
+                    'renter_id' => $renter->id,
                     'from_property_unit_id' => null,
-                    'to_property_unit_id'   => $propertyUnit->id,
-                    'action'                => LeaseHistoryAction::ASSIGNED,
-                    'effective_date'        => $startDate,
-                    'performed_by'          => $performedBy,
+                    'to_property_unit_id' => $propertyUnit->id,
+                    'action' => LeaseHistoryAction::ASSIGNED,
+                    'effective_date' => $startDate,
+                    'performed_by' => $performedBy,
                 ]);
 
                 $created[] = $lease;
@@ -102,29 +105,29 @@ class LeaseService
             $originalEndDate = $lease->end_date;
 
             $lease->update([
-                'end_date'  => $moveDate,
+                'end_date' => $moveDate,
                 'is_active' => false,
             ]);
 
             $newLease = Lease::create([
                 'property_unit_id' => $newPropertyUnit->id,
-                'renter_id'        => $lease->renter_id,
-                'term_type'        => $lease->term_type,
-                'start_date'       => $moveDate,
+                'renter_id' => $lease->renter_id,
+                'term_type' => $lease->term_type,
+                'start_date' => $moveDate,
                 // A fixed-term lease keeps its original end date after a move; a monthly lease has none.
-                'end_date'         => $lease->term_type === LeaseTermType::FIXED_TERM ? $originalEndDate : null,
-                'is_active'        => true,
+                'end_date' => $lease->term_type === LeaseTermType::FIXED_TERM ? $originalEndDate : null,
+                'is_active' => true,
             ]);
 
             LeaseHistory::create([
-                'lease_id'              => $newLease->id,
-                'previous_lease_id'     => $lease->id,
-                'renter_id'             => $lease->renter_id,
+                'lease_id' => $newLease->id,
+                'previous_lease_id' => $lease->id,
+                'renter_id' => $lease->renter_id,
                 'from_property_unit_id' => $previousPropertyUnit?->id,
-                'to_property_unit_id'   => $newPropertyUnit->id,
-                'action'                => LeaseHistoryAction::REASSIGNED,
-                'effective_date'        => $moveDate,
-                'performed_by'          => $performedBy,
+                'to_property_unit_id' => $newPropertyUnit->id,
+                'action' => LeaseHistoryAction::REASSIGNED,
+                'effective_date' => $moveDate,
+                'performed_by' => $performedBy,
             ]);
 
             return $newLease;
@@ -137,6 +140,86 @@ class LeaseService
         $this->recalculateUnitStatus($newPropertyUnit);
 
         return $newLease;
+    }
+
+    /**
+     * Terminate a lease permanently (the tenant is moving out with no
+     * replacement unit) and settle the security deposit.
+     *
+     * @param  array<int, array{description: string, amount: float}>  $deductions
+     */
+    public function terminateLease(
+        Lease $lease,
+        string $moveOutDate,
+        array $deductions = [],
+        ?string $notes = null,
+        ?int $performedBy = null,
+    ): Lease {
+        DB::transaction(function () use ($lease, $moveOutDate, $deductions, $notes, $performedBy) {
+            $propertyUnit = $lease->propertyUnit;
+            $totalDeductions = array_sum(array_column($deductions, 'amount'));
+            $refundAmount = round((float) $lease->security_deposit - $totalDeductions, 2);
+
+            $depositStatus = match (true) {
+                $refundAmount <= 0 && $totalDeductions > 0 => DepositStatus::FORFEITED,
+                $totalDeductions > 0 => DepositStatus::PARTIALLY_REFUNDED,
+                default => DepositStatus::REFUNDED,
+            };
+
+            $lease->update([
+                'end_date' => $moveOutDate,
+                'is_active' => false,
+                'deposit_deductions' => $deductions,
+                'deposit_refunded_amount' => max($refundAmount, 0),
+                'deposit_refunded_at' => now(),
+                'deposit_status' => $depositStatus,
+            ]);
+
+            LeaseHistory::create([
+                'lease_id' => $lease->id,
+                'previous_lease_id' => null,
+                'renter_id' => $lease->renter_id,
+                'from_property_unit_id' => $propertyUnit?->id,
+                'to_property_unit_id' => null,
+                'action' => LeaseHistoryAction::ENDED,
+                'effective_date' => $moveOutDate,
+                'performed_by' => $performedBy,
+                'notes' => $notes,
+            ]);
+        });
+
+        if ($lease->propertyUnit) {
+            $this->recalculateUnitStatus($lease->propertyUnit);
+        }
+
+        return $lease->fresh();
+    }
+
+    /**
+     * Renew a fixed-term lease by extending its end date. Monthly leases are
+     * already open-ended and have nothing to renew.
+     */
+    public function renewLease(Lease $lease, string $newEndDate, ?int $performedBy = null): Lease
+    {
+        $oldEndDate = $lease->end_date?->toDateString();
+
+        DB::transaction(function () use ($lease, $newEndDate, $performedBy, $oldEndDate) {
+            $lease->update(['end_date' => $newEndDate]);
+
+            LeaseHistory::create([
+                'lease_id' => $lease->id,
+                'previous_lease_id' => null,
+                'renter_id' => $lease->renter_id,
+                'from_property_unit_id' => $lease->property_unit_id,
+                'to_property_unit_id' => $lease->property_unit_id,
+                'action' => LeaseHistoryAction::RENEWED,
+                'effective_date' => $newEndDate,
+                'performed_by' => $performedBy,
+                'notes' => "Renewed from {$oldEndDate} to {$newEndDate}",
+            ]);
+        });
+
+        return $lease->fresh();
     }
 
     /**
@@ -179,14 +262,14 @@ class LeaseService
         $tenantRoleId = Role::where('slug', RoleEnum::TENANT->value)->firstOrFail()->id;
 
         $user = User::create([
-            'role_id'            => $tenantRoleId,
+            'role_id' => $tenantRoleId,
             'tenant_business_id' => $tenantBusinessId,
-            'first_name'         => $tenantInput['first_name'],
-            'last_name'          => $tenantInput['last_name'],
-            'email'              => $tenantInput['email'],
-            'phone'              => $tenantInput['phone'] ?? null,
-            'username'           => Str::slug($tenantInput['email']),
-            'password'           => Hash::make(Str::random(32)),
+            'first_name' => $tenantInput['first_name'],
+            'last_name' => $tenantInput['last_name'],
+            'email' => $tenantInput['email'],
+            'phone' => $tenantInput['phone'] ?? null,
+            'username' => Str::slug($tenantInput['email']),
+            'password' => Hash::make(Str::random(32)),
         ]);
 
         $token = Password::createToken($user);
@@ -204,9 +287,9 @@ class LeaseService
             ['user_id' => $user->id, 'tenant_business_id' => $tenantBusinessId],
             [
                 'first_name' => $user->first_name,
-                'last_name'  => $user->last_name,
-                'email'      => $user->email,
-                'phone'      => $user->phone,
+                'last_name' => $user->last_name,
+                'email' => $user->email,
+                'phone' => $user->phone,
             ]
         );
     }
