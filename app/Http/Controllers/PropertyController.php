@@ -101,7 +101,7 @@ class PropertyController extends Controller
             newValues: $property->getAttributes(),
         );
 
-        return $this->success(PropertyData::from($property), 'Property created successfully.', 201);
+        return $this->success(PropertyData::from($property->refresh()), 'Property created successfully.', 201);
     }
 
     /**

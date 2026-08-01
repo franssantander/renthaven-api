@@ -15,7 +15,7 @@ class PropertyData extends Data
         public int $id,
         public string $uuid,
         public string $name,
-        public string $address,
+        public ?string $address,
         public string $type,
         public ?TenantBusinessData $tenant_business,
 
