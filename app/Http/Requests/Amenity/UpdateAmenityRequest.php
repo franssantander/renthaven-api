@@ -31,10 +31,21 @@ class UpdateAmenityRequest extends FormRequest
         $amenityId = $this->route('amenity')?->id;
 
         return [
-            'name'     => ['sometimes', 'required', 'string', 'max:255'],
-            'slug'     => ['sometimes', 'required', 'string', 'max:255', Rule::unique('amenities', 'slug')->ignore($amenityId)],
+            'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'slug' => ['sometimes', 'required', 'string', 'max:255', Rule::unique('amenities', 'slug')->ignore($amenityId)],
             'category' => ['nullable', 'string', Rule::enum(AmenityCategory::class)],
-            'icon'     => ['nullable', 'string', 'max:255'],
+            'icon' => ['nullable', 'string', 'max:255'],
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'Amenity name is required.',
+            'slug.unique' => 'This amenity slug is already in use.',
         ];
     }
 }

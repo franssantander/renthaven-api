@@ -32,4 +32,16 @@ class UpdateLeaseRequest extends FormRequest
             'move_date' => ['nullable', 'date'],
         ];
     }
+
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages(): array
+    {
+        return [
+            'property_unit_uuid.required' => 'A property unit must be selected.',
+            'property_unit_uuid.exists' => 'The selected property unit could not be found.',
+            'move_date.date' => 'Please provide a valid move date.',
+        ];
+    }
 }

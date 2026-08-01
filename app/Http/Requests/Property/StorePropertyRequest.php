@@ -5,10 +5,10 @@ namespace App\Http\Requests\Property;
 use App\Enum\PropertyType;
 use App\Enum\Role;
 use App\Models\Property;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 
 class StorePropertyRequest extends FormRequest
@@ -21,14 +21,15 @@ class StorePropertyRequest extends FormRequest
         $response = Gate::inspect('create', Property::class);
         if ($response->denied()) {
             throw new HttpResponseException(response()->json([
-                'data'    => null,
-                'status'  => 403,
-                'message' => $response->message()
+                'data' => null,
+                'status' => 403,
+                'message' => $response->message(),
             ], 403));
         }
 
         return true;
     }
+
     /**
      * Get the validation rules that apply to the request.
      *
@@ -38,9 +39,9 @@ class StorePropertyRequest extends FormRequest
     {
         return [
             'tenant_business_uuid' => ['required', 'uuid', 'exists:tenant_businesses,uuid'],
-            'name'                 => ['required', 'unique:properties,name', 'string', 'max:255'],
-            'address'              => ['nullable', 'string', 'max:1000'],
-            'type'                 => ['required', Rule::enum(PropertyType::class)],
+            'name' => ['required', 'unique:properties,name', 'string', 'max:255'],
+            'address' => ['nullable', 'string', 'max:1000'],
+            'type' => ['required', Rule::enum(PropertyType::class)],
         ];
     }
 
@@ -49,5 +50,19 @@ class StorePropertyRequest extends FormRequest
         if ($this->user()?->role?->slug !== Role::SUPER_ADMIN->value) {
             $this->merge(['tenant_business_uuid' => $this->user()?->tenantBusiness?->uuid]);
         }
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages(): array
+    {
+        return [
+            'tenant_business_uuid.required' => 'A business must be selected for this property.',
+            'tenant_business_uuid.exists' => 'The selected business could not be found.',
+            'name.required' => 'Property name is required.',
+            'name.unique' => 'A property with this name already exists.',
+            'type.required' => 'Please select a property type.',
+        ];
     }
 }

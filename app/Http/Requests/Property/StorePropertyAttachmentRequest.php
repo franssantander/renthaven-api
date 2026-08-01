@@ -29,4 +29,17 @@ class StorePropertyAttachmentRequest extends FormRequest
             'captions.*' => ['nullable', 'string', 'max:255'],
         ];
     }
+
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages(): array
+    {
+        return [
+            'images.required' => 'Please select at least one image to upload.',
+            'images.max' => 'You may upload a maximum of 10 images at once.',
+            'images.*.image' => 'Each file must be a valid image.',
+            'images.*.max' => 'Each image must not exceed 5MB.',
+        ];
+    }
 }

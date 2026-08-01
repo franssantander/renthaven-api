@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Ledger;
 
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 
 class SubmitPaymentRequest extends FormRequest
@@ -44,5 +45,21 @@ class SubmitPaymentRequest extends FormRequest
             'proof.image' => 'The payment proof must be an image.',
             'proof.max' => 'The payment proof image may not be larger than 5MB.',
         ];
+    }
+
+    /**
+     * Reject a claimed amount that exceeds the entry's outstanding balance,
+     * rather than letting it be silently clamped and the excess discarded.
+     */
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            $amount = $this->input('amount');
+            $ledgerEntry = $this->route('ledgerEntry');
+
+            if ($amount !== null && $ledgerEntry && (float) $amount > (float) $ledgerEntry->balance) {
+                $validator->errors()->add('amount', 'The amount cannot exceed the outstanding balance of '.number_format((float) $ledgerEntry->balance, 2).'.');
+            }
+        });
     }
 }

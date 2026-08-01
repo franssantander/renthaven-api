@@ -11,6 +11,7 @@ use App\Http\Requests\MaintenanceRequest\StoreMaintenanceRequestRequest;
 use App\Http\Requests\MaintenanceRequest\UpdateMaintenanceRequestStatusRequest;
 use App\Models\Lease;
 use App\Models\MaintenanceRequest;
+use App\Models\User;
 use App\Services\AuditLog\AuditLogger;
 use App\Services\DashboardMetricService;
 use App\Services\MaintenanceRequest\MaintenanceRequestService;
@@ -32,9 +33,9 @@ class MaintenanceRequestController extends Controller
      */
     public function dashboard(Request $request): JsonResponse
     {
-        $tenantBusinessId = $request->user()->tenant_business_id;
-
-        $requestQuery = MaintenanceRequest::query()->where('tenant_business_id', $tenantBusinessId);
+        // MaintenanceRequest is tenant-scoped by its own global scope (and left
+        // unscoped for super admins), so no manual filter here.
+        $requestQuery = MaintenanceRequest::query();
 
         $widgets = [
             $this->metricService->buildCountMetric(
@@ -67,7 +68,7 @@ class MaintenanceRequestController extends Controller
         ];
 
         return $this->success([
-            'metrics' => $widgets
+            'metrics' => $widgets,
         ], 'Dashboard metrics retrieved successfully.');
     }
 
@@ -86,6 +87,8 @@ class MaintenanceRequestController extends Controller
             $lease = $renter->activeLease;
             abort_unless($lease, 422, 'You do not have an active lease to file a maintenance request against.');
         } else {
+            abort_unless($user->hasPermission('maintenance', 'create'), 403, 'You do not have permission to file maintenance requests.');
+
             $leaseId = UuidResolver::id('leases', $data['lease_uuid']);
             $lease = Lease::with('renter')
                 ->whereHas('propertyUnit.property', function ($query) use ($user) {
@@ -117,7 +120,7 @@ class MaintenanceRequestController extends Controller
             newValues: $maintenanceRequest->getAttributes(),
         );
 
-        return $this->success($maintenanceRequest, 'Maintenance request submitted successfully.', 201);
+        return $this->success(MaintenanceRequestData::from($maintenanceRequest), 'Maintenance request submitted successfully.', 201);
     }
 
     /**
@@ -125,11 +128,8 @@ class MaintenanceRequestController extends Controller
      */
     public function index(Request $request)
     {
-        $tenantBusinessId = $request->user()->tenant_business_id;
-
         $requests = MaintenanceRequest::query()
             ->with(['lease', 'renter', 'propertyUnit'])
-            ->where('tenant_business_id', $tenantBusinessId)
             ->when($request->filled('status'), function ($query) use ($request) {
                 $query->where('status', $request->input('status'));
             })
@@ -154,7 +154,7 @@ class MaintenanceRequestController extends Controller
     {
         $renter = $request->user()->renterProfile;
 
-        if (!$renter) {
+        if (! $renter) {
             return $this->success([], 'No maintenance requests found.');
         }
 
@@ -175,12 +175,16 @@ class MaintenanceRequestController extends Controller
         $user = $request->user();
         $renter = $user->renterProfile;
 
+        // MaintenanceRequest's own global scope already confines route-model
+        // binding to the caller's tenant (or leaves it unscoped for a super
+        // admin); what's left to check is renter-level ownership vs. staff
+        // permission within that tenant.
         $ownsAsRenter = $renter && $maintenanceRequest->renter_id === $renter->id;
-        $ownsAsStaff = $maintenanceRequest->tenant_business_id === $user->tenant_business_id;
+        $ownsAsStaff = ! $ownsAsRenter && $user->hasPermission('maintenance', 'view');
 
         abort_unless($ownsAsRenter || $ownsAsStaff, 404);
 
-        return $this->success($maintenanceRequest->load(['lease', 'renter', 'propertyUnit', 'histories']));
+        return $this->success(MaintenanceRequestData::from($maintenanceRequest->load(['lease', 'renter', 'propertyUnit', 'histories'])));
     }
 
     /**
@@ -188,10 +192,16 @@ class MaintenanceRequestController extends Controller
      */
     public function updateStatus(UpdateMaintenanceRequestStatusRequest $request, MaintenanceRequest $maintenanceRequest): JsonResponse
     {
-        abort_unless($maintenanceRequest->tenant_business_id === $request->user()->tenant_business_id, 404);
-
         $data = $request->validated();
-        $assignedTo = UuidResolver::id('users', $data['assigned_to_uuid'] ?? null);
+
+        $assignedTo = null;
+        if (! empty($data['assigned_to_uuid'])) {
+            $assignedTo = User::where('uuid', $data['assigned_to_uuid'])
+                ->where('tenant_business_id', $maintenanceRequest->tenant_business_id)
+                ->value('id');
+
+            abort_unless($assignedTo, 422, 'The selected assignee does not belong to this business.');
+        }
 
         $originalValues = $maintenanceRequest->getOriginal();
 
@@ -211,6 +221,6 @@ class MaintenanceRequestController extends Controller
             oldValues: $originalValues,
         );
 
-        return $this->success($maintenanceRequest, 'Maintenance request updated successfully.');
+        return $this->success(MaintenanceRequestData::from($maintenanceRequest), 'Maintenance request updated successfully.');
     }
 }

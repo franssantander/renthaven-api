@@ -25,9 +25,20 @@ class UpdateMaintenanceRequestStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status'            => ['required', 'string', Rule::enum(MaintenanceRequestStatus::class)],
-            'notes'             => ['nullable', 'string', 'max:2000'],
-            'assigned_to_uuid'  => ['nullable', 'uuid', 'exists:users,uuid'],
+            'status' => ['required', 'string', Rule::enum(MaintenanceRequestStatus::class)],
+            'notes' => ['nullable', 'string', 'max:2000'],
+            'assigned_to_uuid' => ['nullable', 'uuid', 'exists:users,uuid'],
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages(): array
+    {
+        return [
+            'status.required' => 'Please select a status.',
+            'assigned_to_uuid.exists' => 'The selected assignee could not be found.',
         ];
     }
 }

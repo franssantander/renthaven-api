@@ -3,16 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Data\Permission\PermissionModuleData;
-use App\Data\Permission\SyncUserPermissionsData;
 use App\Http\Requests\Permission\SyncUserPermissionRequest;
 use App\Http\Requests\RevokeAllPermissionsRequest;
-use App\Models\PermissionAction;
 use App\Models\PermissionModule;
-use App\Models\RolePermission;
 use App\Models\User;
 use App\Services\Permission\PermissionService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 
 class PermissionController extends Controller
@@ -28,6 +24,7 @@ class PermissionController extends Controller
     {
         $modules = PermissionModule::with('actions')->get();
         $options = PermissionModuleData::collect($modules);
+
         return $this->success($options);
     }
 
@@ -51,10 +48,11 @@ class PermissionController extends Controller
     {
         $authUser = auth()->user();
         if ($authUser->role->slug !== 'super_admin' && $authUser->tenant_business_id !== $user->tenant_business_id) {
-            return $this->error(null, 'Unauthorized to view this user\'s permissions.',  Response::HTTP_FORBIDDEN);
+            return $this->error(null, 'Unauthorized to view this user\'s permissions.', Response::HTTP_FORBIDDEN);
         }
 
         $matrix = $this->permissionService->getUserPermissionMatrix($user);
+
         return $this->success($matrix);
     }
 
@@ -84,13 +82,41 @@ class PermissionController extends Controller
 
     public function sync(SyncUserPermissionRequest $request)
     {
-        $this->permissionService->syncUserPermissions($request->validated('user_id'), $request->input('permissions', []));
+        $targetUuid = $request->validated('user_id');
+        $this->assertCanManagePermissionsFor($targetUuid);
+
+        $this->permissionService->syncUserPermissions($targetUuid, $request->input('permissions', []));
+
         return $this->success(null, 'User permissions synchronized successfully.');
     }
 
     public function revokeAll(RevokeAllPermissionsRequest $request)
     {
-        $this->permissionService->revokeAllUserPermissions($request->validated('user_id'));
+        $targetUuid = $request->validated('user_id');
+        $this->assertCanManagePermissionsFor($targetUuid);
+
+        $this->permissionService->revokeAllUserPermissions($targetUuid);
+
         return $this->success(null, 'All custom user permissions have been successfully revoked.');
+    }
+
+    /**
+     * A non-super-admin may only manage permission overrides for users
+     * within their own tenant business.
+     */
+    protected function assertCanManagePermissionsFor(string $userUuid): void
+    {
+        $authUser = auth()->user();
+
+        if ($authUser->role->slug === 'super_admin') {
+            return;
+        }
+
+        $targetTenantId = User::withoutGlobalScopes()->where('uuid', $userUuid)->value('tenant_business_id');
+
+        abort_if(
+            $targetTenantId === null || $targetTenantId !== $authUser->tenant_business_id,
+            Response::HTTP_NOT_FOUND
+        );
     }
 }

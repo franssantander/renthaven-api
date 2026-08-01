@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\Amenity\AmenityData;
 use App\Enum\AuditAction;
 use App\Enum\AuditModule;
 use App\Enum\Role;
 use App\Http\Requests\Amenity\StoreAmenityRequest;
 use App\Http\Requests\Amenity\UpdateAmenityRequest;
 use App\Models\Amenity;
-use App\Services\AuditLog\AuditLogger;
 use App\Services\Amenity\AmenityService;
+use App\Services\AuditLog\AuditLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -42,7 +43,7 @@ class AmenityController extends Controller
             ->orderBy('name')
             ->get();
 
-        return $this->success($amenities);
+        return $this->success(AmenityData::collect($amenities));
     }
 
     /**
@@ -69,9 +70,9 @@ class AmenityController extends Controller
             );
         }
 
-        $payload = count($amenities) === 1 ? $amenities[0] : $amenities;
+        $payload = AmenityData::collect($amenities);
 
-        return $this->success($payload, 'Amenity(s) created successfully.', 201);
+        return $this->success(count($amenities) === 1 ? $payload[0] : $payload, 'Amenity(s) created successfully.', 201);
     }
 
     /**
@@ -95,7 +96,7 @@ class AmenityController extends Controller
             );
         }
 
-        return $this->success($amenity, 'Amenity updated successfully.');
+        return $this->success(AmenityData::from($amenity), 'Amenity updated successfully.');
     }
 
     /**
@@ -130,6 +131,7 @@ class AmenityController extends Controller
 
         if ($user->role->slug === Role::SUPER_ADMIN->value) {
             abort_unless($amenity->tenant_business_id === null, 403, 'Only global amenities can be managed by a super admin.');
+
             return;
         }
 

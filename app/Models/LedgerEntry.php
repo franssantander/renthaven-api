@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enum\LedgerStatus;
 use App\HasHasPublicUuidTrait;
+use App\Traits\BelongsToTenantBusiness;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -38,7 +39,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 #[Table('ledger_entries')]
 class LedgerEntry extends Model
 {
-    use HasHasPublicUuidTrait, SoftDeletes;
+    use BelongsToTenantBusiness, HasHasPublicUuidTrait, SoftDeletes;
 
     protected function casts(): array
     {

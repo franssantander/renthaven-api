@@ -29,11 +29,26 @@ class StoreMaintenanceRequestRequest extends FormRequest
         $isTenant = $this->user()?->role?->slug === Role::TENANT->value;
 
         return [
-            'title'       => ['required', 'string', 'max:255'],
+            'title' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:5000'],
-            'category'    => ['required', 'string', Rule::enum(MaintenanceCategory::class)],
-            'priority'    => ['nullable', 'string', Rule::enum(MaintenancePriority::class)],
-            'lease_uuid'  => [$isTenant ? 'prohibited' : 'required', 'uuid', 'exists:leases,uuid'],
+            'category' => ['required', 'string', Rule::enum(MaintenanceCategory::class)],
+            'priority' => ['nullable', 'string', Rule::enum(MaintenancePriority::class)],
+            'lease_uuid' => [$isTenant ? 'prohibited' : 'required', 'uuid', 'exists:leases,uuid'],
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages(): array
+    {
+        return [
+            'title.required' => 'Please provide a title for this request.',
+            'description.required' => 'Please describe the issue.',
+            'category.required' => 'Please select a category.',
+            'lease_uuid.required' => 'Please select which lease this request is for.',
+            'lease_uuid.prohibited' => 'Tenants cannot specify a lease directly; it is inferred from your account.',
+            'lease_uuid.exists' => 'The selected lease could not be found.',
         ];
     }
 }

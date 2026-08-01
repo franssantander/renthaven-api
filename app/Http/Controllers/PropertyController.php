@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Data\Property\PropertyData;
+use App\Data\PropertyAttachment\PropertyAttachmentData;
 use App\Enum\AuditAction;
 use App\Enum\AuditModule;
 use App\Http\Requests\Property\StorePropertyAttachmentRequest;
@@ -22,7 +23,6 @@ use Spatie\LaravelData\PaginatedDataCollection;
 
 class PropertyController extends Controller
 {
-
     public function __construct(
         protected AuditLogger $auditLogger,
         protected DashboardMetricService $metricService,
@@ -31,13 +31,10 @@ class PropertyController extends Controller
 
     public function dashboard(Request $request): JsonResponse
     {
-        $tenantId = $request->user()->tenant_business_id;
-        $propertyQuery = Property::query()->where('tenant_business_id', $tenantId);
-
-        $unitQuery = PropertyUnit::query()->whereHas('property', function ($query) use ($tenantId) {
-            $query->where('tenant_business_id', $tenantId);
-        });
-
+        // Property and PropertyUnit are both tenant-scoped by their own global
+        // scope (and left unscoped for super admins), so no manual filter here.
+        $propertyQuery = Property::query();
+        $unitQuery = PropertyUnit::query();
 
         $widgets = [
             $this->metricService->buildCountMetric(
@@ -58,7 +55,7 @@ class PropertyController extends Controller
         ];
 
         return $this->success([
-            'metrics' => $widgets
+            'metrics' => $widgets,
         ], 'Dashboard metrics retrieved successfully.');
     }
 
@@ -104,7 +101,7 @@ class PropertyController extends Controller
             newValues: $property->getAttributes(),
         );
 
-        return $this->success($property, 'Property created successfully.', 201);
+        return $this->success(PropertyData::from($property), 'Property created successfully.', 201);
     }
 
     /**
@@ -112,7 +109,7 @@ class PropertyController extends Controller
      */
     public function show(Property $property): JsonResponse
     {
-        return $this->success($property);
+        return $this->success(PropertyData::from($property->load(['amenities', 'attachments'])));
     }
 
     /**
@@ -142,15 +139,14 @@ class PropertyController extends Controller
             );
         }
 
-        return $this->success($property, 'Property updated successfully.');
+        return $this->success(PropertyData::from($property), 'Property updated successfully.');
     }
+
     /**
      * Sync the amenities assigned to this property.
      */
     public function syncAmenities(SyncAmenitiesRequest $request, Property $property): JsonResponse
     {
-        abort_unless($property->tenant_business_id === $request->user()->tenant_business_id, 404);
-
         $amenityIds = UuidResolver::ids('amenities', $request->validated('amenity_uuids'));
 
         $property->amenities()->sync($amenityIds);
@@ -163,7 +159,7 @@ class PropertyController extends Controller
             newValues: ['amenity_ids' => $amenityIds],
         );
 
-        return $this->success($property->load('amenities'), 'Amenities updated successfully.');
+        return $this->success(PropertyData::from($property->load('amenities')), 'Amenities updated successfully.');
     }
 
     /**
@@ -180,12 +176,12 @@ class PropertyController extends Controller
         $this->auditLogger->record(
             module: AuditModule::PROPERTY,
             action: AuditAction::UPDATED,
-            description: 'Added ' . count($attachments) . " image(s) to property \"{$property->name}\"",
+            description: 'Added '.count($attachments)." image(s) to property \"{$property->name}\"",
             auditable: $property,
             newValues: ['attachment_ids' => array_map(fn ($attachment) => $attachment->id, $attachments)],
         );
 
-        return $this->success($attachments, 'Image(s) uploaded successfully.', 201);
+        return $this->success(PropertyAttachmentData::collect($attachments), 'Image(s) uploaded successfully.', 201);
     }
 
     /**
@@ -224,6 +220,7 @@ class PropertyController extends Controller
             module: AuditModule::PROPERTY,
             action: AuditAction::DELETED,
             description: "Deleted property \"{$propertyName}\"",
+            auditable: $property,
             oldValues: $originalValues,
         );
 

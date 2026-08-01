@@ -64,7 +64,7 @@ class StoreLeaseRequest extends FormRequest
             'term_type' => ['required', Rule::enum(LeaseTermType::class)],
             'start_date' => ['required', 'date'],
             'end_date' => [
-                'nullable', 'date', 'after_or_equal:start_date',
+                'nullable', 'date', 'after:start_date',
                 'required_if:term_type,'.LeaseTermType::FIXED_TERM->value,
                 'prohibited_if:term_type,'.LeaseTermType::MONTHLY->value,
             ],
@@ -82,6 +82,27 @@ class StoreLeaseRequest extends FormRequest
 
             'tenants.*.security_deposit' => ['nullable', 'numeric', 'min:0'],
             'tenants.*.advance_rent' => ['nullable', 'numeric', 'min:0'],
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages(): array
+    {
+        return [
+            'property_unit_uuid.required' => 'A property unit must be selected.',
+            'property_unit_uuid.exists' => 'The selected property unit could not be found.',
+            'term_type.required' => 'Please select a lease term type.',
+            'start_date.required' => 'A start date is required.',
+            'end_date.required_if' => 'An end date is required for a fixed-term lease.',
+            'end_date.after' => 'The end date must be after the start date.',
+            'end_date.prohibited_if' => 'A monthly lease cannot have an end date.',
+            'tenants.required' => 'At least one tenant must be provided.',
+            'tenants.*.uuid.exists' => 'One of the selected tenants could not be found.',
+            'tenants.*.first_name.required_without' => 'First name is required for a new tenant.',
+            'tenants.*.last_name.required_without' => 'Last name is required for a new tenant.',
+            'tenants.*.email.required_without' => 'Email is required for a new tenant.',
         ];
     }
 }

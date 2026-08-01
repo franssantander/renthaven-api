@@ -33,9 +33,9 @@ class LedgerController extends Controller
      */
     public function dashboard(Request $request): JsonResponse
     {
-        $tenantBusinessId = $request->user()->tenant_business_id;
-
-        $entryQuery = LedgerEntry::query()->where('tenant_business_id', $tenantBusinessId);
+        // LedgerEntry is tenant-scoped by its own global scope (and left
+        // unscoped for super admins), so no manual filter here.
+        $entryQuery = LedgerEntry::query();
 
         $widgets = [
             $this->metricService->buildSumMetric(
@@ -83,11 +83,8 @@ class LedgerController extends Controller
      */
     public function index(Request $request)
     {
-        $tenantBusinessId = $request->user()->tenant_business_id;
-
         $entries = LedgerEntry::query()
             ->with(['lease', 'renter', 'propertyUnit', 'attachments'])
-            ->where('tenant_business_id', $tenantBusinessId)
             ->when($request->filled('status'), function ($query) use ($request) {
                 $query->where('status', $request->input('status'));
             })
@@ -127,8 +124,6 @@ class LedgerController extends Controller
      */
     public function markPaid(MarkPaidRequest $request, LedgerEntry $ledgerEntry): JsonResponse
     {
-        abort_unless($ledgerEntry->tenant_business_id === $request->user()->tenant_business_id, 404);
-
         if ($ledgerEntry->status === LedgerStatus::PAID) {
             return $this->error(null, 'This ledger entry has already been marked as paid.', 422);
         }
@@ -153,7 +148,7 @@ class LedgerController extends Controller
             oldValues: $originalValues,
         );
 
-        return $this->success($ledgerEntry, 'Ledger entry marked as paid.');
+        return $this->success(LedgerEntryData::from($ledgerEntry->fresh()), 'Ledger entry marked as paid.');
     }
 
     /**
@@ -166,20 +161,21 @@ class LedgerController extends Controller
 
         abort_unless($renter && $ledgerEntry->renter_id === $renter->id, 404);
 
-        if (! in_array($ledgerEntry->status, [LedgerStatus::PENDING, LedgerStatus::OVERDUE, LedgerStatus::PARTIALLY_PAID], true)) {
-            return $this->error(null, 'This ledger entry cannot be submitted for payment in its current state.', 422);
-        }
-
         $originalValues = $ledgerEntry->getOriginal();
 
-        $this->ledgerService->submitPaymentClaim(
-            $ledgerEntry,
-            $request->validated('reference'),
-            $request->validated('notes'),
-            $request->validated('amount') !== null ? (float) $request->validated('amount') : null,
-        );
+        // Atomic: the payment claim and its proof-of-payment attachment must
+        // both land, or neither should — otherwise a submitted claim can end
+        // up with no proof on file (or vice versa).
+        DB::transaction(function () use ($request, $ledgerEntry) {
+            $this->ledgerService->submitPaymentClaim(
+                $ledgerEntry,
+                $request->validated('reference'),
+                $request->validated('notes'),
+                $request->validated('amount') !== null ? (float) $request->validated('amount') : null,
+            );
 
-        $this->attachmentService->attach($ledgerEntry, [$request->file('proof')], ['Proof of payment']);
+            $this->attachmentService->attach($ledgerEntry, [$request->file('proof')], ['Proof of payment']);
+        });
 
         $this->auditLogger->record(
             module: AuditModule::BILLING,
@@ -189,7 +185,7 @@ class LedgerController extends Controller
             oldValues: $originalValues,
         );
 
-        return $this->success($ledgerEntry->load('attachments'), 'Payment submitted. An admin will review and confirm it shortly.');
+        return $this->success(LedgerEntryData::from($ledgerEntry->fresh()->load('attachments')), 'Payment submitted. An admin will review and confirm it shortly.');
     }
 
     /**
@@ -198,8 +194,6 @@ class LedgerController extends Controller
      */
     public function rejectPayment(RejectPaymentRequest $request, LedgerEntry $ledgerEntry): JsonResponse
     {
-        abort_unless($ledgerEntry->tenant_business_id === $request->user()->tenant_business_id, 404);
-
         if ($ledgerEntry->status !== LedgerStatus::SUBMITTED) {
             return $this->error(null, 'This ledger entry has no pending payment claim to reject.', 422);
         }
@@ -216,6 +210,6 @@ class LedgerController extends Controller
             oldValues: $originalValues,
         );
 
-        return $this->success($ledgerEntry, 'Payment claim rejected.');
+        return $this->success(LedgerEntryData::from($ledgerEntry->fresh()), 'Payment claim rejected.');
     }
 }

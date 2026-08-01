@@ -34,23 +34,23 @@ class MaintenanceRequestService
     ): MaintenanceRequest {
         return DB::transaction(function () use ($propertyUnit, $lease, $renter, $tenantBusinessId, $data, $performedBy) {
             $maintenanceRequest = MaintenanceRequest::create([
-                'property_unit_id'   => $propertyUnit->id,
-                'lease_id'           => $lease->id,
-                'renter_id'          => $renter->id,
+                'property_unit_id' => $propertyUnit->id,
+                'lease_id' => $lease->id,
+                'renter_id' => $renter->id,
                 'tenant_business_id' => $tenantBusinessId,
-                'title'              => $data['title'],
-                'description'        => $data['description'],
-                'category'           => $data['category'],
-                'priority'           => $data['priority'] ?? MaintenancePriority::MEDIUM->value,
-                'status'             => MaintenanceRequestStatus::OPEN,
+                'title' => $data['title'],
+                'description' => $data['description'],
+                'category' => $data['category'],
+                'priority' => $data['priority'] ?? MaintenancePriority::MEDIUM->value,
+                'status' => MaintenanceRequestStatus::OPEN,
             ]);
 
             MaintenanceRequestHistory::create([
                 'maintenance_request_id' => $maintenanceRequest->id,
-                'action'                 => MaintenanceRequestHistoryAction::CREATED,
-                'from_status'            => null,
-                'to_status'              => MaintenanceRequestStatus::OPEN->value,
-                'performed_by'           => $performedBy,
+                'action' => MaintenanceRequestHistoryAction::CREATED,
+                'from_status' => null,
+                'to_status' => MaintenanceRequestStatus::OPEN->value,
+                'performed_by' => $performedBy,
             ]);
 
             return $maintenanceRequest;
@@ -69,6 +69,12 @@ class MaintenanceRequestService
         ?int $assignedTo = null,
     ): MaintenanceRequest {
         $fromStatus = $maintenanceRequest->status;
+
+        $terminalStatuses = [MaintenanceRequestStatus::RESOLVED, MaintenanceRequestStatus::CANCELLED];
+
+        if (in_array($fromStatus, $terminalStatuses, true) && $newStatus !== $fromStatus) {
+            abort(422, "This request is already {$fromStatus->value} and cannot be transitioned further.");
+        }
 
         DB::transaction(function () use ($maintenanceRequest, $newStatus, $fromStatus, $performedBy, $notes, $assignedTo) {
             $updates = ['status' => $newStatus];
@@ -97,11 +103,11 @@ class MaintenanceRequestService
 
             MaintenanceRequestHistory::create([
                 'maintenance_request_id' => $maintenanceRequest->id,
-                'action'                 => $action,
-                'from_status'            => $fromStatus->value,
-                'to_status'              => $newStatus->value,
-                'performed_by'           => $performedBy,
-                'notes'                  => $notes,
+                'action' => $action,
+                'from_status' => $fromStatus->value,
+                'to_status' => $newStatus->value,
+                'performed_by' => $performedBy,
+                'notes' => $notes,
             ]);
         });
 

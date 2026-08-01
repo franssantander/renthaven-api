@@ -6,6 +6,7 @@ use App\Enum\MaintenanceCategory;
 use App\Enum\MaintenancePriority;
 use App\Enum\MaintenanceRequestStatus;
 use App\HasHasPublicUuidTrait;
+use App\Traits\BelongsToTenantBusiness;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
@@ -30,20 +31,20 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 #[Table('maintenance_requests')]
 class MaintenanceRequest extends Model
 {
-    use HasHasPublicUuidTrait, SoftDeletes;
+    use BelongsToTenantBusiness, HasHasPublicUuidTrait, SoftDeletes;
 
     protected function casts(): array
     {
         return [
-            'property_unit_id'   => 'integer',
-            'lease_id'           => 'integer',
-            'renter_id'          => 'integer',
+            'property_unit_id' => 'integer',
+            'lease_id' => 'integer',
+            'renter_id' => 'integer',
             'tenant_business_id' => 'integer',
-            'assigned_to'        => 'integer',
-            'category'           => MaintenanceCategory::class,
-            'priority'           => MaintenancePriority::class,
-            'status'             => MaintenanceRequestStatus::class,
-            'resolved_at'        => 'datetime',
+            'assigned_to' => 'integer',
+            'category' => MaintenanceCategory::class,
+            'priority' => MaintenancePriority::class,
+            'status' => MaintenanceRequestStatus::class,
+            'resolved_at' => 'datetime',
         ];
     }
 

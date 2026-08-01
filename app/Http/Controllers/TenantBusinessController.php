@@ -5,16 +5,17 @@ namespace App\Http\Controllers;
 use App\Data\TenantBusinessData;
 use App\Data\UserData;
 use App\Enum\Status;
+use App\Http\Requests\TenantBusiness\RegisterBusinessRequest;
 use App\Http\Requests\TenantBusiness\StoreTenantBusinessRequest;
 use App\Http\Requests\TenantBusiness\UpdateTenantBusinessRequest;
-use App\Http\Requests\TenantBusiness\RegisterBusinessRequest;
 use App\Models\Role;
 use App\Models\TenantBusiness;
 use App\Models\User;
+use App\Services\Auth\TokenService;
 use App\Support\UuidResolver;
 use Illuminate\Auth\Events\Registered;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Spatie\LaravelData\PaginatedDataCollection;
@@ -22,6 +23,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class TenantBusinessController extends Controller
 {
+    public function __construct(protected TokenService $tokenService) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -35,6 +38,7 @@ class TenantBusinessController extends Controller
         }
 
         $businesses = $query->latest()->paginate($request->input('per_page', 15));
+
         return TenantBusinessData::collect($businesses, PaginatedDataCollection::class);
     }
 
@@ -52,6 +56,7 @@ class TenantBusinessController extends Controller
         unset($data['plan_uuid']);
 
         $business = TenantBusiness::create($data);
+
         return $this->success($business, 'Business created successfully.', Response::HTTP_CREATED);
     }
 
@@ -81,6 +86,7 @@ class TenantBusinessController extends Controller
         }
 
         $tenantBusiness->update($request->validated());
+
         return $this->success(TenantBusinessData::from($tenantBusiness), 'Business updated successfully.');
     }
 
@@ -112,26 +118,26 @@ class TenantBusinessController extends Controller
 
         $result = DB::transaction(function () use ($validated) {
             $business = TenantBusiness::create([
-                'plan_id'          => UuidResolver::id('plans', $validated['plan_uuid']),
-                'name'             => $validated['business_name'],
-                'email'            => $validated['business_email'],
-                'phone'            => $validated['business_phone'],
+                'plan_id' => UuidResolver::id('plans', $validated['plan_uuid']),
+                'name' => $validated['business_name'],
+                'email' => $validated['business_email'],
+                'phone' => $validated['business_phone'],
                 'business_address' => $validated['business_address'] ?? null,
-                'status'           => Status::INACTIVE->value,
+                'status' => Status::INACTIVE->value,
             ]);
 
             $adminRole = Role::where('slug', 'admin')->firstOrFail();
 
             $user = User::create([
                 'tenant_business_id' => $business->id,
-                'role_id'            => $adminRole->id,
-                'first_name'         => $validated['first_name'],
-                'middle_name'        => $validated['middle_name'] ?? null,
-                'last_name'          => $validated['last_name'],
-                'email'              => $validated['email'],
-                'phone'              => $validated['phone'] ?? null,
-                'username'           => $validated['username'],
-                'password'           => Hash::make($validated['password']),
+                'role_id' => $adminRole->id,
+                'first_name' => $validated['first_name'],
+                'middle_name' => $validated['middle_name'] ?? null,
+                'last_name' => $validated['last_name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'] ?? null,
+                'username' => $validated['username'],
+                'password' => Hash::make($validated['password']),
             ]);
 
             event(new Registered($user));
@@ -139,9 +145,10 @@ class TenantBusinessController extends Controller
             return compact('user', 'business');
         });
 
-        $token = $result['user']->createToken('auth_token')->accessToken;
-        $cookie = cookie('auth_token', $token, 60 * 24 * 7, '/', null, app()->environment('production'), true, false, 'Strict');
+        [$accessCookie, $refreshCookie] = $this->tokenService->issue($result['user']);
 
-        return $this->success(UserData::from($result['user']->load('role', 'tenantBusiness')))->withCookie($cookie);
+        return $this->success(UserData::from($result['user']->load('role', 'tenantBusiness')))
+            ->withCookie($accessCookie)
+            ->withCookie($refreshCookie);
     }
 }

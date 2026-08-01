@@ -25,9 +25,20 @@ class UpdatePropertyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'    => ['sometimes', 'required', 'string', 'max:255'],
+            'name' => ['sometimes', 'required', 'string', 'max:255'],
             'address' => ['sometimes', 'nullable', 'string', 'max:1000'],
-            'type'    => ['sometimes', 'required', Rule::enum(PropertyType::class)],
+            'type' => ['sometimes', 'required', Rule::enum(PropertyType::class)],
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'Property name is required.',
+            'type.required' => 'Please select a property type.',
         ];
     }
 }

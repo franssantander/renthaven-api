@@ -23,8 +23,20 @@ class SyncAmenitiesRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'amenity_uuids'   => ['required', 'array'],
+            'amenity_uuids' => ['required', 'array'],
             'amenity_uuids.*' => ['uuid', 'distinct', 'exists:amenities,uuid'],
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages(): array
+    {
+        return [
+            'amenity_uuids.required' => 'Please provide at least one amenity.',
+            'amenity_uuids.*.exists' => 'One or more selected amenities could not be found.',
+            'amenity_uuids.*.distinct' => 'Duplicate amenities are not allowed.',
         ];
     }
 }

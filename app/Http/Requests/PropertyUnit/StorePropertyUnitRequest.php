@@ -4,6 +4,7 @@ namespace App\Http\Requests\PropertyUnit;
 
 use App\Enum\PropertyUnitStatus;
 use App\Models\PropertyUnit;
+use App\Support\UuidResolver;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -18,14 +19,14 @@ class StorePropertyUnitRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
-        if (!$this->has('units') && $this->has('name')) {
+        if (! $this->has('units') && $this->has('name')) {
             $this->merge([
                 'units' => [
                     [
-                        'name'       => $this->input('name'),
-                        'capacity'   => $this->input('capacity'),
+                        'name' => $this->input('name'),
+                        'capacity' => $this->input('capacity'),
                         'rent_price' => $this->input('rent_price'),
-                        'status'     => $this->input('status'),
+                        'status' => $this->input('status'),
                     ],
                 ],
             ]);
@@ -41,9 +42,9 @@ class StorePropertyUnitRequest extends FormRequest
 
         if ($response->denied()) {
             throw new HttpResponseException(response()->json([
-                'data'    => null,
-                'status'  => 403,
-                'message' => $response->message()
+                'data' => null,
+                'status' => 403,
+                'message' => $response->message(),
             ], 403));
         }
 
@@ -58,6 +59,7 @@ class StorePropertyUnitRequest extends FormRequest
     public function rules(): array
     {
         $tenantId = $this->user()?->tenant_business_id;
+        $propertyId = UuidResolver::id('properties', $this->input('property_uuid'));
 
         return [
             'property_uuid' => [
@@ -69,11 +71,35 @@ class StorePropertyUnitRequest extends FormRequest
                 }),
             ],
 
-            'units'                => ['required', 'array', 'min:1'],
-            'units.*.name'         => ['required', 'distinct', 'string', 'max:255', 'unique:property_units,name'],
-            'units.*.capacity'     => ['required', 'integer', 'min:0'],
-            'units.*.rent_price'   => ['required', 'numeric', 'min:0'],
-            'units.*.status'       => ['nullable', 'string', Rule::enum(PropertyUnitStatus::class)],
+            'units' => ['required', 'array', 'min:1'],
+            'units.*.name' => [
+                'required',
+                'distinct',
+                'string',
+                'max:255',
+                Rule::unique('property_units', 'name')
+                    ->where(fn ($query) => $query->where('property_id', $propertyId)->whereNull('deleted_at')),
+            ],
+            'units.*.capacity' => ['required', 'integer', 'min:1'],
+            'units.*.rent_price' => ['required', 'numeric', 'min:0'],
+            'units.*.status' => ['nullable', 'string', Rule::enum(PropertyUnitStatus::class)],
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages(): array
+    {
+        return [
+            'property_uuid.required' => 'A property must be selected for this unit.',
+            'property_uuid.exists' => 'The selected property could not be found.',
+            'units.required' => 'Please provide at least one unit.',
+            'units.*.name.required' => 'Unit name is required.',
+            'units.*.name.unique' => 'This property already has a unit with that name.',
+            'units.*.name.distinct' => 'Unit names must be unique within this request.',
+            'units.*.capacity.min' => 'A unit must be able to house at least one tenant.',
+            'units.*.rent_price.min' => 'Rent price cannot be negative.',
         ];
     }
 }

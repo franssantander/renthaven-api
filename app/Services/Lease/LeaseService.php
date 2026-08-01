@@ -43,6 +43,19 @@ class LeaseService
         ?int $performedBy = null,
     ): array {
         $leases = DB::transaction(function () use ($propertyUnit, $tenants, $termType, $startDate, $endDate, $tenantBusinessId, $performedBy) {
+            // Re-check capacity under a row lock: the caller's Gate::inspect check
+            // happens before this transaction opens, so it can't by itself stop two
+            // concurrent requests from both passing and over-filling the unit.
+            $propertyUnit->refresh();
+            DB::table('property_units')->where('id', $propertyUnit->id)->lockForUpdate()->value('id');
+
+            $activeCount = Lease::where('property_unit_id', $propertyUnit->id)->where('is_active', true)->count();
+            abort_if(
+                $activeCount + count($tenants) > $propertyUnit->capacity,
+                422,
+                "This unit only has room for {$propertyUnit->capacity} tenant(s); {$activeCount} already active."
+            );
+
             $created = [];
 
             foreach ($tenants as $tenantInput) {
@@ -53,6 +66,12 @@ class LeaseService
                     : $this->findOrCreateUser($tenantInput, $tenantBusinessId);
 
                 $renter = $this->findOrCreateRenter($user, $tenantBusinessId);
+
+                abort_if(
+                    $renter->activeLease()->exists(),
+                    422,
+                    "{$renter->first_name} {$renter->last_name} already has an active lease."
+                );
 
                 $lease = Lease::create([
                     'property_unit_id' => $propertyUnit->id,
@@ -79,10 +98,10 @@ class LeaseService
                 $created[] = $lease;
             }
 
+            $this->recalculateUnitStatus($propertyUnit);
+
             return $created;
         });
-
-        $this->recalculateUnitStatus($propertyUnit);
 
         return $leases;
     }
@@ -103,6 +122,10 @@ class LeaseService
         $newLease = DB::transaction(function () use ($lease, $newPropertyUnit, $moveDate, $performedBy) {
             $previousPropertyUnit = $lease->propertyUnit;
             $originalEndDate = $lease->end_date;
+
+            if ($lease->term_type === LeaseTermType::FIXED_TERM && $originalEndDate && Carbon::parse($moveDate)->gte($originalEndDate)) {
+                abort(422, 'The move date must be before the lease\'s current end date.');
+            }
 
             $lease->update([
                 'end_date' => $moveDate,
@@ -130,14 +153,14 @@ class LeaseService
                 'performed_by' => $performedBy,
             ]);
 
+            if ($previousPropertyUnit) {
+                $this->recalculateUnitStatus($previousPropertyUnit);
+            }
+
+            $this->recalculateUnitStatus($newPropertyUnit);
+
             return $newLease;
         });
-
-        if ($lease->propertyUnit) {
-            $this->recalculateUnitStatus($lease->propertyUnit);
-        }
-
-        $this->recalculateUnitStatus($newPropertyUnit);
 
         return $newLease;
     }
@@ -157,6 +180,11 @@ class LeaseService
     ): Lease {
         DB::transaction(function () use ($lease, $moveOutDate, $deductions, $notes, $performedBy) {
             $propertyUnit = $lease->propertyUnit;
+
+            if (Carbon::parse($moveOutDate)->lt($lease->start_date)) {
+                abort(422, 'The move-out date cannot be before the lease\'s start date.');
+            }
+
             $totalDeductions = array_sum(array_column($deductions, 'amount'));
             $refundAmount = round((float) $lease->security_deposit - $totalDeductions, 2);
 
@@ -186,11 +214,11 @@ class LeaseService
                 'performed_by' => $performedBy,
                 'notes' => $notes,
             ]);
-        });
 
-        if ($lease->propertyUnit) {
-            $this->recalculateUnitStatus($lease->propertyUnit);
-        }
+            if ($propertyUnit) {
+                $this->recalculateUnitStatus($propertyUnit);
+            }
+        });
 
         return $lease->fresh();
     }

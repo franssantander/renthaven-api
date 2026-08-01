@@ -161,11 +161,18 @@ class LedgerService
      */
     public function markPaid(LedgerEntry $entry, User $staff, ?string $notes = null, ?float $amount = null): LedgerEntry
     {
-        $amount ??= (float) $entry->balance;
+        return DB::transaction(function () use ($entry, $staff, $notes, $amount) {
+            // Lock the row for the duration of the read-modify-write cycle so two
+            // concurrent payments (e.g. an admin's markPaid racing a renter's
+            // submitPayment approval) can't both read the same stale balance.
+            $locked = LedgerEntry::where('id', $entry->id)->lockForUpdate()->firstOrFail();
 
-        $this->applyPayment($entry, $amount, $staff->id, $notes);
+            $settleAmount = $amount ?? (float) $locked->balance;
 
-        return $entry->fresh();
+            $this->applyPayment($locked, $settleAmount, $staff->id, $notes);
+
+            return $locked->fresh();
+        });
     }
 
     /**
@@ -223,15 +230,25 @@ class LedgerService
      */
     public function submitPaymentClaim(LedgerEntry $entry, ?string $reference, ?string $notes, ?float $amount = null): LedgerEntry
     {
-        $entry->update([
-            'status' => LedgerStatus::SUBMITTED,
-            'submitted_at' => now(),
-            'submitted_amount' => $amount ?? (float) $entry->balance,
-            'submission_reference' => $reference,
-            'submission_notes' => $notes,
-        ]);
+        return DB::transaction(function () use ($entry, $reference, $notes, $amount) {
+            $locked = LedgerEntry::where('id', $entry->id)->lockForUpdate()->firstOrFail();
 
-        return $entry;
+            abort_unless(
+                in_array($locked->status, [LedgerStatus::PENDING, LedgerStatus::OVERDUE, LedgerStatus::PARTIALLY_PAID], true),
+                422,
+                'This ledger entry cannot be submitted for payment in its current state.'
+            );
+
+            $locked->update([
+                'status' => LedgerStatus::SUBMITTED,
+                'submitted_at' => now(),
+                'submitted_amount' => $amount ?? (float) $locked->balance,
+                'submission_reference' => $reference,
+                'submission_notes' => $notes,
+            ]);
+
+            return $locked;
+        });
     }
 
     /**

@@ -1,5 +1,10 @@
 # RentHaven API — Business Flow Documentation
 
+> **Change history:** see `docs/CHANGES_2026-08-01_backend_audit.md` for a full account of a
+> 2026-08-01 audit-and-fix pass across every module below. Several items this document used to
+> list under "Known Gaps" are now resolved and marked inline (struck through) rather than removed,
+> so the history stays visible.
+
 ## Introduction
 
 RentHaven is a multi-tenant rental management platform. A **tenant business** (a landlord/property management company) signs up, subscribes to a **plan**, builds a team of **staff/admin users**, lists **properties** made up of **property units**, and assigns **renters** to units via **leases**. Rent is billed through a recurring **ledger**, renters can report issues through **maintenance requests**, and every meaningful action is recorded to an **audit log** which automatically fans out to an in-app **notification** inbox. A **dashboard** layer aggregates KPIs on top of all of this.
@@ -33,7 +38,7 @@ RentHaven is a multi-tenant rental management platform. A **tenant business** (a
 | DELETE | `/tenant-business/{id}` | `auth:api` + `tenant_business,delete` | Delete a business, cascading to its users |
 
 **Business Rules & Logic:**
-- **Self-registration flow**: validates a `plan_uuid` plus the business's name/email/phone (globally unique) and the first admin's credentials. In one transaction: creates the business with `status = INACTIVE`, resolves the plan, looks up the `admin` role, and creates the business's first `User` with that role. Fires Laravel's `Registered` event (ties into the email-verification login gate in Auth). Issues an `auth_token` cookie directly via Passport — notably this bypasses the shared `TokenService`, so no refresh-token pair is created at registration time (inconsistent with normal login).
+- **Self-registration flow**: validates a `plan_uuid` plus the business's name/email/phone (globally unique) and the first admin's credentials. In one transaction: creates the business with `status = INACTIVE`, resolves the plan, looks up the `admin` role, and creates the business's first `User` with that role. Fires Laravel's `Registered` event (ties into the email-verification login gate in Auth). Issues its access/refresh-token cookie pair via the shared `TokenService::issue()`, same as a normal login (fixed 2026-08-01 — previously issued a raw Passport token directly, skipping refresh-token creation).
 - **Manual creation** (`store`) is restricted to Super Admin only.
 - **Scoping**: non-Super-Admin callers can only view/act on their own single business — never a list of others'.
 - **Deletion** cascades: deletes all of the business's users first, then the business itself, inside a transaction.
@@ -143,7 +148,7 @@ RentHaven is a multi-tenant rental management platform. A **tenant business** (a
 
 **Data Model:** `User` (Passport `HasApiTokens`, verifiable email), `MagicLinkToken` (`user_id`, hashed token, `expires_at`, `used_at`), `RefreshToken` (`user_id`, `access_token_id`, hashed token, `expires_at`, `revoked_at`).
 
-**Cross-Module Interactions:** `/auth/me` pulls the full permission matrix (Permission module). Magic-link login is the entry point into the **RenterPortal** flow. TenantBusiness registration issues a token directly via Passport, bypassing `TokenService` (an inconsistency worth flagging).
+**Cross-Module Interactions:** `/auth/me` pulls the full permission matrix (Permission module). Magic-link login is the entry point into the **RenterPortal** flow. TenantBusiness registration issues its tokens through the same `TokenService` as a normal login (see TenantBusiness module note).
 
 ---
 
@@ -166,8 +171,7 @@ RentHaven is a multi-tenant rental management platform. A **tenant business** (a
 - **Create**: `role_uuid` resolved to `role_id`. Non-Super-Admin creators are forced onto their own tenant business; Super Admins must explicitly supply `tenant_business_uuid`.
 - **Update**: same cross-tenant guard. Password optional — blank means unchanged. Non-Super-Admins cannot move a user to a different tenant business.
 - **Delete**: same tenant guard, plus a self-protection rule — a user cannot delete their own account (400).
-- Validation: `username`/`email` globally unique; password uses `Password::defaults()` policy; `tenant_business_uuid` conditionally required only for Super-Admin callers.
-- **Known bug**: `UpdateUserManagementRequest` has a stray import shadowing `App\Enum\Status` with an unrelated PHPUnit `Status` class in its `Rule::enum()` call — likely a runtime validation bug worth engineering follow-up.
+- Validation: `username`/`email` globally unique; password uses `Password::defaults()` policy; `tenant_business_uuid` conditionally required only for Super-Admin callers. `role_uuid` cannot be set to `super_admin` unless the acting caller already is one (fixed 2026-08-01 — previously any admin could self-elevate or elevate another user to Super Admin, which bypasses tenant scoping entirely).
 - Every create/update/delete is audit-logged under `AuditModule::USER_MANAGEMENT`.
 
 **Data Model:** `User`, `Role`, `TenantBusiness`.
@@ -180,23 +184,23 @@ RentHaven is a multi-tenant rental management platform. A **tenant business** (a
 
 **Purpose:** Manages the physical real-estate assets (a building, dorm, complex) that contain one or more units. Handles CRUD, amenity tagging, and image attachments, enforcing plan limits on property count.
 
-**Key Endpoints** (prefix `/property`, all `auth:api`; note `index`/`store`/`update`/`amenities.sync` have no explicit `permission:` middleware — `store`'s authorization is instead a Gate check inside the FormRequest):
+**Key Endpoints** (prefix `/property`, all `auth:api`; `store`'s plan-limit enforcement is a Gate check inside the FormRequest, in addition to the route-level permission below):
 
 | Method | Route | Permission/Auth | Description |
 |---|---|---|---|
-| GET | `/property` | — | List properties for the caller's tenant business |
-| POST | `/property` | Gate-checked (plan limit) | Create a property |
-| GET | `/property/{id}` | — | Show a property |
-| PUT | `/property/{id}` | — | Update a property |
-| PUT | `/property/{id}/amenities` | — | Replace the property's full amenity set |
+| GET | `/property` | `properties,view` | List properties for the caller's tenant business |
+| POST | `/property` | `properties,create` + Gate-checked (plan limit) | Create a property |
+| GET | `/property/{id}` | `properties,view` | Show a property |
+| PUT | `/property/{id}` | `properties,update` | Update a property |
+| PUT | `/property/{id}/amenities` | `properties,update` | Replace the property's full amenity set |
 | POST | `/property/{id}/attachments` | `properties,create` | Upload up to 10 images |
 | DELETE | `/property/{id}/attachments/{aid}` | `properties,delete` | Delete an image |
-| DELETE | `/property/{id}` | — | Soft-delete a property |
-| GET | `/property/dashboard` | — | Total Properties / Total Units / Available Units |
+| DELETE | `/property/{id}` | `properties,delete` | Soft-delete a property |
+| GET | `/property/dashboard` | `properties,view` | Total Properties / Total Units / Available Units |
 
 **Business Rules & Logic:**
 - **Plan limit** (`PropertyPolicy::create`): denies if the tenant has no plan, or if `max_properties > 0` and the current count is already at/over that cap — enforced via a Gate check inside `StorePropertyRequest::authorize()`, rejecting before any DB write.
-- `PropertyPolicy`'s `view`/`update`/`delete`/`viewAny` all hard-return `false` — those actions are authorized entirely via route `permission:` middleware instead.
+- `PropertyPolicy`'s `view`/`update`/`delete`/`viewAny` all hard-return `false` and are unused dead code — those actions are authorized entirely via route `permission:` middleware instead (as of 2026-08-01, every mutating route above is gated this way; previously most had no `permission:` middleware at all).
 - `name` must be **globally** unique across `properties` (not scoped per tenant) — a naming-collision risk across different tenant businesses worth flagging.
 - `tenant_business_uuid` auto-injected from the caller's own business unless the caller is Super Admin.
 - Amenity sync fully **replaces** (not merges) the property's amenity list; tenant-scoped (404 if cross-tenant).
@@ -234,9 +238,10 @@ RentHaven is a multi-tenant rental management platform. A **tenant business** (a
 **Business Rules & Logic:**
 - **Plan limit** (`PropertyUnitPolicy::create`): denies if no plan, or if `max_units > 0` and `currentCount + incomingCount > max_units` — checked against the **total incoming count** for bulk creation in one call.
 - A single-unit payload is normalized into a `units` array of one, so the endpoint accepts single or bulk creation.
-- Unit `name` must be distinct within the request **and** globally unique across `property_units` (not scoped per property/tenant) — flagged as a naming-collision risk, same pattern as Property.
+- Unit `name` must be distinct within the request **and** unique per property (fixed 2026-08-01 — previously enforced globally across `property_units`, so once any tenant used a name like "Unit 1" no other tenant/property could ever reuse it).
 - `status` is largely **not** meant to be set directly by users in normal flow — it's recalculated automatically by Lease and MaintenanceRequest services (see below), even though the update request technically permits any change.
-- `PropertyUnitPolicy`/route has a possible gap: `show`/`destroy` call `$this->authorize()` against policy methods (`view`/`delete`) that aren't actually defined on `PropertyUnitPolicy`.
+- **Tenant isolation**: `PropertyUnit` has no `tenant_business_id` column of its own (tenancy is derived through its `property`), so it can't use the `BelongsToTenantBusiness` trait directly. It now carries an equivalent hand-written global scope (added 2026-08-01) filtering every query through the `property` relation, super-admin-aware — before this fix there was **no tenant isolation on this model at all**, and `update`/`storeAttachments`/`destroyAttachment` had no ownership check of any kind, making any unit in the system editable by UUID from any tenant.
+- `show`/`destroy` no longer call `$this->authorize()` (removed 2026-08-01 — the app's base `Controller` doesn't include Laravel's `AuthorizesRequests` trait, so these calls fatally errored on every request; `PropertyUnitPolicy` also never defined the `view`/`delete` methods they referenced). Both actions are now authorized the same way as the rest of this controller: route `permission:` middleware plus the tenant-scoping global scope above.
 
 **Data Model:** `PropertyUnit` (belongs to `Property`; has many `Lease`, `MaintenanceRequest`, `amenities`, `attachments`).
 
@@ -264,12 +269,12 @@ RentHaven is a multi-tenant rental management platform. A **tenant business** (a
 | Method | Route | Permission | Description |
 |---|---|---|---|
 | GET | `/amenity` | `properties,view` | List global + the caller's tenant-custom amenities, filterable by category |
-| POST | `/amenity` | Role-checked in FormRequest (super_admin/admin only) | Create one or many amenity tags |
-| PUT | `/amenity/{id}` | Ownership-checked in controller | Update an amenity |
-| DELETE | `/amenity/{id}` | Ownership-checked in controller | Soft-delete an amenity |
+| POST | `/amenity` | `properties,create` + role-checked in FormRequest (super_admin/admin only) | Create one or many amenity tags |
+| PUT | `/amenity/{id}` | `properties,update` + ownership-checked in controller | Update an amenity |
+| DELETE | `/amenity/{id}` | `properties,delete` + ownership-checked in controller | Soft-delete an amenity |
 
 **Business Rules & Logic:**
-- Create/update/delete are **not** gated by the `permission:{module},{action}` middleware system (an inconsistency vs. other modules) — they rely solely on a role check in the FormRequest plus a controller-level ownership check.
+- Create/update/delete are now gated by `permission:{module},{action}` middleware like every other module (added 2026-08-01 — previously relied solely on a role check in the FormRequest plus a controller-level ownership check; `destroy` in particular had no role gating of any kind, so any authenticated user, including a renter, could delete an amenity).
 - Only `super_admin` may create a global entry (`tenant_business_id = null`); any other role creates a private tenant-scoped tag.
 - Slug is optional and auto-generated (`Str::slug`), must be globally unique.
 - `authorizeOwnership()`: a Super Admin may only modify global entries; anyone else only their own tenant's entries — cross-tenant editing blocked with 403.
@@ -322,9 +327,9 @@ RentHaven is a multi-tenant rental management platform. A **tenant business** (a
 - **Capacity check** (`LeasePolicy::create`): denies if `currentActiveCount + incomingTenantCount > unit.capacity` — prevents overbooking a unit.
 - New tenants: looked up by email first; if that email already belongs to a **different** tenant business, the request is rejected (422) — prevents identity cross-pollination between tenant businesses. Genuinely new tenants get an unverified `User` (Tenant role) with a random password and a `SetPasswordNotification` so they can self-activate.
 - A `Renter` profile is found-or-created per user per tenant business.
-- **Reassignment**: only allowed if the lease `is_active`; reassigning to the same unit short-circuits with a friendly message. Also capacity-gated. The old lease is ended (`end_date` = move date, `is_active=false`); the new lease keeps the original `end_date` if the term was `fixed_term` (term does not restart), or has none if `monthly`.
+- **Reassignment**: only allowed if the lease `is_active`; reassigning to the same unit short-circuits with a friendly message. Also capacity-gated (re-checked under a row lock inside the transaction as of 2026-08-01, closing a TOCTOU race where two concurrent requests could both pass the pre-transaction capacity check). A renter cannot be assigned while they already have another active lease (guard added 2026-08-01). The old lease is ended (`end_date` = move date, `is_active=false`); the new lease keeps the original `end_date` if the term was `fixed_term` (term does not restart), or has none if `monthly`. Reassignment/termination dates are validated to prevent a negative-length lease (`move_date` before the original `end_date`; `move_out_date` on/after `start_date` — added 2026-08-01).
 - Every assignment/reassignment writes a `LeaseHistory` row (action, from/to unit, previous lease, performer) — a full occupancy audit trail independent of the general audit log.
-- After every change, `LeaseService::recalculateUnitStatus()` recomputes the unit's occupancy status.
+- After every change, `LeaseService::recalculateUnitStatus()` recomputes the unit's occupancy status; this call now runs **inside** the same DB transaction as the lease mutation (fixed 2026-08-01 — previously ran after commit, so a crash in between could leave the unit's status stale).
 
 **Data Model:** `Lease` (belongs to `PropertyUnit`, `Renter`); `LeaseHistory` (references `Lease`, from/to unit, performer); `Renter` (belongs to `User` and `TenantBusiness`).
 
@@ -357,8 +362,8 @@ RentHaven is a multi-tenant rental management platform. A **tenant business** (a
 **Business Rules & Logic (status transitions):**
 - **Generation** (scheduled): for every active lease, finds the latest entry by `period_end`; next period starts the day after (or the lease's `start_date` if none exists yet). Only generates once a period has actually started (no far-future pre-generation). For fixed-term leases, stops once a period would start after the lease's `end_date`. Each period is exactly one calendar month; `amount = unit.rent_price`; initial `status = PENDING`.
 - **Overdue sweep** (scheduled): any `PENDING` entry past its `due_date` flips to `OVERDUE`, triggering a one-time reminder notification (guarded by `reminder_sent_at` to prevent duplicates) with a magic-link deep-link.
-- **Admin marks paid**: blocked if already `PAID` (422). Sets `PAID`, `paid_at`, `paid_by`, optional notes. Used for both direct admin-recorded payments and approving a renter's submitted claim — one code path guarantees the Monthly Revenue dashboard metric is never double-counted or divergent between the two flows.
-- **Renter submits payment**: only allowed while `PENDING`/`OVERDUE` (422 otherwise); ownership enforced (must be the caller's own entry); requires a proof image (≤5MB). Sets `SUBMITTED`, `submitted_at`, reference/notes, attaches the proof via `PropertyAttachmentService`.
+- **Admin marks paid**: blocked if already `PAID` (422). Sets `PAID`, `paid_at`, `paid_by`, optional notes. Used for both direct admin-recorded payments and approving a renter's submitted claim — one code path guarantees the Monthly Revenue dashboard metric is never double-counted or divergent between the two flows. The read-modify-write on the entry's balance runs inside a `DB::transaction()` with `lockForUpdate()` (added 2026-08-01, closing a race where two concurrent payments on the same entry could clobber each other and consume two OR numbers for one paid entry). An `amount` exceeding the outstanding balance is now rejected (422) rather than silently clamped.
+- **Renter submits payment**: only allowed while `PENDING`/`OVERDUE`/`PARTIALLY_PAID` (422 otherwise, re-checked under a row lock as of 2026-08-01); ownership enforced (must be the caller's own entry); requires a proof image (≤5MB). Sets `SUBMITTED`, `submitted_at`, reference/notes, attaches the proof via `PropertyAttachmentService` — the claim update and the proof-image attach now happen inside one transaction (fixed 2026-08-01, previously could leave a `SUBMITTED` entry with no proof on file if the attach step failed).
 - **Admin rejects**: only allowed if `SUBMITTED` (422 otherwise). Reverts to `OVERDUE` (if due date passed) or `PENDING` (otherwise); clears submission fields; records a rejection reason.
 - Transition map: `PENDING`/`OVERDUE` → `SUBMITTED` (renter) → `PAID` (admin approves) or back to `PENDING`/`OVERDUE` (admin rejects). `PENDING` → `OVERDUE` automatically.
 
@@ -393,8 +398,8 @@ RentHaven is a multi-tenant rental management platform. A **tenant business** (a
 **Business Rules & Logic:**
 - **Store — role-based lease resolution**: a `tenant` caller cannot specify a `lease_uuid` (prohibited) — the controller resolves their own renter profile and active lease instead (422 if either is missing). Non-tenant (staff) callers must supply a `lease_uuid` under their own tenant business — allowing staff to file on a renter's behalf.
 - New requests always start `OPEN`; a history row is written with action `created`.
-- **Status update**: tenant-business ownership enforced. `resolved_at` auto-stamped when transitioning to `RESOLVED`. History action derived by rule: `RESOLVED`→`resolved`, `CANCELLED`→`cancelled`, otherwise `assigned` (if an assignee was set) or `status_changed`. A notification is sent to the renter on every status update.
-- No explicit workflow guard preventing arbitrary status jumps (e.g. open → resolved directly is allowed).
+- **Status update**: tenant-business ownership enforced (via the model's own tenant scope as of 2026-08-01; the previous manual `tenant_business_id` equality check broke for super admins). `resolved_at` auto-stamped when transitioning to `RESOLVED`. History action derived by rule: `RESOLVED`→`resolved`, `CANCELLED`→`cancelled`, otherwise `assigned` (if an assignee was set) or `status_changed`. A notification is sent to the renter on every status update. Reassigning `assigned_to` now requires the assignee to belong to the same tenant business (added 2026-08-01).
+- `resolved`/`cancelled` are terminal — attempting to transition out of either now returns 422 (guard added 2026-08-01; previously a resolved/cancelled request could be silently reopened).
 
 **Data Model:** `MaintenanceRequest` (belongs to `PropertyUnit`, `Lease`, `Renter`, `TenantBusiness`; `assigned_to` references staff `User`; has many `MaintenanceRequestHistory`).
 
@@ -521,15 +526,18 @@ Note: this route **requires** `auth:api` like everything else — the magic link
 
 ## Appendix: Cross-Cutting Concerns & Known Gaps
 
-These are inconsistencies and gaps surfaced while reading the code, worth raising with engineering or scoping into future work:
+These are inconsistencies and gaps surfaced while reading the code, worth raising with engineering or scoping into future work. A 2026-08-01 audit pass (see `docs/CHANGES_2026-08-01_backend_audit.md` for full detail) fixed several items originally listed here; those are marked accordingly rather than removed, so the history stays visible.
 
-- **Global uniqueness instead of tenant-scoped**: `Property.name`, `PropertyUnit.name`, and `Amenity.slug` are validated as globally unique across the whole table rather than per tenant business — two unrelated landlords cannot both name a property "Building A" or a unit "Room 101."
+- **Global uniqueness instead of tenant-scoped**: `Property.name` and `Amenity.slug` are still validated as globally unique across the whole table rather than per tenant business — two unrelated landlords still cannot both name a property "Building A." (`PropertyUnit.name` was fixed 2026-08-01 to be scoped per property instead of global.)
 - **PlanController is unrouted**: subscription plans can only be managed via seeders/Tinker today; there is no API to list, create, or change a tenant business's plan after signup (`UpdateTenantBusinessRequest` doesn't even accept a `plan_uuid`).
-- **`UpdateUserManagementRequest` has a shadowed `Status` import** — a PHPUnit class import shadows the intended `App\Enum\Status`, likely causing incorrect validation behavior on the `status` field.
-- **TenantBusiness registration bypasses `TokenService`**: `registerBusiness()` issues a Passport access token directly rather than going through the shared token-issuance service, so a newly registered user gets no refresh-token cookie (unlike a normal login).
-- **Amenity module doesn't use the `permission:{module},{action}` middleware** that gates nearly every other module — its create/update/delete authorization is role-checked in the FormRequest and ownership-checked in the controller instead.
-- **Soft-deleted attachments lose their physical file**: `PropertyAttachmentService::delete()` removes the file from storage before soft-deleting the DB row, so a soft-deleted attachment can never be restored intact.
+- ~~`UpdateUserManagementRequest` has a shadowed `Status` import~~ — **fixed 2026-08-01**: this was a fatal error on every `PUT /user-management/{user}` request (a PHPUnit test class was imported instead of `App\Enum\Status`), not just an incorrect-validation risk.
+- ~~TenantBusiness registration bypasses `TokenService`~~ — **fixed 2026-08-01**: `registerBusiness()` now issues tokens through `TokenService::issue()`, same as a normal login.
+- ~~Amenity module doesn't use the `permission:{module},{action}` middleware~~ — **fixed 2026-08-01**: `store`/`update`/`destroy` are now gated the same way as other modules. (`destroy` previously had no role gating of any kind.)
+- **Soft-deleted attachments lose their physical file**: `PropertyAttachmentService::delete()` removes the file from storage before soft-deleting the DB row, so a soft-deleted attachment can never be restored intact. (Not addressed — no "restore attachment" flow exists to make this observable today.)
 - **Several enum values are defined but never produced by current logic**: `LeaseHistoryAction::ended`, `PropertyUnitStatus::full`, and `AuditModule::rentals`/`tenant_business` all exist in code but no service path currently writes them — worth confirming whether they're reserved for planned features or dead code.
-- **`PropertyUnitPolicy` is missing `view`/`delete` methods** that `PropertyUnitController` calls via `$this->authorize()` — relies on Laravel's default policy fallback rather than an explicit rule.
-- **No workflow guard on `MaintenanceRequest` status transitions**: a request can jump directly from `open` to `resolved` with no intermediate state enforcement.
+- ~~`PropertyUnitPolicy` is missing `view`/`delete` methods~~ — **fixed 2026-08-01**, and it was worse than a fallback: this app's base `Controller` doesn't include Laravel's `AuthorizesRequests` trait at all, so `$this->authorize()` fatally errored on every `show`/`destroy` call rather than merely denying. The deeper issue this masked — `PropertyUnit` had **no tenant isolation whatsoever** (no `tenant_business_id` column, no scope) — is also fixed; see the PropertyUnit module section above.
+- ~~No workflow guard on `MaintenanceRequest` status transitions~~ — **fixed 2026-08-01**: `resolved`/`cancelled` are now terminal states.
+- **No plan-limit enforcement for user/staff creation** — `Plan` only caps `max_properties`/`max_units`; a tenant can create unlimited staff users regardless of plan tier, inconsistent with the Property/PropertyUnit pattern. (Newly noted 2026-08-01.)
+- **Magic-link tokens aren't scoped to a specific ledger entry, and grant a full session** — an overdue-rent reminder's link, if forwarded or leaked, grants a normal multi-day authenticated session rather than just the ability to settle that one charge. Narrowing this needs a schema change (`ledger_entry_id` on `magic_link_tokens`). (Newly noted 2026-08-01.)
+- **`PermissionPerUser` overrides replace role permissions rather than layering with them**, and have no explicit "deny" — once a user has any active override row, their role's other permissions are ignored entirely. May be intentional; worth confirming with product. (Newly noted 2026-08-01.)
 - **Notification delivery is in-app/database only** — no real-time push (the code has a placeholder for a future websocket broadcast) and no email/SMS channel, unlike the separate magic-link email notification.

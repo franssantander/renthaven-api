@@ -3,6 +3,7 @@
 namespace App\Data\Lease;
 
 use App\Data\PropertyUnit\PropertyUnitData;
+use App\Data\Renter\RenterData;
 use App\Enum\DepositStatus;
 use App\Enum\LeaseTermType;
 use Illuminate\Support\Carbon;
@@ -25,5 +26,6 @@ class LeaseData extends Data
         public ?float $deposit_refunded_amount,
         public ?Carbon $deposit_refunded_at,
         public ?PropertyUnitData $property_unit,
+        public ?RenterData $renter,
     ) {}
 }

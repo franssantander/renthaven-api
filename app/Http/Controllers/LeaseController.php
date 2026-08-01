@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\Lease\LeaseData;
 use App\Enum\AuditAction;
 use App\Enum\AuditModule;
 use App\Enum\LeaseTermType;
@@ -75,7 +76,7 @@ class LeaseController extends Controller
             );
         }
 
-        return $this->success($leases, 'Tenant(s) assigned successfully.', 201);
+        return $this->success(LeaseData::collect($leases), 'Tenant(s) assigned successfully.', 201);
     }
 
     /**
@@ -110,7 +111,7 @@ class LeaseController extends Controller
         $newPropertyUnit = $this->findTenantPropertyUnit($data['property_unit_uuid'], $tenantBusinessId);
 
         if ($newPropertyUnit->id === $lease->property_unit_id) {
-            return $this->success($lease, 'Lease is already assigned to this unit.');
+            return $this->success(LeaseData::from($lease), 'Lease is already assigned to this unit.');
         }
 
         $capacityCheck = Gate::inspect('create', [Lease::class, $newPropertyUnit, 1]);
@@ -143,7 +144,7 @@ class LeaseController extends Controller
             newValues: $newLease->getAttributes(),
         );
 
-        return $this->success($newLease, 'Tenant reassigned successfully.');
+        return $this->success(LeaseData::from($newLease), 'Tenant reassigned successfully.');
     }
 
     /**
@@ -175,7 +176,7 @@ class LeaseController extends Controller
             oldValues: $originalValues,
         );
 
-        return $this->success($renewedLease, 'Lease renewed successfully.');
+        return $this->success(LeaseData::from($renewedLease), 'Lease renewed successfully.');
     }
 
     /**
@@ -208,7 +209,7 @@ class LeaseController extends Controller
             oldValues: $originalValues,
         );
 
-        return $this->success($terminatedLease, 'Lease terminated successfully.');
+        return $this->success(LeaseData::from($terminatedLease), 'Lease terminated successfully.');
     }
 
     /**

@@ -27,14 +27,14 @@ class StoreAmenityRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
-        if (!$this->has('amenities') && $this->has('name')) {
+        if (! $this->has('amenities') && $this->has('name')) {
             $this->merge([
                 'amenities' => [
                     [
-                        'name'     => $this->input('name'),
-                        'slug'     => $this->input('slug'),
+                        'name' => $this->input('name'),
+                        'slug' => $this->input('slug'),
                         'category' => $this->input('category'),
-                        'icon'     => $this->input('icon'),
+                        'icon' => $this->input('icon'),
                     ],
                 ],
             ]);
@@ -49,11 +49,23 @@ class StoreAmenityRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'amenities'            => ['required', 'array', 'min:1'],
-            'amenities.*.name'     => ['required', 'string', 'max:255'],
-            'amenities.*.slug'     => ['nullable', 'string', 'max:255', 'distinct', 'unique:amenities,slug'],
+            'amenities' => ['required', 'array', 'min:1'],
+            'amenities.*.name' => ['required', 'string', 'max:255'],
+            'amenities.*.slug' => ['nullable', 'string', 'max:255', 'distinct', 'unique:amenities,slug'],
             'amenities.*.category' => ['nullable', 'string', Rule::enum(AmenityCategory::class)],
-            'amenities.*.icon'     => ['nullable', 'string', 'max:255'],
+            'amenities.*.icon' => ['nullable', 'string', 'max:255'],
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages(): array
+    {
+        return [
+            'amenities.required' => 'Please provide at least one amenity.',
+            'amenities.*.name.required' => 'Amenity name is required.',
+            'amenities.*.slug.unique' => 'This amenity slug is already in use.',
         ];
     }
 }

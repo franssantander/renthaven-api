@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\PropertyAttachment\PropertyAttachmentData;
 use App\Data\PropertyUnit\PropertyUnitData;
 use App\Enum\AuditAction;
 use App\Enum\AuditModule;
@@ -22,7 +23,6 @@ use Spatie\LaravelData\PaginatedDataCollection;
 
 class PropertyUnitController extends Controller
 {
-
     public function __construct(
         protected AuditLogger $auditLogger,
         protected PropertyUnitService $propertyUnitService,
@@ -35,11 +35,9 @@ class PropertyUnitController extends Controller
      */
     public function dashboard(Request $request): JsonResponse
     {
-        $tenantId = $request->user()->tenant_business_id;
-
-        $unitQuery = PropertyUnit::query()->whereHas('property', function ($query) use ($tenantId) {
-            $query->where('tenant_business_id', $tenantId);
-        });
+        // PropertyUnit is tenant-scoped by its own global scope (and left
+        // unscoped for super admins), so no manual filter here.
+        $unitQuery = PropertyUnit::query();
 
         $widgets = [
             $this->metricService->buildCountMetric(
@@ -65,7 +63,7 @@ class PropertyUnitController extends Controller
         ];
 
         return $this->success([
-            'metrics' => $widgets
+            'metrics' => $widgets,
         ], 'Dashboard metrics retrieved successfully.');
     }
 
@@ -74,12 +72,8 @@ class PropertyUnitController extends Controller
      */
     public function index(Request $request)
     {
-        $tenantId = $request->user()->tenant_business_id;
         $units = PropertyUnit::query()
             ->with(['property.tenantBusiness', 'property.amenities', 'property.attachments', 'amenities', 'attachments'])
-            ->whereHas('property', function ($query) use ($tenantId) {
-                $query->where('tenant_business_id', $tenantId);
-            })
             ->latest()
             ->paginate($request->input('per_page', 15));
 
@@ -115,9 +109,9 @@ class PropertyUnitController extends Controller
             );
         }
 
-        $payload = count($units) === 1 ? $units[0] : $units;
+        $payload = PropertyUnitData::collect($units);
 
-        return $this->success($payload, 'Unit(s) created successfully.', 201);
+        return $this->success(count($units) === 1 ? $payload[0] : $payload, 'Unit(s) created successfully.', 201);
     }
 
     /**
@@ -125,8 +119,7 @@ class PropertyUnitController extends Controller
      */
     public function show(PropertyUnit $propertyUnit): JsonResponse
     {
-        $this->authorize('view', $propertyUnit);
-        return $this->success($propertyUnit);
+        return $this->success(PropertyUnitData::from($propertyUnit->load(['amenities', 'attachments'])));
     }
 
     /**
@@ -156,7 +149,7 @@ class PropertyUnitController extends Controller
             );
         }
 
-        return $this->success($propertyUnit, 'Unit updated successfully.');
+        return $this->success(PropertyUnitData::from($propertyUnit), 'Unit updated successfully.');
     }
 
     /**
@@ -164,8 +157,6 @@ class PropertyUnitController extends Controller
      */
     public function syncAmenities(SyncAmenitiesRequest $request, PropertyUnit $propertyUnit): JsonResponse
     {
-        abort_unless($propertyUnit->property?->tenant_business_id === $request->user()->tenant_business_id, 404);
-
         $amenityIds = UuidResolver::ids('amenities', $request->validated('amenity_uuids'));
 
         $propertyUnit->amenities()->sync($amenityIds);
@@ -178,7 +169,7 @@ class PropertyUnitController extends Controller
             newValues: ['amenity_ids' => $amenityIds],
         );
 
-        return $this->success($propertyUnit->load('amenities'), 'Amenities updated successfully.');
+        return $this->success(PropertyUnitData::from($propertyUnit->load('amenities')), 'Amenities updated successfully.');
     }
 
     /**
@@ -195,12 +186,12 @@ class PropertyUnitController extends Controller
         $this->auditLogger->record(
             module: AuditModule::PROPERTY_UNIT,
             action: AuditAction::UPDATED,
-            description: 'Added ' . count($attachments) . " image(s) to unit \"{$propertyUnit->name}\"",
+            description: 'Added '.count($attachments)." image(s) to unit \"{$propertyUnit->name}\"",
             auditable: $propertyUnit,
             newValues: ['attachment_ids' => array_map(fn ($attachment) => $attachment->id, $attachments)],
         );
 
-        return $this->success($attachments, 'Image(s) uploaded successfully.', 201);
+        return $this->success(PropertyAttachmentData::collect($attachments), 'Image(s) uploaded successfully.', 201);
     }
 
     /**
@@ -230,8 +221,6 @@ class PropertyUnitController extends Controller
      */
     public function destroy(PropertyUnit $propertyUnit): JsonResponse
     {
-        $this->authorize('delete', $propertyUnit);
-
         $unitName = $propertyUnit->name;
         $originalValues = $propertyUnit->getAttributes();
 
@@ -241,6 +230,7 @@ class PropertyUnitController extends Controller
             module: AuditModule::PROPERTY_UNIT,
             action: AuditAction::DELETED,
             description: "Deleted unit \"{$unitName}\"",
+            auditable: $propertyUnit,
             oldValues: $originalValues,
         );
 
