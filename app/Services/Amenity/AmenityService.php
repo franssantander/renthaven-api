@@ -2,6 +2,7 @@
 
 namespace App\Services\Amenity;
 
+use App\Enum\AmenityScope;
 use App\Models\Amenity;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -26,6 +27,7 @@ class AmenityService
                     'name'               => $amenity['name'],
                     'slug'               => $amenity['slug'] ?? Str::slug($amenity['name']),
                     'category'           => $amenity['category'] ?? null,
+                    'scope'              => $amenity['scope'] ?? AmenityScope::BOTH->value,
                     'icon'               => $amenity['icon'] ?? null,
                 ]);
             }

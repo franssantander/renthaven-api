@@ -24,5 +24,7 @@ class PropertyData extends Data
 
         #[DataCollectionOf(PropertyAttachmentData::class)]
         public ?array $attachments,
+
+        public ?string $profile_image_url,
     ) {}
 }

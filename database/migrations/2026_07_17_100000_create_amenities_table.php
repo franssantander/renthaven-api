@@ -1,6 +1,7 @@
 <?php
 
 use App\Enum\AmenityCategory;
+use App\Enum\AmenityScope;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -20,11 +21,13 @@ return new class extends Migration
             $table->string('name');
             $table->string('slug')->unique();
             $table->enum('category', array_column(AmenityCategory::cases(), 'value'))->nullable();
+            $table->enum('scope', array_column(AmenityScope::cases(), 'value'))->default(AmenityScope::BOTH->value);
             $table->string('icon')->nullable();
             $table->softDeletes();
             $table->timestamps();
 
             $table->index('category');
+            $table->index('scope');
             $table->index('tenant_business_id');
         });
     }

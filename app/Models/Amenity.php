@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enum\AmenityCategory;
+use App\Enum\AmenityScope;
 use App\HasHasPublicUuidTrait;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['tenant_business_id', 'name', 'slug', 'category', 'icon'])]
+#[Fillable(['tenant_business_id', 'name', 'slug', 'category', 'scope', 'icon'])]
 #[Table('amenities')]
 class Amenity extends Model
 {
@@ -22,6 +23,7 @@ class Amenity extends Model
         return [
             'tenant_business_id' => 'integer',
             'category'           => AmenityCategory::class,
+            'scope'              => AmenityScope::class,
         ];
     }
 

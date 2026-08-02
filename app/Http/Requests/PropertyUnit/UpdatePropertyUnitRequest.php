@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\PropertyUnit;
 
+use App\Enum\AmenityScope;
 use App\Enum\PropertyUnitStatus;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -39,6 +40,14 @@ class UpdatePropertyUnitRequest extends FormRequest
             'capacity' => ['sometimes', 'required', 'integer', 'min:1'],
             'rent_price' => ['sometimes', 'required', 'numeric', 'min:0'],
             'status' => ['sometimes', 'nullable', 'string', Rule::enum(PropertyUnitStatus::class)],
+            'amenity_uuids' => ['sometimes', 'array'],
+            'amenity_uuids.*' => [
+                'uuid',
+                'distinct',
+                Rule::exists('amenities', 'uuid')->where(
+                    fn ($query) => $query->whereIn('scope', [AmenityScope::UNIT->value, AmenityScope::BOTH->value])
+                ),
+            ],
         ];
     }
 
@@ -52,6 +61,8 @@ class UpdatePropertyUnitRequest extends FormRequest
             'name.unique' => 'This property already has a unit with that name.',
             'capacity.min' => 'A unit must be able to house at least one tenant.',
             'rent_price.min' => 'Rent price cannot be negative.',
+            'amenity_uuids.*.exists' => 'One or more selected amenities are not available for a unit (they may be property-only).',
+            'amenity_uuids.*.distinct' => 'Duplicate amenities are not allowed.',
         ];
     }
 }

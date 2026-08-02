@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\PropertyUnit;
 
+use App\Enum\AmenityScope;
 use App\Enum\PropertyUnitStatus;
 use App\Models\PropertyUnit;
 use App\Support\UuidResolver;
@@ -27,6 +28,7 @@ class StorePropertyUnitRequest extends FormRequest
                         'capacity' => $this->input('capacity'),
                         'rent_price' => $this->input('rent_price'),
                         'status' => $this->input('status'),
+                        'amenity_uuids' => $this->input('amenity_uuids'),
                     ],
                 ],
             ]);
@@ -83,6 +85,14 @@ class StorePropertyUnitRequest extends FormRequest
             'units.*.capacity' => ['required', 'integer', 'min:1'],
             'units.*.rent_price' => ['required', 'numeric', 'min:0'],
             'units.*.status' => ['nullable', 'string', Rule::enum(PropertyUnitStatus::class)],
+            'units.*.amenity_uuids' => ['sometimes', 'array'],
+            'units.*.amenity_uuids.*' => [
+                'uuid',
+                'distinct',
+                Rule::exists('amenities', 'uuid')->where(
+                    fn ($query) => $query->whereIn('scope', [AmenityScope::UNIT->value, AmenityScope::BOTH->value])
+                ),
+            ],
         ];
     }
 
@@ -100,6 +110,8 @@ class StorePropertyUnitRequest extends FormRequest
             'units.*.name.distinct' => 'Unit names must be unique within this request.',
             'units.*.capacity.min' => 'A unit must be able to house at least one tenant.',
             'units.*.rent_price.min' => 'Rent price cannot be negative.',
+            'units.*.amenity_uuids.*.exists' => 'One or more selected amenities are not available for a unit (they may be property-only).',
+            'units.*.amenity_uuids.*.distinct' => 'Duplicate amenities are not allowed.',
         ];
     }
 }

@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests\PropertyUnit;
 
+use App\Enum\AmenityScope;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class SyncAmenitiesRequest extends FormRequest
 {
@@ -24,7 +26,13 @@ class SyncAmenitiesRequest extends FormRequest
     {
         return [
             'amenity_uuids' => ['required', 'array'],
-            'amenity_uuids.*' => ['uuid', 'distinct', 'exists:amenities,uuid'],
+            'amenity_uuids.*' => [
+                'uuid',
+                'distinct',
+                Rule::exists('amenities', 'uuid')->where(
+                    fn ($query) => $query->whereIn('scope', [AmenityScope::UNIT->value, AmenityScope::BOTH->value])
+                ),
+            ],
         ];
     }
 
@@ -35,7 +43,7 @@ class SyncAmenitiesRequest extends FormRequest
     {
         return [
             'amenity_uuids.required' => 'Please provide at least one amenity.',
-            'amenity_uuids.*.exists' => 'One or more selected amenities could not be found.',
+            'amenity_uuids.*.exists' => 'One or more selected amenities are not available for a unit (they may be property-only).',
             'amenity_uuids.*.distinct' => 'Duplicate amenities are not allowed.',
         ];
     }

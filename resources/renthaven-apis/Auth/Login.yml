@@ -11,9 +11,7 @@ http:
     data: |-
       {
       //     "username": "superadmin",
-      //     "username": "juandelacruz",
-      //     "username": "marksantos",
-          "username": "hbode",
+          "username": "juandelacruz",
           "password": "password"
       }
   auth: inherit

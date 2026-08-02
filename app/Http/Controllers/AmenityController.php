@@ -40,6 +40,9 @@ class AmenityController extends Controller
             ->when($request->filled('category'), function ($query) use ($request) {
                 $query->where('category', $request->input('category'));
             })
+            ->when($request->filled('scope'), function ($query) use ($request) {
+                $query->where('scope', $request->input('scope'));
+            })
             ->orderBy('name')
             ->get();
 

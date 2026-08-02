@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Amenity;
 
 use App\Enum\AmenityCategory;
+use App\Enum\AmenityScope;
 use App\Enum\Role;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -34,6 +35,7 @@ class StoreAmenityRequest extends FormRequest
                         'name' => $this->input('name'),
                         'slug' => $this->input('slug'),
                         'category' => $this->input('category'),
+                        'scope' => $this->input('scope'),
                         'icon' => $this->input('icon'),
                     ],
                 ],
@@ -53,6 +55,7 @@ class StoreAmenityRequest extends FormRequest
             'amenities.*.name' => ['required', 'string', 'max:255'],
             'amenities.*.slug' => ['nullable', 'string', 'max:255', 'distinct', 'unique:amenities,slug'],
             'amenities.*.category' => ['nullable', 'string', Rule::enum(AmenityCategory::class)],
+            'amenities.*.scope' => ['nullable', 'string', Rule::enum(AmenityScope::class)],
             'amenities.*.icon' => ['nullable', 'string', 'max:255'],
         ];
     }

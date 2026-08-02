@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Amenity;
 
 use App\Enum\AmenityCategory;
+use App\Enum\AmenityScope;
 use App\Enum\Role;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -34,6 +35,7 @@ class UpdateAmenityRequest extends FormRequest
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'slug' => ['sometimes', 'required', 'string', 'max:255', Rule::unique('amenities', 'slug')->ignore($amenityId)],
             'category' => ['nullable', 'string', Rule::enum(AmenityCategory::class)],
+            'scope' => ['sometimes', 'nullable', 'string', Rule::enum(AmenityScope::class)],
             'icon' => ['nullable', 'string', 'max:255'],
         ];
     }

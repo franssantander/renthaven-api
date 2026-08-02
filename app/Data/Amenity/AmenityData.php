@@ -3,6 +3,7 @@
 namespace App\Data\Amenity;
 
 use App\Enum\AmenityCategory;
+use App\Enum\AmenityScope;
 use Spatie\LaravelData\Data;
 
 class AmenityData extends Data
@@ -13,6 +14,7 @@ class AmenityData extends Data
         public string $name,
         public string $slug,
         public ?AmenityCategory $category,
+        public AmenityScope $scope,
         public ?string $icon,
     ) {}
 }

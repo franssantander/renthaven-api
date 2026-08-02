@@ -4,6 +4,7 @@ namespace App\Services\PropertyUnit;
 
 use App\Enum\PropertyUnitStatus;
 use App\Models\PropertyUnit;
+use App\Support\UuidResolver;
 use Illuminate\Support\Facades\DB;
 
 class PropertyUnitService
@@ -20,13 +21,19 @@ class PropertyUnitService
             $created = [];
 
             foreach ($units as $unit) {
-                $created[] = PropertyUnit::create([
+                $propertyUnit = PropertyUnit::create([
                     'property_id' => $propertyId,
                     'name'        => $unit['name'],
                     'capacity'    => $unit['capacity'],
                     'rent_price'  => $unit['rent_price'],
                     'status'      => $unit['status'] ?? PropertyUnitStatus::AVAILABLE->value,
                 ]);
+
+                if (! empty($unit['amenity_uuids'])) {
+                    $propertyUnit->amenities()->sync(UuidResolver::ids('amenities', $unit['amenity_uuids']));
+                }
+
+                $created[] = $propertyUnit;
             }
 
             return $created;

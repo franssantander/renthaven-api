@@ -100,6 +100,8 @@ class PropertyUnitController extends Controller
         $units = $this->propertyUnitService->createMany($propertyId, $data['units']);
 
         foreach ($units as $unit) {
+            $unit->load('amenities');
+
             $this->auditLogger->record(
                 module: AuditModule::PROPERTY_UNIT,
                 action: AuditAction::CREATED,
@@ -137,7 +139,15 @@ class PropertyUnitController extends Controller
     {
         $originalValues = $propertyUnit->getOriginal();
 
-        $propertyUnit->update($request->validated());
+        $data = $request->validated();
+        $amenityUuids = $data['amenity_uuids'] ?? null;
+        unset($data['amenity_uuids']);
+
+        $propertyUnit->update($data);
+
+        if ($amenityUuids !== null) {
+            $propertyUnit->amenities()->sync(UuidResolver::ids('amenities', $amenityUuids));
+        }
 
         if ($propertyUnit->wasChanged()) {
             $this->auditLogger->record(
@@ -149,7 +159,7 @@ class PropertyUnitController extends Controller
             );
         }
 
-        return $this->success(PropertyUnitData::from($propertyUnit), 'Unit updated successfully.');
+        return $this->success(PropertyUnitData::from($propertyUnit->load('amenities')), 'Unit updated successfully.');
     }
 
     /**

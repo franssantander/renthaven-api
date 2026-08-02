@@ -10,6 +10,7 @@ use App\Http\Requests\Property\StorePropertyAttachmentRequest;
 use App\Http\Requests\Property\StorePropertyRequest;
 use App\Http\Requests\Property\SyncAmenitiesRequest;
 use App\Http\Requests\Property\UpdatePropertyRequest;
+use App\Models\Amenity;
 use App\Models\Property;
 use App\Models\PropertyAttachment;
 use App\Models\PropertyUnit;
@@ -89,9 +90,18 @@ class PropertyController extends Controller
     {
         $data = $request->validated();
         $data['tenant_business_id'] = UuidResolver::id('tenant_businesses', $data['tenant_business_uuid']);
-        unset($data['tenant_business_uuid']);
+        $amenityUuids = $data['amenity_uuids'] ?? null;
+        unset($data['tenant_business_uuid'], $data['profile_image'], $data['amenity_uuids']);
 
         $property = Property::create($data);
+
+        if ($amenityUuids) {
+            $property->amenities()->sync(UuidResolver::ids('amenities', $amenityUuids));
+        }
+
+        if ($request->hasFile('profile_image')) {
+            $this->propertyAttachmentService->attach($property, [$request->file('profile_image')], ['Profile image']);
+        }
 
         $this->auditLogger->record(
             module: AuditModule::PROPERTY,
@@ -101,7 +111,7 @@ class PropertyController extends Controller
             newValues: $property->getAttributes(),
         );
 
-        return $this->success(PropertyData::from($property->refresh()), 'Property created successfully.', 201);
+        return $this->success(PropertyData::from($property->refresh()->load(['amenities', 'attachments'])), 'Property created successfully.', 201);
     }
 
     /**
@@ -127,7 +137,19 @@ class PropertyController extends Controller
     {
         $originalValues = $property->getOriginal();
 
-        $property->update($request->validated());
+        $data = $request->validated();
+        $amenityUuids = $data['amenity_uuids'] ?? null;
+        unset($data['profile_image'], $data['amenity_uuids']);
+
+        $property->update($data);
+
+        if ($amenityUuids !== null) {
+            $property->amenities()->sync(UuidResolver::ids('amenities', $amenityUuids));
+        }
+
+        if ($request->hasFile('profile_image')) {
+            $this->propertyAttachmentService->attach($property, [$request->file('profile_image')], ['Profile image']);
+        }
 
         if ($property->wasChanged()) {
             $this->auditLogger->record(
@@ -139,7 +161,7 @@ class PropertyController extends Controller
             );
         }
 
-        return $this->success(PropertyData::from($property), 'Property updated successfully.');
+        return $this->success(PropertyData::from($property->load(['amenities', 'attachments'])), 'Property updated successfully.');
     }
 
     /**
@@ -176,9 +198,9 @@ class PropertyController extends Controller
         $this->auditLogger->record(
             module: AuditModule::PROPERTY,
             action: AuditAction::UPDATED,
-            description: 'Added '.count($attachments)." image(s) to property \"{$property->name}\"",
+            description: 'Added ' . count($attachments) . " image(s) to property \"{$property->name}\"",
             auditable: $property,
-            newValues: ['attachment_ids' => array_map(fn ($attachment) => $attachment->id, $attachments)],
+            newValues: ['attachment_ids' => array_map(fn($attachment) => $attachment->id, $attachments)],
         );
 
         return $this->success(PropertyAttachmentData::collect($attachments), 'Image(s) uploaded successfully.', 201);

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Property;
 
+use App\Enum\AmenityScope;
 use App\Enum\PropertyType;
 use App\Enum\Role;
 use App\Models\Property;
@@ -42,6 +43,15 @@ class StorePropertyRequest extends FormRequest
             'name' => ['required', 'unique:properties,name', 'string', 'max:255'],
             'address' => ['nullable', 'string', 'max:1000'],
             'type' => ['required', Rule::enum(PropertyType::class)],
+            'profile_image' => ['nullable', 'image', 'max:5120'],
+            'amenity_uuids' => ['sometimes', 'array'],
+            'amenity_uuids.*' => [
+                'uuid',
+                'distinct',
+                Rule::exists('amenities', 'uuid')->where(
+                    fn ($query) => $query->whereIn('scope', [AmenityScope::PROPERTY->value, AmenityScope::BOTH->value])
+                ),
+            ],
         ];
     }
 
@@ -63,6 +73,10 @@ class StorePropertyRequest extends FormRequest
             'name.required' => 'Property name is required.',
             'name.unique' => 'A property with this name already exists.',
             'type.required' => 'Please select a property type.',
+            'profile_image.image' => 'The profile image must be a valid image file.',
+            'profile_image.max' => 'The profile image must not exceed 5MB.',
+            'amenity_uuids.*.exists' => 'One or more selected amenities are not available for a property (they may be unit-only).',
+            'amenity_uuids.*.distinct' => 'Duplicate amenities are not allowed.',
         ];
     }
 }
