@@ -36,8 +36,13 @@ class PropertyUnitController extends Controller
     public function dashboard(Request $request): JsonResponse
     {
         // PropertyUnit is tenant-scoped by its own global scope (and left
-        // unscoped for super admins), so no manual filter here.
+        // unscoped for super admins), so no manual tenant filter here.
         $unitQuery = PropertyUnit::query();
+
+        if ($request->filled('property_uuid')) {
+            $propertyId = UuidResolver::id('properties', $request->input('property_uuid'));
+            $unitQuery->where('property_id', $propertyId);
+        }
 
         $widgets = [
             $this->metricService->buildCountMetric(
@@ -72,8 +77,13 @@ class PropertyUnitController extends Controller
      */
     public function index(Request $request)
     {
+        $propertyId = $request->filled('property_uuid')
+            ? UuidResolver::id('properties', $request->input('property_uuid'))
+            : null;
+
         $units = PropertyUnit::query()
             ->with(['property.tenantBusiness', 'property.amenities', 'property.attachments', 'amenities', 'attachments'])
+            ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
             ->latest()
             ->paginate($request->input('per_page', 15));
 
