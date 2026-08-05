@@ -6,6 +6,7 @@ use App\Data\PropertyAttachment\PropertyAttachmentData;
 use App\Data\PropertyUnit\PropertyUnitData;
 use App\Enum\AuditAction;
 use App\Enum\AuditModule;
+use App\Http\Requests\PropertyUnit\ReorderPropertyAttachmentsRequest;
 use App\Http\Requests\PropertyUnit\StorePropertyAttachmentRequest;
 use App\Http\Requests\PropertyUnit\StorePropertyUnitRequest;
 use App\Http\Requests\PropertyUnit\SyncAmenitiesRequest;
@@ -82,7 +83,7 @@ class PropertyUnitController extends Controller
             : null;
 
         $units = PropertyUnit::query()
-            ->with(['property.tenantBusiness', 'property.amenities', 'property.attachments', 'amenities', 'attachments'])
+            ->with(['property.tenantBusiness', 'property.amenities', 'property.attachments', 'amenities', 'attachments', 'activeLeases.renter'])
             ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
             ->latest()
             ->paginate($request->input('per_page', 15));
@@ -131,7 +132,7 @@ class PropertyUnitController extends Controller
      */
     public function show(PropertyUnit $propertyUnit): JsonResponse
     {
-        return $this->success(PropertyUnitData::from($propertyUnit->load(['amenities', 'attachments'])));
+        return $this->success(PropertyUnitData::from($propertyUnit->load(['amenities', 'attachments', 'activeLeases.renter'])));
     }
 
     /**
@@ -169,7 +170,7 @@ class PropertyUnitController extends Controller
             );
         }
 
-        return $this->success(PropertyUnitData::from($propertyUnit->load('amenities')), 'Unit updated successfully.');
+        return $this->success(PropertyUnitData::from($propertyUnit->load(['amenities', 'attachments'])), 'Unit updated successfully.');
     }
 
     /**
@@ -189,7 +190,7 @@ class PropertyUnitController extends Controller
             newValues: ['amenity_ids' => $amenityIds],
         );
 
-        return $this->success(PropertyUnitData::from($propertyUnit->load('amenities')), 'Amenities updated successfully.');
+        return $this->success(PropertyUnitData::from($propertyUnit->load(['amenities', 'attachments'])), 'Amenities updated successfully.');
     }
 
     /**
@@ -212,6 +213,35 @@ class PropertyUnitController extends Controller
         );
 
         return $this->success(PropertyAttachmentData::collect($attachments), 'Image(s) uploaded successfully.', 201);
+    }
+
+    /**
+     * Reorder the uploaded images for this property unit. The first uuid in
+     * the given order becomes the lowest sort_order, i.e. the cover/profile
+     * image shown on the unit list.
+     */
+    public function reorderAttachments(ReorderPropertyAttachmentsRequest $request, PropertyUnit $propertyUnit): JsonResponse
+    {
+        $attachmentUuids = $request->validated('attachment_uuids');
+        $ownedUuids = $propertyUnit->attachments()->pluck('uuid')->all();
+
+        abort_unless(
+            count($attachmentUuids) === count($ownedUuids) && empty(array_diff($attachmentUuids, $ownedUuids)),
+            422,
+            "The provided photos do not match this unit's current photos."
+        );
+
+        $this->propertyAttachmentService->reorder($propertyUnit, $attachmentUuids);
+
+        $this->auditLogger->record(
+            module: AuditModule::PROPERTY_UNIT,
+            action: AuditAction::UPDATED,
+            description: "Reordered photos for unit \"{$propertyUnit->name}\"",
+            auditable: $propertyUnit,
+            newValues: ['attachment_order' => $attachmentUuids],
+        );
+
+        return $this->success(PropertyUnitData::from($propertyUnit->load(['amenities', 'attachments'])), 'Photo order updated successfully.');
     }
 
     /**

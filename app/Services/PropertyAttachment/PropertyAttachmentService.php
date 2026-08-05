@@ -50,4 +50,20 @@ class PropertyAttachmentService
         Storage::disk($attachment->disk)->delete($attachment->path);
         $attachment->delete();
     }
+
+    /**
+     * Reassign sort_order for the given attachable's attachments to match
+     * the given order of uuids (index 0 becomes the lowest sort_order, i.e.
+     * the cover/profile image).
+     *
+     * @param string[] $orderedUuids
+     */
+    public function reorder(Model $attachable, array $orderedUuids): void
+    {
+        DB::transaction(function () use ($attachable, $orderedUuids) {
+            foreach ($orderedUuids as $index => $uuid) {
+                $attachable->attachments()->where('uuid', $uuid)->update(['sort_order' => $index]);
+            }
+        });
+    }
 }

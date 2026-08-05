@@ -8,9 +8,12 @@ use App\HasHasPublicUuidTrait;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
@@ -19,7 +22,9 @@ use Illuminate\Support\Facades\Auth;
 #[Table('property_units')]
 class PropertyUnit extends Model
 {
-    use HasHasPublicUuidTrait, SoftDeletes;
+    use HasFactory, HasHasPublicUuidTrait, SoftDeletes;
+
+    protected $appends = ['occupied_count', 'tenants'];
 
     /**
      * property_units has no tenant_business_id column of its own — tenancy is
@@ -66,5 +71,25 @@ class PropertyUnit extends Model
     public function attachments(): MorphMany
     {
         return $this->morphMany(PropertyAttachment::class, 'attachable')->orderBy('sort_order');
+    }
+
+    public function leases(): HasMany
+    {
+        return $this->hasMany(Lease::class);
+    }
+
+    public function activeLeases(): HasMany
+    {
+        return $this->hasMany(Lease::class)->where('is_active', true);
+    }
+
+    protected function occupiedCount(): Attribute
+    {
+        return Attribute::get(fn () => $this->activeLeases->count());
+    }
+
+    protected function tenants(): Attribute
+    {
+        return Attribute::get(fn () => $this->activeLeases->pluck('renter')->filter()->values()->all());
     }
 }

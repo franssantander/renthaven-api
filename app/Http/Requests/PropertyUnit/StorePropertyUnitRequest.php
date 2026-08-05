@@ -83,7 +83,7 @@ class StorePropertyUnitRequest extends FormRequest
                     ->where(fn ($query) => $query->where('property_id', $propertyId)->whereNull('deleted_at')),
             ],
             'units.*.capacity' => ['required', 'integer', 'min:1'],
-            'units.*.rent_price' => ['required', 'numeric', 'min:0'],
+            'units.*.rent_price' => ['required', 'numeric', 'min:100'],
             'units.*.status' => ['nullable', 'string', Rule::enum(PropertyUnitStatus::class)],
             'units.*.amenity_uuids' => ['sometimes', 'array'],
             'units.*.amenity_uuids.*' => [

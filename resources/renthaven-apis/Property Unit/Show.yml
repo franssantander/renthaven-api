@@ -8,7 +8,7 @@ http:
   url: "{{base_url}}/property-unit/:uuid"
   params:
     - name: uuid
-      value: ""
+      value: 2547a85b-90cd-11f1-9190-6a8935d0ca18
       type: path
   auth: inherit
 

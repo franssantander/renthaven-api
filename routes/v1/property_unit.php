@@ -14,6 +14,7 @@ Route::prefix('property-unit')
         Route::put('/{propertyUnit}', 'update')->name('update')->middleware('permission:properties,update');
         Route::put('/{propertyUnit}/amenities', 'syncAmenities')->name('amenities.sync')->middleware('permission:properties,update');
         Route::post('/{propertyUnit}/attachments', 'storeAttachments')->name('attachments.store')->middleware('permission:properties,create');
+        Route::put('/{propertyUnit}/attachments/reorder', 'reorderAttachments')->name('attachments.reorder')->middleware('permission:properties,update');
         Route::delete('/{propertyUnit}/attachments/{attachment}', 'destroyAttachment')->name('attachments.destroy')->middleware('permission:properties,delete');
         Route::delete('/{propertyUnit}', 'destroy')->name('destroy')->middleware('permission:properties,delete');
         Route::get('/dashboard', 'dashboard')->name('dashboard');

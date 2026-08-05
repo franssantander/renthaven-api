@@ -6,7 +6,7 @@ use Illuminate\Support\Str;
 
 trait HasHasPublicUuidTrait
 {
-    protected static function bootHasPublicUuid(): void
+    protected static function bootHasHasPublicUuidTrait(): void
     {
         static::creating(function ($model) {
             if (empty($model->uuid)) {

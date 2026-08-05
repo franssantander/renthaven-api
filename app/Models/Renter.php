@@ -5,6 +5,7 @@ namespace App\Models;
 use App\HasHasPublicUuidTrait;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,15 +16,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 #[Table('renters')]
 class Renter extends Model
 {
-
-    use SoftDeletes, HasHasPublicUuidTrait;
+    use HasFactory, HasHasPublicUuidTrait, SoftDeletes;
 
     protected function casts(): array
     {
         return [
             'tenant_business_id' => 'integer',
-            'user_id'            => 'integer',
-            'emergency_contact'  => 'array',
+            'user_id' => 'integer',
+            'emergency_contact' => 'array',
         ];
     }
 
@@ -32,18 +32,15 @@ class Renter extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-
     public function tenantBusiness(): BelongsTo
     {
         return $this->belongsTo(TenantBusiness::class, 'tenant_business_id');
     }
 
-
     public function leases(): HasMany
     {
         return $this->hasMany(Lease::class, 'renter_id');
     }
-
 
     public function activeLease(): HasOne
     {
