@@ -1,38 +1,51 @@
-FROM php:8.4-fpm
+ARG PHP_VERSION=8.4
+FROM php:${PHP_VERSION}-fpm-alpine
 
-ARG USER
-ARG APP_REPOSITORY_NAME
+ARG USER=francis
 ARG UID=1001
 ARG GID=1001
 
-RUN apt-get update && apt-get install -y \
+# ---- System dependencies ----
+RUN apk add --no-cache \
     git \
     curl \
-    zip \
-    unzip \
     libpng-dev \
-    libonig-dev \
-    libxml2-dev \
     libzip-dev \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip \
-    && rm -rf /var/lib/apt/lists/*
+    libxml2-dev \
+    oniguruma-dev \
+    freetype-dev \
+    libjpeg-turbo-dev \
+    icu-dev \
+    $PHPIZE_DEPS
 
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# ---- PHP extensions Laravel needs ----
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) \
+        pdo_mysql \
+        mbstring \
+        exif \
+        pcntl \
+        bcmath \
+        gd \
+        zip \
+        intl \
+        opcache
 
-# Remap www-data to match host UID/GID
-RUN groupmod -g ${GID} www-data && \
-    usermod -u ${UID} -g ${GID} www-data
+# ---- Composer ----
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# ---- Non-root user matching your WSL host UID/GID ----
+# Keeps files created inside the container (vendor/, storage/, bootstrap/cache)
+# owned by you on the host instead of root.
+RUN addgroup -g ${GID} ${USER} \
+    && adduser -D -u ${UID} -G ${USER} ${USER}
 
 WORKDIR /var/www/html
 
-RUN chown -R www-data:www-data /var/www/html
+COPY .docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Set default user for this image — applies to CMD *and* docker exec
-USER www-data
+USER ${USER}
 
-COPY --chown=www-data:www-data .docker/entrypoint.sh /entrypoint.sh
-
-EXPOSE 9000
-
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["entrypoint.sh"]
 CMD ["php-fpm"]
