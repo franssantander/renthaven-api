@@ -3,18 +3,23 @@
 namespace Database\Seeders;
 
 use App\Enum\AmenityScope;
+use App\Enum\DepositStatus;
+use App\Enum\LeaseHistoryAction;
+use App\Enum\LeaseTermType;
 use App\Enum\PropertyType;
 use App\Enum\PropertyUnitStatus;
 use App\Enum\Role;
 use App\Enum\Status;
 use App\Models\Amenity;
 use App\Models\Lease;
+use App\Models\LeaseHistory;
 use App\Models\Property;
 use App\Models\PropertyAttachment;
 use App\Models\PropertyUnit;
 use App\Models\Renter;
 use App\Models\TenantBusiness;
 use App\Models\User;
+use App\Services\Lease\LeaseService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -63,6 +68,8 @@ class PropertyManagementSeeder extends Seeder
             ->orWhere('name', Role::TENANT->value)
             ->value('id') ?? 3;
 
+        $leaseService = app(LeaseService::class);
+
         $propertyAmenityIds = Amenity::whereIn('scope', [AmenityScope::PROPERTY->value, AmenityScope::BOTH->value])->pluck('id');
         $unitAmenityIds = Amenity::whereIn('scope', [AmenityScope::UNIT->value, AmenityScope::BOTH->value])->pluck('id');
 
@@ -87,7 +94,7 @@ class PropertyManagementSeeder extends Seeder
                     );
                 }
 
-                $units = $this->seedUnitsAndOccupants($property, $tenant, $tenantRoleId, $unitAmenityIds);
+                $units = $this->seedUnitsAndOccupants($property, $tenant, $tenantRoleId, $unitAmenityIds, $leaseService);
 
                 $this->seedAttachments($property, $units);
             }
@@ -101,7 +108,7 @@ class PropertyManagementSeeder extends Seeder
      *
      * @return array<int, PropertyUnit>
      */
-    private function seedUnitsAndOccupants(Property $property, TenantBusiness $tenant, int $tenantRoleId, Collection $unitAmenityIds): array
+    private function seedUnitsAndOccupants(Property $property, TenantBusiness $tenant, int $tenantRoleId, Collection $unitAmenityIds, LeaseService $leaseService): array
     {
         $unitScenarios = [
             [
@@ -127,19 +134,14 @@ class PropertyManagementSeeder extends Seeder
         $units = [];
 
         foreach ($unitScenarios as $scenario) {
-            // Resolve enum values if they exist, otherwise fallback safely to string matches
-            $resolvedStatus = match ($scenario['status']) {
-                'occupied' => PropertyUnitStatus::OCCUPIED->value ?? 'occupied',
-                'partially_occupied' => defined('App\Enum\PropertyUnitStatus::PARTIALLY_OCCUPIED') ? PropertyUnitStatus::PARTIALLY_OCCUPIED->value : 'partially_occupied',
-                default => PropertyUnitStatus::AVAILABLE->value ?? 'available',
-            };
-
+            // Units start empty/available; the real status is earned below by
+            // whichever leases actually get created, via recalculateUnitStatus().
             $unit = PropertyUnit::create([
                 'property_id' => $property->id,
                 'name' => $scenario['name'],
                 'capacity' => $scenario['capacity'],
                 'rent_price' => 1950.00,
-                'status' => $resolvedStatus,
+                'status' => PropertyUnitStatus::AVAILABLE->value,
             ]);
 
             if ($unitAmenityIds->isNotEmpty()) {
@@ -188,17 +190,33 @@ class PropertyManagementSeeder extends Seeder
                     ]),
                 ]);
 
-                Lease::create([
+                $startDate = Carbon::now()->subMonths(2)->toDateString();
+
+                $lease = Lease::create([
                     'property_unit_id' => $unit->id,
                     'renter_id' => $renter->id,
-                    'start_date' => Carbon::now()->subMonths(2)->toDateString(),
+                    'term_type' => LeaseTermType::MONTHLY,
+                    'start_date' => $startDate,
                     'end_date' => Carbon::now()->addMonths(10)->toDateString(),
                     'is_active' => true,
                     // PH-standard "2 months deposit + 1 month advance" against this unit's rent.
                     'security_deposit' => $unit->rent_price * 2,
                     'advance_rent' => $unit->rent_price,
+                    'deposit_status' => DepositStatus::HELD,
+                ]);
+
+                LeaseHistory::create([
+                    'lease_id' => $lease->id,
+                    'previous_lease_id' => null,
+                    'renter_id' => $renter->id,
+                    'from_property_unit_id' => null,
+                    'to_property_unit_id' => $unit->id,
+                    'action' => LeaseHistoryAction::ASSIGNED,
+                    'effective_date' => $startDate,
                 ]);
             }
+
+            $leaseService->recalculateUnitStatus($unit);
         }
 
         return $units;

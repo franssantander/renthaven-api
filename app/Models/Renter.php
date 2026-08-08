@@ -5,6 +5,7 @@ namespace App\Models;
 use App\HasHasPublicUuidTrait;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,6 +19,8 @@ class Renter extends Model
 {
     use HasFactory, HasHasPublicUuidTrait, SoftDeletes;
 
+    protected $appends = ['user_uuid'];
+
     protected function casts(): array
     {
         return [
@@ -25,6 +28,17 @@ class Renter extends Model
             'user_id' => 'integer',
             'emergency_contact' => 'array',
         ];
+    }
+
+    /**
+     * The uuid of the underlying platform User account — distinct from this
+     * Renter profile's own uuid. Lease assignment identifies existing tenants
+     * by User uuid (see StoreLeaseRequest), so callers picking a Renter from
+     * search results must submit this, not $this->uuid.
+     */
+    protected function userUuid(): Attribute
+    {
+        return Attribute::get(fn () => $this->user?->uuid);
     }
 
     public function user(): BelongsTo

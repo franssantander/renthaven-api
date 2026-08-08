@@ -82,6 +82,7 @@ class LeaseService
                     'is_active' => true,
                     'security_deposit' => $tenantInput['security_deposit'] ?? 0,
                     'advance_rent' => $tenantInput['advance_rent'] ?? 0,
+                    'deposit_status' => DepositStatus::HELD,
                 ]);
 
                 LeaseHistory::create([
@@ -140,6 +141,9 @@ class LeaseService
                 // A fixed-term lease keeps its original end date after a move; a monthly lease has none.
                 'end_date' => $lease->term_type === LeaseTermType::FIXED_TERM ? $originalEndDate : null,
                 'is_active' => true,
+                'security_deposit' => $lease->security_deposit,
+                'advance_rent' => $lease->advance_rent,
+                'deposit_status' => DepositStatus::HELD,
             ]);
 
             LeaseHistory::create([

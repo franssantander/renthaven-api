@@ -8,6 +8,7 @@ require __DIR__ . '/v1/dashboard.php';
 require __DIR__ . '/v1/properties.php';
 require __DIR__ . '/v1/property_unit.php';
 require __DIR__ . '/v1/lease.php';
+require __DIR__ . '/v1/renter.php';
 require __DIR__ . '/v1/amenities.php';
 require __DIR__ . '/v1/ledger.php';
 require __DIR__ . '/v1/maintenance_request.php';

@@ -14,9 +14,12 @@ use App\Models\Lease;
 use App\Models\PropertyUnit;
 use App\Services\AuditLog\AuditLogger;
 use App\Services\Lease\LeaseService;
+use App\Support\UuidResolver;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
+use Spatie\LaravelData\PaginatedDataCollection;
 
 class LeaseController extends Controller
 {
@@ -26,11 +29,26 @@ class LeaseController extends Controller
     ) {}
 
     /**
-     * Display a listing of the resource.
+     * Display a listing of active leases, optionally filtered to a single
+     * property unit (used to look up a tenant's lease uuid for reassignment
+     * or termination).
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $tenantBusinessId = $request->user()->tenant_business_id;
+        $propertyUnitId = $request->filled('property_unit_uuid')
+            ? UuidResolver::id('property_units', $request->input('property_unit_uuid'))
+            : null;
+
+        $leases = Lease::query()
+            ->with(['renter', 'propertyUnit'])
+            ->whereHas('propertyUnit.property', fn($query) => $query->where('tenant_business_id', $tenantBusinessId))
+            ->when($propertyUnitId, fn($query) => $query->where('property_unit_id', $propertyUnitId))
+            ->where('is_active', true)
+            ->latest()
+            ->paginate($request->input('per_page', 15));
+
+        return LeaseData::collect($leases, PaginatedDataCollection::class);
     }
 
     /**
