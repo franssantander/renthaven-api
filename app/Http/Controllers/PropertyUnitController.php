@@ -84,7 +84,7 @@ class PropertyUnitController extends Controller
 
         $units = PropertyUnit::query()
             ->with(['property.tenantBusiness', 'property.amenities', 'property.attachments', 'amenities', 'attachments', 'activeLeases.renter'])
-            ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
+            ->when($propertyId, fn($query) => $query->where('property_id', $propertyId))
             ->latest()
             ->paginate($request->input('per_page', 15));
 
@@ -132,7 +132,7 @@ class PropertyUnitController extends Controller
      */
     public function show(PropertyUnit $propertyUnit): JsonResponse
     {
-        return $this->success(PropertyUnitData::from($propertyUnit->load(['amenities', 'attachments', 'activeLeases.renter'])));
+        return $this->success(PropertyUnitData::from($propertyUnit->load(['property.tenantBusiness', 'property.amenities', 'property.attachments', 'amenities', 'attachments', 'activeLeases.renter'])));
     }
 
     /**
@@ -207,9 +207,9 @@ class PropertyUnitController extends Controller
         $this->auditLogger->record(
             module: AuditModule::PROPERTY_UNIT,
             action: AuditAction::UPDATED,
-            description: 'Added '.count($attachments)." image(s) to unit \"{$propertyUnit->name}\"",
+            description: 'Added ' . count($attachments) . " image(s) to unit \"{$propertyUnit->name}\"",
             auditable: $propertyUnit,
-            newValues: ['attachment_ids' => array_map(fn ($attachment) => $attachment->id, $attachments)],
+            newValues: ['attachment_ids' => array_map(fn($attachment) => $attachment->id, $attachments)],
         );
 
         return $this->success(PropertyAttachmentData::collect($attachments), 'Image(s) uploaded successfully.', 201);

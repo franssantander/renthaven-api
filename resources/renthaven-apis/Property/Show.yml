@@ -1,14 +1,14 @@
 info:
   name: Show
   type: http
-  seq: 8
+  seq: 4
 
 http:
   method: GET
-  url: "{{base_url}}/property-unit/:uuid"
+  url: "{{base_url}}/property/:units"
   params:
-    - name: uuid
-      value: c16842c9-92f1-11f1-820c-9a347beb6917
+    - name: units
+      value: c1665b46-92f1-11f1-820c-9a347beb6917
       type: path
   auth: inherit
 
