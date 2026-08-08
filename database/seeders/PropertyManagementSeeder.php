@@ -195,7 +195,7 @@ class PropertyManagementSeeder extends Seeder
                 $lease = Lease::create([
                     'property_unit_id' => $unit->id,
                     'renter_id' => $renter->id,
-                    'term_type' => LeaseTermType::MONTHLY,
+                    'term_type' => LeaseTermType::FIXED_TERM,
                     'start_date' => $startDate,
                     'end_date' => Carbon::now()->addMonths(10)->toDateString(),
                     'is_active' => true,

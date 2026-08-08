@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Enum\LeaseTermType;
 use App\Models\Lease;
 use App\Services\Lease\LeaseService;
 use Illuminate\Database\Seeder;
@@ -34,7 +33,6 @@ class LeaseLifecycleDemoSeeder extends Seeder
 
         // Scenario 1: a fixed-term lease nearing the end of its term gets renewed.
         $renewalLease->update([
-            'term_type' => LeaseTermType::FIXED_TERM,
             'end_date' => Carbon::now()->addDays(20)->toDateString(),
         ]);
 
