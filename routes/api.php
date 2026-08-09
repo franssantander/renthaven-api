@@ -3,6 +3,7 @@
 require __DIR__ . '/v1/auth.php';
 require __DIR__ . '/v1/tenant_business.php';
 require __DIR__ . '/v1/user_management.php';
+require __DIR__ . '/v1/role.php';
 require __DIR__ . '/v1/permission.php';
 require __DIR__ . '/v1/dashboard.php';
 require __DIR__ . '/v1/properties.php';

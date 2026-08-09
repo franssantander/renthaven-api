@@ -8,6 +8,7 @@ use Spatie\LaravelData\Attributes\MapInputName;
 class RoleData extends Data
 {
     public function __construct(
+        public string $uuid,
         #[MapInputName('name')]
         public string $role_name,
         public string $slug,
