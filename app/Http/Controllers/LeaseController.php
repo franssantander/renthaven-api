@@ -41,7 +41,7 @@ class LeaseController extends Controller
             : null;
 
         $leases = Lease::query()
-            ->with(['renter', 'propertyUnit'])
+            ->with(['renter', 'propertyUnit.property'])
             ->whereHas('propertyUnit.property', fn($query) => $query->where('tenant_business_id', $tenantBusinessId))
             ->when($propertyUnitId, fn($query) => $query->where('property_unit_id', $propertyUnitId))
             ->where('is_active', true)
