@@ -212,4 +212,28 @@ class LedgerController extends Controller
 
         return $this->success(LedgerEntryData::from($ledgerEntry->fresh()), 'Payment claim rejected.');
     }
+
+    /**
+     * Manually (re)send an overdue-rent payment-reminder magic link to the
+     * tenant for the specified ledger entry.
+     */
+    public function sendReminder(Request $request, LedgerEntry $ledgerEntry): JsonResponse
+    {
+        if ($ledgerEntry->status !== LedgerStatus::OVERDUE) {
+            return $this->error(null, 'Payment reminders can only be sent for overdue ledger entries.', 422);
+        }
+
+        $sent = $this->ledgerService->sendPaymentReminder($ledgerEntry->load('renter.user'));
+
+        abort_unless($sent, 422, 'This tenant does not have a linked user account to email.');
+
+        $this->auditLogger->record(
+            module: AuditModule::BILLING,
+            action: AuditAction::MAGIC_LINK_REQUESTED,
+            description: "Sent overdue rent payment reminder for ledger entry ID {$ledgerEntry->id}",
+            auditable: $ledgerEntry,
+        );
+
+        return $this->success(LedgerEntryData::from($ledgerEntry->fresh()), 'Payment reminder sent.');
+    }
 }

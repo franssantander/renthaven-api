@@ -14,4 +14,5 @@ Route::prefix('ledger')
         Route::get('/', 'index')->name('index')->middleware('permission:renter_tenants,view');
         Route::put('/{ledgerEntry}/pay', 'markPaid')->name('pay')->middleware('permission:renter_tenants,update');
         Route::put('/{ledgerEntry}/reject', 'rejectPayment')->name('reject')->middleware('permission:renter_tenants,update');
+        Route::put('/{ledgerEntry}/send-reminder', 'sendReminder')->name('send-reminder')->middleware('permission:renter_tenants,update');
     });

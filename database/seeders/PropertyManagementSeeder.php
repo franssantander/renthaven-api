@@ -158,28 +158,23 @@ class PropertyManagementSeeder extends Seeder
                 $lastName = fake()->lastName();
                 $email = fake()->unique()->safeEmail();
                 $phone = fake()->unique()->numerify('+1 (555) ###-####');
-                $userId = null;
 
-                if ($slot === 1) {
-                    $user = User::create([
-                        'role_id' => $tenantRoleId,
-                        'tenant_business_id' => $tenant->id,
-                        'first_name' => $firstName,
-                        'last_name' => $lastName,
-                        'username' => fake()->unique()->userName(),
-                        'email' => $email,
-                        'phone' => $phone,
-                        'password' => Hash::make('password'),
-                        'email_verified_at' => now(),
-                        'status' => Status::ACTIVE->value ?? 'active',
-                    ]);
-
-                    $userId = $user->id;
-                }
+                $user = User::create([
+                    'role_id' => $tenantRoleId,
+                    'tenant_business_id' => $tenant->id,
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
+                    'username' => fake()->unique()->userName(),
+                    'email' => $email,
+                    'phone' => $phone,
+                    'password' => Hash::make('password'),
+                    'email_verified_at' => now(),
+                    'status' => Status::ACTIVE->value ?? 'active',
+                ]);
 
                 $renter = Renter::create([
                     'tenant_business_id' => $tenant->id,
-                    'user_id' => $userId,
+                    'user_id' => $user->id,
                     'first_name' => $firstName,
                     'last_name' => $lastName,
                     'email' => $email,

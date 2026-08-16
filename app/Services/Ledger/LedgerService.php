@@ -140,10 +140,21 @@ class LedgerService
             return;
         }
 
+        $this->sendPaymentReminder($entry);
+    }
+
+    /**
+     * Issue a magic-link payment reminder for a ledger entry on demand
+     * (e.g. a staff member manually resending it), bypassing the
+     * once-per-entry dedup that guards the automated overdue-flagging flow.
+     * Returns false if the renter has no linked user account to email.
+     */
+    public function sendPaymentReminder(LedgerEntry $entry): bool
+    {
         $user = $entry->renter?->user;
 
         if (! $user instanceof User) {
-            return;
+            return false;
         }
 
         $token = $this->magicLinkService->issueFor($user);
@@ -151,6 +162,8 @@ class LedgerService
         $user->notify(new OverdueRentReminderNotification($entry, $token));
 
         $entry->update(['reminder_sent_at' => now()]);
+
+        return true;
     }
 
     /**
