@@ -76,6 +76,7 @@ class StoreLeaseRequest extends FormRequest
 
             // new tenant: required unless a uuid was given for this entry
             'tenants.*.first_name' => ['required_without:tenants.*.uuid', 'nullable', 'string', 'max:255'],
+            'tenants.*.middle_name' => ['nullable', 'string', 'max:255'],
             'tenants.*.last_name' => ['required_without:tenants.*.uuid', 'nullable', 'string', 'max:255'],
             'tenants.*.email' => ['required_without:tenants.*.uuid', 'nullable', 'string', 'email', 'max:255'],
             'tenants.*.phone' => ['nullable', 'string', 'max:50'],

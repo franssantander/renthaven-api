@@ -297,6 +297,7 @@ class LeaseService
             'role_id' => $tenantRoleId,
             'tenant_business_id' => $tenantBusinessId,
             'first_name' => $tenantInput['first_name'],
+            'middle_name' => $tenantInput['middle_name'] ?? null,
             'last_name' => $tenantInput['last_name'],
             'email' => $tenantInput['email'],
             'phone' => $tenantInput['phone'] ?? null,
@@ -319,6 +320,7 @@ class LeaseService
             ['user_id' => $user->id, 'tenant_business_id' => $tenantBusinessId],
             [
                 'first_name' => $user->first_name,
+                'middle_name' => $user->middle_name,
                 'last_name' => $user->last_name,
                 'email' => $user->email,
                 'phone' => $user->phone,

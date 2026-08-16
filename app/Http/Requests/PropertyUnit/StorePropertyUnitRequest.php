@@ -4,6 +4,7 @@ namespace App\Http\Requests\PropertyUnit;
 
 use App\Enum\AmenityScope;
 use App\Enum\PropertyUnitStatus;
+use App\Models\Property;
 use App\Models\PropertyUnit;
 use App\Support\UuidResolver;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -40,7 +41,15 @@ class StorePropertyUnitRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $response = Gate::inspect('create', [PropertyUnit::class, count($this->input('units', []))]);
+        $tenantId = $this->user()?->tenant_business_id;
+        $propertyId = UuidResolver::id('properties', $this->input('property_uuid'));
+        $property = $propertyId ? Property::where('id', $propertyId)->where('tenant_business_id', $tenantId)->first() : null;
+
+        if (! $property) {
+            return true;
+        }
+
+        $response = Gate::inspect('create', [PropertyUnit::class, $property, count($this->input('units', []))]);
 
         if ($response->denied()) {
             throw new HttpResponseException(response()->json([

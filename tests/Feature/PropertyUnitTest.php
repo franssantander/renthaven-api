@@ -147,4 +147,38 @@ class PropertyUnitTest extends TestCase
         $response->assertStatus(201);
         $this->assertSame(5, PropertyUnit::count());
     }
+
+    public function test_store_max_units_is_enforced_per_property_not_tenant_wide(): void
+    {
+        $user = $this->actingAsTenantAdmin(); // free plan, max_units = 5
+
+        $propertyA = Property::factory()->create(['tenant_business_id' => $user->tenant_business_id]);
+        $propertyB = Property::factory()->create(['tenant_business_id' => $user->tenant_business_id]);
+
+        PropertyUnit::factory()->count(5)->create(['property_id' => $propertyA->id]);
+
+        // Property A is already at its own max_units cap.
+        $overflowResponse = $this->postJson('/api/v1/property-unit', [
+            'property_uuid' => $propertyA->uuid,
+            'name' => 'Overflow Unit',
+            'capacity' => 1,
+            'rent_price' => 5000,
+            'amenity_uuids' => [],
+        ]);
+
+        $overflowResponse->assertStatus(403);
+
+        // Property B has no units yet, so it should not be blocked by property A's usage.
+        $successResponse = $this->postJson('/api/v1/property-unit', [
+            'property_uuid' => $propertyB->uuid,
+            'name' => 'First Unit',
+            'capacity' => 1,
+            'rent_price' => 5000,
+            'amenity_uuids' => [],
+        ]);
+
+        $successResponse->assertStatus(201);
+        $this->assertSame(5, PropertyUnit::where('property_id', $propertyA->id)->count());
+        $this->assertSame(1, PropertyUnit::where('property_id', $propertyB->id)->count());
+    }
 }

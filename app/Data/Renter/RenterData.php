@@ -11,7 +11,9 @@ class RenterData extends Data
         public string $uuid,
         public ?string $user_uuid,
         public string $first_name,
+        public ?string $middle_name,
         public string $last_name,
+        public string $full_name,
         public string $email,
         public ?string $phone,
     ) {}

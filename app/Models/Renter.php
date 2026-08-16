@@ -13,13 +13,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['tenant_business_id', 'user_id', 'first_name', 'last_name', 'email', 'phone', 'emergency_contact'])]
+#[Fillable(['tenant_business_id', 'user_id', 'first_name', 'middle_name', 'last_name', 'email', 'phone', 'emergency_contact'])]
 #[Table('renters')]
 class Renter extends Model
 {
     use HasFactory, HasHasPublicUuidTrait, SoftDeletes;
 
-    protected $appends = ['user_uuid'];
+    protected $appends = ['user_uuid', 'full_name'];
 
     protected function casts(): array
     {
@@ -39,6 +39,11 @@ class Renter extends Model
     protected function userUuid(): Attribute
     {
         return Attribute::get(fn () => $this->user?->uuid);
+    }
+
+    protected function fullName(): Attribute
+    {
+        return Attribute::get(fn () => implode(' ', array_filter([$this->first_name, $this->middle_name, $this->last_name])));
     }
 
     public function user(): BelongsTo
