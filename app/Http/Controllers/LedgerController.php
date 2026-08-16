@@ -84,7 +84,7 @@ class LedgerController extends Controller
     public function index(Request $request)
     {
         $entries = LedgerEntry::query()
-            ->with(['lease', 'renter', 'propertyUnit', 'attachments'])
+            ->with(['lease', 'renter', 'propertyUnit.property', 'attachments'])
             ->when($request->filled('status'), function ($query) use ($request) {
                 $query->where('status', $request->input('status'));
             })
@@ -111,7 +111,7 @@ class LedgerController extends Controller
         }
 
         $entries = LedgerEntry::query()
-            ->with(['lease', 'renter', 'propertyUnit', 'attachments'])
+            ->with(['lease', 'renter', 'propertyUnit.property', 'attachments'])
             ->where('renter_id', $renter->id)
             ->latest('due_date')
             ->paginate($request->input('per_page', 15));
