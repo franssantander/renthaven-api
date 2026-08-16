@@ -9,6 +9,7 @@ use App\Enum\MaintenanceCategory;
 use App\Enum\MaintenancePriority;
 use App\Enum\MaintenanceRequestStatus;
 use Illuminate\Support\Carbon;
+use Spatie\LaravelData\Attributes\DataCollectionOf;
 use Spatie\LaravelData\Data;
 
 class MaintenanceRequestData extends Data
@@ -32,5 +33,8 @@ class MaintenanceRequestData extends Data
         public ?LeaseData $lease,
         public ?RenterData $renter,
         public ?PropertyUnitData $property_unit,
+
+        #[DataCollectionOf(MaintenanceRequestHistoryData::class)]
+        public ?array $histories,
     ) {}
 }

@@ -129,7 +129,7 @@ class MaintenanceRequestController extends Controller
     public function index(Request $request)
     {
         $requests = MaintenanceRequest::query()
-            ->with(['lease', 'renter', 'propertyUnit'])
+            ->with(['lease', 'renter', 'propertyUnit.property'])
             ->when($request->filled('status'), function ($query) use ($request) {
                 $query->where('status', $request->input('status'));
             })
@@ -159,7 +159,7 @@ class MaintenanceRequestController extends Controller
         }
 
         $requests = MaintenanceRequest::query()
-            ->with(['lease', 'renter', 'propertyUnit'])
+            ->with(['lease', 'renter', 'propertyUnit.property'])
             ->where('renter_id', $renter->id)
             ->latest()
             ->paginate($request->input('per_page', 15));
@@ -184,7 +184,10 @@ class MaintenanceRequestController extends Controller
 
         abort_unless($ownsAsRenter || $ownsAsStaff, 404);
 
-        return $this->success(MaintenanceRequestData::from($maintenanceRequest->load(['lease', 'renter', 'propertyUnit', 'histories'])));
+        return $this->success(MaintenanceRequestData::from($maintenanceRequest->load([
+            'lease', 'renter', 'propertyUnit',
+            'histories' => fn ($query) => $query->latest()->with('performedBy'),
+        ])));
     }
 
     /**
