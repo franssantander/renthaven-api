@@ -17,6 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
         apiPrefix: 'api/v1'
     )
+    ->withBroadcasting(
+        __DIR__.'/../routes/channels.php',
+        ['middleware' => ['api', 'auth:api']],
+    )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->api(prepend: [
             AuthenticateFromCookie::class,

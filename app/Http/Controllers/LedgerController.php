@@ -6,6 +6,7 @@ use App\Data\Ledger\LedgerEntryData;
 use App\Enum\AuditAction;
 use App\Enum\AuditModule;
 use App\Enum\LedgerStatus;
+use App\Enum\NotificationType;
 use App\Http\Requests\Ledger\MarkPaidRequest;
 use App\Http\Requests\Ledger\RejectPaymentRequest;
 use App\Http\Requests\Ledger\SubmitPaymentRequest;
@@ -129,6 +130,7 @@ class LedgerController extends Controller
         }
 
         $originalValues = $ledgerEntry->getOriginal();
+        $wasSubmitted = $ledgerEntry->status === LedgerStatus::SUBMITTED;
 
         // An explicit `amount` always wins; otherwise, approving a renter's
         // submitted claim settles exactly what they claimed to have paid.
@@ -146,6 +148,9 @@ class LedgerController extends Controller
             description: "Marked ledger entry ID {$ledgerEntry->id} as paid",
             auditable: $ledgerEntry,
             oldValues: $originalValues,
+            context: $wasSubmitted
+                ? ['notification_type' => NotificationType::PAYMENT_ACCEPTED->value]
+                : [],
         );
 
         return $this->success(LedgerEntryData::from($ledgerEntry->fresh()), 'Ledger entry marked as paid.');
@@ -183,6 +188,7 @@ class LedgerController extends Controller
             description: "Renter submitted a payment claim for ledger entry ID {$ledgerEntry->id}",
             auditable: $ledgerEntry,
             oldValues: $originalValues,
+            context: ['notification_type' => NotificationType::PAYMENT_SUBMITTED->value],
         );
 
         return $this->success(LedgerEntryData::from($ledgerEntry->fresh()->load('attachments')), 'Payment submitted. An admin will review and confirm it shortly.');
@@ -208,6 +214,10 @@ class LedgerController extends Controller
             description: "Rejected payment claim for ledger entry ID {$ledgerEntry->id}",
             auditable: $ledgerEntry,
             oldValues: $originalValues,
+            context: [
+                'notification_type' => NotificationType::PAYMENT_REJECTED->value,
+                'reason' => $request->validated('reason'),
+            ],
         );
 
         return $this->success(LedgerEntryData::from($ledgerEntry->fresh()), 'Payment claim rejected.');

@@ -6,6 +6,7 @@ use App\Data\Lease\LeaseData;
 use App\Enum\AuditAction;
 use App\Enum\AuditModule;
 use App\Enum\LeaseTermType;
+use App\Enum\NotificationType;
 use App\Http\Requests\Lease\RenewLeaseRequest;
 use App\Http\Requests\Lease\StoreLeaseRequest;
 use App\Http\Requests\Lease\TerminateLeaseRequest;
@@ -91,6 +92,7 @@ class LeaseController extends Controller
                 description: "Assigned renter ID {$lease->renter_id} to unit ID {$lease->property_unit_id}",
                 auditable: $lease,
                 newValues: $lease->getAttributes(),
+                context: ['notification_type' => NotificationType::TENANT_ASSIGNED->value],
             );
         }
 

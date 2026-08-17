@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Data\UserData;
 use App\Enum\AuditAction;
 use App\Enum\AuditModule;
+use App\Enum\NotificationType;
 use App\Http\Requests\UserManagement\StoreUserManagementRequest;
 use App\Http\Requests\UserManagement\UpdateUserManagementRequest;
 use App\Models\User;
@@ -64,6 +65,10 @@ class UserManagementController extends Controller
             description: "Created user account for {$newUser->email}",
             auditable: $newUser,
             newValues: $newUser->getAttributes(),
+            context: [
+                'notification_type' => NotificationType::USER_CREATED->value,
+                'tenant_business_id' => $newUser->tenant_business_id,
+            ],
         );
 
 

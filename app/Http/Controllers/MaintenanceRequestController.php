@@ -6,6 +6,7 @@ use App\Data\MaintenanceRequest\MaintenanceRequestData;
 use App\Enum\AuditAction;
 use App\Enum\AuditModule;
 use App\Enum\MaintenanceRequestStatus;
+use App\Enum\NotificationType;
 use App\Enum\Role;
 use App\Http\Requests\MaintenanceRequest\StoreMaintenanceRequestRequest;
 use App\Http\Requests\MaintenanceRequest\UpdateMaintenanceRequestStatusRequest;
@@ -118,6 +119,9 @@ class MaintenanceRequestController extends Controller
             description: "Created maintenance request \"{$maintenanceRequest->title}\" for unit ID {$propertyUnit->id}",
             auditable: $maintenanceRequest,
             newValues: $maintenanceRequest->getAttributes(),
+            context: $user->role?->slug === Role::TENANT->value
+                ? ['notification_type' => NotificationType::MAINTENANCE_SUBMITTED->value]
+                : [],
         );
 
         return $this->success(MaintenanceRequestData::from($maintenanceRequest), 'Maintenance request submitted successfully.', 201);
