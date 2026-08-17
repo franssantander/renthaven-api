@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Data\Notification\NotificationData;
+use App\Enum\NotificationReadStatus;
+use App\Http\Requests\Notification\ListNotificationRequest;
 use App\Models\Notification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,11 +16,21 @@ class NotificationController extends Controller
      * The authenticated user's notifications, newest first. Visibility scoping
      * is inherent: rows are only ever created for their intended recipient.
      */
-    public function index(Request $request)
+    public function index(ListNotificationRequest $request)
     {
+        $readStatus = $request->enum('read_status', NotificationReadStatus::class);
+
         $notifications = Notification::query()
             ->where('user_id', $request->user()->id)
-            ->when($request->boolean('unread_only'), fn ($q) => $q->whereNull('read_at'))
+            ->when(
+                $readStatus === NotificationReadStatus::READ,
+                fn ($query) => $query->whereNotNull('read_at'),
+            )
+            ->when(
+                $readStatus === NotificationReadStatus::UNREAD
+                    || ($readStatus === null && $request->boolean('unread_only')),
+                fn ($query) => $query->whereNull('read_at'),
+            )
             ->latest('created_at')
             ->latest('id')
             ->paginate($request->input('per_page', 15));

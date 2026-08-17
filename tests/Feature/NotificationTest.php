@@ -199,6 +199,37 @@ class NotificationTest extends TestCase
         $this->assertNull($otherNotification->fresh()->read_at);
     }
 
+    public function test_notification_list_can_be_filtered_by_read_status(): void
+    {
+        $user = $this->user('admin');
+        $other = $this->user('staff');
+        $readNotification = $this->notificationFor($user);
+        $unreadNotification = $this->notificationFor($user);
+        $this->notificationFor($other);
+
+        $readNotification->update(['read_at' => now()]);
+
+        Passport::actingAs($user);
+
+        $this->getJson('/api/v1/notifications')
+            ->assertOk()
+            ->assertJsonCount(2, 'data');
+        $this->getJson('/api/v1/notifications?read_status=read')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.uuid', $readNotification->uuid);
+        $this->getJson('/api/v1/notifications?read_status=unread')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.uuid', $unreadNotification->uuid);
+        $this->getJson('/api/v1/notifications?unread_only=true')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.uuid', $unreadNotification->uuid);
+        $this->getJson('/api/v1/notifications?read_status=archived')
+            ->assertUnprocessable();
+    }
+
     public function test_private_channel_authorization_only_allows_the_matching_user(): void
     {
         config([
